@@ -16,7 +16,6 @@ HEADERS += \
     actions/onf_actionmodifyclustersgroups.h \
     actions/onf_actionmodifyclustersgroups02.h \
     actions/onf_actionmodifypositions2d.h \
-    actions/onf_actionpickitemsinlist.h \
     actions/onf_actionsegmentcrowns.h \
     actions/onf_actionsegmentgaps.h \
     actions/onf_actionselectcellsingrid3d.h \
@@ -102,7 +101,6 @@ HEADERS += \
     views/actions/onf_actionmodifyclustersgroupsoptions.h \
     views/actions/onf_actionmodifyclustersgroupsoptions02.h \
     views/actions/onf_actionmodifypositions2doptions.h \
-    views/actions/onf_actionpickitemsinlistoptions.h \
     views/actions/onf_actionsegmentcrownsoptions.h \
     views/actions/onf_actionsegmentgapsoptions.h \
     views/actions/onf_actionselectcellsingrid3dcolonizedialog.h \
@@ -120,7 +118,6 @@ SOURCES += \
     actions/onf_actionmodifyclustersgroups.cpp \
     actions/onf_actionmodifyclustersgroups02.cpp \
     actions/onf_actionmodifypositions2d.cpp \
-    actions/onf_actionpickitemsinlist.cpp \
     actions/onf_actionsegmentcrowns.cpp \
     actions/onf_actionsegmentgaps.cpp \
     actions/onf_actionselectcellsingrid3d.cpp \
@@ -206,7 +203,6 @@ SOURCES += \
     views/actions/onf_actionmodifyclustersgroupsoptions.cpp \
     views/actions/onf_actionmodifyclustersgroupsoptions02.cpp \
     views/actions/onf_actionmodifypositions2doptions.cpp \
-    views/actions/onf_actionpickitemsinlistoptions.cpp \
     views/actions/onf_actionsegmentcrownsoptions.cpp \
     views/actions/onf_actionsegmentgapsoptions.cpp \
     views/actions/onf_actionselectcellsingrid3dcolonizedialog.cpp \
@@ -232,7 +228,6 @@ FORMS += \
     views/actions/onf_actionmodifyclustersgroupsoptions.ui \
     views/actions/onf_actionmodifyclustersgroupsoptions02.ui \
     views/actions/onf_actionmodifypositions2doptions.ui \
-    views/actions/onf_actionpickitemsinlistoptions.ui \
     views/actions/onf_actionsegmentcrownsoptions.ui \
     views/actions/onf_actionsegmentgapsoptions.ui \
     views/actions/onf_actionselectcellsingrid3dcolonizedialog.ui \
