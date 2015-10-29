@@ -29,32 +29,7 @@
 #include "ct_step/abstract/ct_abstractstep.h"
 #include "ct_itemdrawable/model/outModel/abstract/def_ct_abstractgroupmodelout.h"
 
-/*!
- * \class ONF_StepDetectSection07
- * \ingroup Steps_OE
- * \brief <b>Group vertically clusters in sections.</b>
- *
- * CT_PointCluster are grouped in sections, if they have a BoudingBox (x,y) intersection
- * and if they are distant vertically less than _deltaz.
- *
- * \param _deltaz Maximum z distance to be included in an existing section
- *
- *
- * <b>Input Models:</b>
- *
- *  - CT_ResultGroup \n
- *      (...)
- *      - CT_StandardItemGroup (ClusterGroup)... \n
- *          - CT_PointCluster (Cluster) \n
- *
- * <b>Output Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - CT_StandardItemGroup (Section)... \n
- *          - <em>cpy CT_StandardItemGroup (ClusterGroup)...</em> \n
- *              - <em>cpy CT_PointCluster (Cluster)</em> \n
- *
- */
+
 class ONF_StepDetectSection07 : public CT_AbstractStep
 {
     // IMPORTANT in order to obtain step name

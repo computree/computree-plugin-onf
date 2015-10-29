@@ -23,7 +23,7 @@
 *****************************************************************************/
 
 
-#include "onf_stepcomputehitgrid.h"
+#include "onf_stepcomputeverticalprofile.h"
 
 #include "ct_result/model/inModel/ct_inresultmodelgrouptocopy.h"
 #include "ct_result/model/outModel/tools/ct_outresultmodelgrouptocopypossibilities.h"
@@ -36,8 +36,8 @@
 
 // Inclusion of used ItemDrawable classes
 #include "ct_itemdrawable/ct_scene.h"
-#include "ct_itemdrawable/ct_grid3d.h"
-#include "tools/onf_computehitsthread.h"
+#include "ct_itemdrawable/ct_profile.h"
+#include "tools/onf_computeverticalprofilethread.h"
 
 #include "ct_view/ct_stepconfigurabledialog.h"
 
@@ -49,40 +49,34 @@
 #define DEF_SearchInScene   "sc"
 #define DEF_SearchInGroup   "gr"
 
-#define DEF_itemOut_grxy "grxy"
-#define DEF_itemOut_grxz "grxz"
-#define DEF_itemOut_gryz "gryz"
-
-ONF_StepComputeHitGrid::ONF_StepComputeHitGrid(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
+ONF_StepComputeVerticalProfile::ONF_StepComputeVerticalProfile(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
     _res = 0.5;
     _gridMode = 1;
     _xBase = 0;
     _yBase = 0;
     _zBase = 0;
-
 }
 
-QString ONF_StepComputeHitGrid::getStepDescription() const
+QString ONF_StepComputeVerticalProfile::getStepDescription() const
 {
     // Gives the descrption to print in the GUI
-    return tr("Créer grille 3D de densité de points");
+    return tr("Créer profil vertical de densité de points");
 }
 
 // Step description (tooltip of contextual menu)
-QString ONF_StepComputeHitGrid::getStepDetailledDescription() const
+QString ONF_StepComputeVerticalProfile::getStepDetailledDescription() const
 {
-    return tr("Cette étape génère une grille 3D à la <b>résolution</b> spécifiée.<br>"
-              "Chaque case reçoit le nombre de points de la scène d'entrée qu'elle contient.");
+    return tr("Cette étape génère une profil selon l'axe Z.");
 }
 
-CT_VirtualAbstractStep* ONF_StepComputeHitGrid::createNewInstance(CT_StepInitializeData &dataInit)
+CT_VirtualAbstractStep* ONF_StepComputeVerticalProfile::createNewInstance(CT_StepInitializeData &dataInit)
 {
     // Creates an instance of this step
-    return new ONF_StepComputeHitGrid(dataInit);
+    return new ONF_StepComputeVerticalProfile(dataInit);
 }
 
-void ONF_StepComputeHitGrid::createInResultModelListProtected()
+void ONF_StepComputeVerticalProfile::createInResultModelListProtected()
 {
     CT_InResultModelGroupToCopy *resultModel = createNewInResultModelForCopy(DEF_SearchInResult, tr("Scène(s)"));
 
@@ -91,19 +85,20 @@ void ONF_StepComputeHitGrid::createInResultModelListProtected()
     resultModel->addItemModel(DEF_SearchInGroup, DEF_SearchInScene, CT_Scene::staticGetType(), tr("Scène"));
 }
 
-void ONF_StepComputeHitGrid::createOutResultModelListProtected()
+void ONF_StepComputeVerticalProfile::createOutResultModelListProtected()
 {    
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
-    res->addItemModel(DEF_SearchInGroup, _hits_ModelName, new CT_Grid3D<int>(), tr("Hits"));
+
+    res->addItemModel(DEF_SearchInGroup, _itemOut_prz_ModelName, new CT_Profile<int>(), tr("ProfilZ"));
 }
 
-void ONF_StepComputeHitGrid::createPostConfigurationDialog()
+void ONF_StepComputeVerticalProfile::createPostConfigurationDialog()
 {
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
 
-    configDialog->addDouble(tr("Résolution de la grille"),tr("meters"),0.0001,10000,2, _res );
+    configDialog->addDouble(tr("Résolution du profil"),tr("mètres"),0.0001,10000,2, _res );
 
-    configDialog->addText(tr("Callage du coin (minX, minY, minZ) :"),"", "");
+    configDialog->addText(tr("Callage de l'origine (X, Y, Z) :"),"", "");
 
     CT_ButtonGroup &bg_gridMode = configDialog->addButtonGroup(_gridMode);
     configDialog->addExcludeValue("", "", tr("Sur la boite englobante de la scène"), bg_gridMode, 0);
@@ -114,7 +109,7 @@ void ONF_StepComputeHitGrid::createPostConfigurationDialog()
     configDialog->addDouble(tr("Coordonnée Z :"), "", -std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), 4, _zBase);
 }
 
-void ONF_StepComputeHitGrid::compute()
+void ONF_StepComputeVerticalProfile::compute()
 {
     // Gets the out result
     CT_ResultGroup* outResult = getOutResultList().first();
@@ -152,14 +147,14 @@ void ONF_StepComputeHitGrid::compute()
             }
 
             // Declaring the output grids
-            CT_Grid3D<int>* hitGrid = CT_Grid3D<int>::createGrid3DFromXYZCoords(_hits_ModelName.completeName(), outResult,
-                                                                                minX, minY, minZ,
-                                                                                scene->maxX(), scene->maxY(), scene->maxZ(),
-                                                                                _res, -1, 0);
+            CT_Profile<int>* proZ = CT_Profile<int>::createProfileFromSegment(_itemOut_prz_ModelName.completeName(), outResult,
+                                                                              minX, minY, minZ,
+                                                                              minX, minY, scene->maxZ(),
+                                                                              _res, -1, 0);
 
-            group->addItemDrawable(hitGrid);
+            group->addItemDrawable(proZ);
 
-            ONF_ComputeHitsThread* hitsThread = new ONF_ComputeHitsThread(hitGrid, scene);
+            ONF_ComputeVerticalProfileThread* hitsThread = new ONF_ComputeVerticalProfileThread(proZ, scene);
             connect(hitsThread, SIGNAL(progressChanged()), this, SLOT(updateProgress()));
             hitsThread->start();
             _threadList.append(hitsThread);
@@ -181,7 +176,7 @@ void ONF_StepComputeHitGrid::compute()
     setProgress(99);
 }
 
-void ONF_StepComputeHitGrid::updateProgress()
+void ONF_StepComputeVerticalProfile::updateProgress()
 {
     float progress = 0;
 

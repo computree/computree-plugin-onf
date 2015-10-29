@@ -31,15 +31,6 @@
 // Inclusion of auto-indexation system
 #include "ct_tools/model/ct_autorenamemodels.h"
 
-/*!
- * \class ONF_StepConvertFloatImageToqint32
- * \ingroup Steps_PB
- * \brief <b>Convertir raster Float en raster quint32.</b>
- *
- * No detailled description for this step
- *
- *
- */
 
 class ONF_StepConvertFloatImageToqint32: public CT_AbstractStep
 {

@@ -28,17 +28,6 @@
 #include "ct_step/abstract/ct_abstractstepcanbeaddedfirst.h"
 #include "ct_view/tools/ct_textfileconfigurationdialog.h"
 
-/*!
- * \class ONF_StepLoadTreeMap
- * \ingroup Steps_PB
- * \brief <b>Charge deux sources de positions pour mise en correspondance.</b>
- *
- * No detailled description for this step
- *
- * \param _refFileName 
- * \param _transFileName 
- *
- */
 
 class ONF_StepLoadTreeMap: public CT_AbstractStepCanBeAddedFirst
 {

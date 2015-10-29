@@ -61,7 +61,7 @@ ONF_StepExtractLogBuffer::ONF_StepExtractLogBuffer(CT_StepInitializeData &dataIn
 // Step description (tooltip of contextual menu)
 QString ONF_StepExtractLogBuffer::getStepDescription() const
 {
-    return tr("Extraction des points d'une scène, situés autour d'un billon");
+    return tr("Extraire les points autour d'un Billon");
 }
 
 // Step detailled description

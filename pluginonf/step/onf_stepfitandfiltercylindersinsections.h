@@ -37,45 +37,6 @@ class CT_Circle;
 class CT_Cylinder;
 class CT_PointCluster;
 
-/*!
- * \class ONF_StepFitAndFilterCylindersInSections
- * \ingroup Steps_OE
- * \brief <b>Fit cylinders on clusters, considering previous and following clusters alignement</b>
- *
- * For each group containing a list of clusters, fit a cylinder for each cluster.
- * The direction of the cylinder is fixed by previous, actual and next clusters reference points (generally barycenters).
- * Cylinders are also filtered according to criteria parametrized by parameters.
- *
- * \param _activeFiltering If true filter cylinders on fitting error
- * \param _max_error Maximum allowed fitting error
- * \param _activeFilteringRelative If true filter cylinders on relative fitting error
- * \param _max_relative_error Maximum allowed fitting error relative to radius
- * \param _activeFilteringVerticality If true filter cylinders on verticallity
- * \param _phi_max Maximum allowed zenithal angle
- * \param _min_radius Minimum allowed radius for cylinders
- * \param _max_radius Maximum allowed radius for cylinders
- *
- *
- * <b>Input Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - CT_StandardItemGroup (section)... \n
- *          - CT_StandardItemGroup (cluster group)... \n
- *              - CT_PointCluster (cluster) \n
- *              - CT_ReferencePoint (reference point) \n
- *              - (...) \n
- *
- * <b>Output Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - CT_StandardItemGroup (section)... \n
- *          - CT_StandardItemGroup (cluster group)... \n
- *              - <em>cpy CT_PointCluster (cluster)</em> \n
- *              - <em>cpy CT_ReferencePoint (reference point)</em> \n
- *              - <em>cpy+ CT_Cylinder (cylindre)</em> \n
- *              - <em>cpy (...)</em> \n
- *
- */
 class ONF_StepFitAndFilterCylindersInSections : public CT_AbstractStep
 {
     struct StepFitAndFilterCylinderDebugInfo

@@ -64,7 +64,7 @@ ONF_StepExtractDiametersFromCylinders::ONF_StepExtractDiametersFromCylinders(CT_
 
 QString ONF_StepExtractDiametersFromCylinders::getStepDescription() const
 {
-    return tr("Calcul d'un diamètre moyen des cylindres / billon");
+    return tr("7- Calcul d'un diamètre moyen des cylindres / billon");
 }
 
 QString ONF_StepExtractDiametersFromCylinders::getStepDetailledDescription() const

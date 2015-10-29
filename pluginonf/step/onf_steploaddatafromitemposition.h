@@ -29,16 +29,6 @@
 #include "ct_itemdrawable/model/outModel/ct_outstdgroupmodel.h"
 #include "ct_itemdrawable/model/outModel/ct_outstdsingularitemmodel.h"
 
-/*!
- * \class ONF_StepLoadDataFromItemPosition
- * \ingroup Steps_PB
- * \brief <b>Charge des fichiers d'un DataSource intersectant la BoudingBox d'items.</b>
- *
- * No detailled description for this step
- *
- * \param _buffer 
- *
- */
 
 class ONF_StepLoadDataFromItemPosition: public CT_AbstractStep
 {

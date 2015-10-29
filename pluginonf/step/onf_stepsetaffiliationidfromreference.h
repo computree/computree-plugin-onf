@@ -31,13 +31,7 @@
 #include "ct_itemdrawable/abstract/ct_abstractsingularitemdrawable.h"
 #include "ct_tools/model/ct_autorenamemodels.h"
 
-/*!
- * \class ONF_StepSetAffiliationIDFromReference
- * \ingroup Steps_PB
- * \brief <b>Add an affiliation ID to a group level, using reference as source.</b>
 
- *
- */
 class ONF_StepSetAffiliationIDFromReference : public CT_AbstractStep
 {
     // IMPORTANT in order to obtain step name

@@ -30,7 +30,7 @@
 
 #include "ct_itemdrawable/abstract/ct_abstractitemdrawablewithpointcloud.h"
 #include "ct_itemdrawable/ct_referencepoint.h"
-#include "ct_itemdrawable/ct_grid2dxy.h"
+#include "ct_itemdrawable/ct_image2d.h"
 #include "ct_result/ct_resultgroup.h"
 #include "ct_itemdrawable/abstract/ct_abstractitemgroup.h"
 #include "ct_itemdrawable/tools/iterator/ct_groupiterator.h"
@@ -52,7 +52,7 @@ ONF_StepSetFootCoordinatesVertically::ONF_StepSetFootCoordinatesVertically(CT_St
 
 QString ONF_StepSetFootCoordinatesVertically::getStepDescription() const
 {
-    return tr("Ajout d'une coordonnée de base / billon // MNT");
+    return tr("5- Récupérer la coordonnée MNT pour chaque Billon");
 }
 
 QString ONF_StepSetFootCoordinatesVertically::getStepDetailledDescription() const
@@ -75,7 +75,7 @@ void ONF_StepSetFootCoordinatesVertically::createInResultModelListProtected()
     CT_InResultModelGroup* resultModelMNT = createNewInResultModel(DEF_SearchInMNTResult, tr("MNT (Raster)"), "", true);
     resultModelMNT->setZeroOrMoreRootGroup();
     resultModelMNT->addGroupModel("", DEF_SearchInMNTGroup);
-    resultModelMNT->addItemModel(DEF_SearchInMNTGroup, DEF_SearchInMNT, CT_Grid2DXY<double>::staticGetType(), tr("Modèle Numérique de Terrain"));
+    resultModelMNT->addItemModel(DEF_SearchInMNTGroup, DEF_SearchInMNT, CT_Image2D<float>::staticGetType(), tr("Modèle Numérique de Terrain"));
 
 
     // Sections
@@ -110,7 +110,7 @@ void ONF_StepSetFootCoordinatesVertically::compute()
     // on demande si on peut commencer à parcourir les groupes
     if(itMNT.hasNext())
     {
-        CT_Grid2DXY<double>* mnt = (CT_Grid2DXY<double>*)itMNT.next();
+        CT_Image2D<float>* mnt = (CT_Image2D<float>*)itMNT.next();
 
         if(mnt != NULL)
         {
@@ -130,8 +130,8 @@ void ONF_StepSetFootCoordinatesVertically::compute()
 
                     if (refPoint != NULL)
                     {
-                        double na = mnt->NA();
-                        double z_value = mnt->valueAtXY(refPoint->x(), refPoint->y());
+                        float na = mnt->NA();
+                        float z_value = mnt->valueAtCoords(refPoint->x(), refPoint->y());
                         CT_ReferencePoint* footCoordinate;
                         if (z_value != na) {
                             footCoordinate = new CT_ReferencePoint(_outFootCoordinateModelName.completeName(), outResult, refPoint->x(), refPoint->y(), z_value, mnt->resolution());

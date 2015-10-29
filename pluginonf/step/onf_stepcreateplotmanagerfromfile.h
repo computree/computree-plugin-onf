@@ -27,16 +27,7 @@
 
 #include "ct_step/abstract/ct_abstractstep.h"
 
-/*!
- * \class ONF_StepCreatePlotManagerFromFile
- * \ingroup Steps_PB
- * \brief <b>Créée un gestionnaire de placettes à partir d'un fichier ASCII.</b>
- *
- * No detailled description for this step
- *
- * \param _fileName 
- *
- */
+
 
 class ONF_StepCreatePlotManagerFromFile: public CT_AbstractStep
 {

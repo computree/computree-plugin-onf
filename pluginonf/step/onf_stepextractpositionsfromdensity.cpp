@@ -24,6 +24,8 @@
 
 #include "onf_stepextractpositionsfromdensity.h"
 
+#ifdef USE_OPENCV
+
 #include "ct_itemdrawable/abstract/ct_abstractitemdrawablewithpointcloud.h"
 #include "ct_itemdrawable/ct_point2d.h"
 #include "ct_itemdrawable/tools/iterator/ct_groupiterator.h"
@@ -97,7 +99,7 @@ void ONF_StepExtractPositionsFromDensity::createOutResultModelListProtected()
     res->addItemModel(_grpPosition2D_ModelName, _position2D_ModelName, new CT_Point2D(), tr("Positions 2D"));
     res->addItemAttributeModel(_position2D_ModelName, _position2DAtt_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_NUMBER), tr("Densité"));
     res->addItemAttributeModel(_position2D_ModelName, _position2DAttMax_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_NUMBER), tr("DensitéMax"));
-    res->addItemModel(DEFin_grp, _grid2D_ModelName, new CT_Grid2DXY<int>(), tr("Grille de densité"));
+    res->addItemModel(DEFin_grp, _grid2D_ModelName, new CT_Image2D<int>(), tr("Grille de densité"));
 
 }
 
@@ -138,7 +140,7 @@ void ONF_StepExtractPositionsFromDensity::compute()
 
 
             // Création de la grille de densité
-            CT_Grid2DXY<int>* grid = CT_Grid2DXY<int>::createGrid2DXYFromXYCoords(_grid2D_ModelName.completeName(), res, xmin, ymin, xmax, ymax, _resolution, 0, -1, 0);
+            CT_Image2D<int>* grid = CT_Image2D<int>::createImage2DFromXYCoords(_grid2D_ModelName.completeName(), res, xmin, ymin, xmax, ymax, _resolution, 0, -1, 0);
             grp->addItemDrawable(grid);
 
             CT_PointIterator itP(scene->getPointCloudIndex());
@@ -147,7 +149,7 @@ void ONF_StepExtractPositionsFromDensity::compute()
                 itP.next();
                 const CT_Point &point = itP.currentPoint();
 
-                grid->addValueAtXY(point(0), point(1), 1);
+                grid->addValueAtCoords(point(0), point(1), 1);
             }
             grid->computeMinMax();
 
@@ -166,7 +168,7 @@ void ONF_StepExtractPositionsFromDensity::compute()
                 }
             }
 
-            CT_Grid2DXY<int>* clusters = new CT_Grid2DXY<int>(NULL, NULL, xmin, ymin, grid->colDim(), grid->linDim(), _resolution, 0, -1, -1);
+            CT_Image2D<int>* clusters = new CT_Image2D<int>(NULL, NULL, xmin, ymin, grid->colDim(), grid->linDim(), _resolution, 0, -1, -1);
 
             size_t colDim = grid->colDim();
             size_t linDim = grid->linDim();
@@ -231,7 +233,7 @@ void ONF_StepExtractPositionsFromDensity::compute()
 }
 
 
-void ONF_StepExtractPositionsFromDensity::fillCellsInList(QList<size_t> &liste, const int cluster, CT_Grid2DXY<int> *clustersGrid, CT_Grid2DXY<int> *densityGrid, int &density, int &densityMax)
+void ONF_StepExtractPositionsFromDensity::fillCellsInList(QList<size_t> &liste, const int cluster, CT_Image2D<int> *clustersGrid, CT_Image2D<int> *densityGrid, int &density, int &densityMax)
 {
     if (liste.isEmpty()) {return;}
 
@@ -248,7 +250,7 @@ void ONF_StepExtractPositionsFromDensity::fillCellsInList(QList<size_t> &liste, 
     }
 }
 
-QList<size_t> ONF_StepExtractPositionsFromDensity::computeColonize(size_t originColumn, size_t originRow, const CT_Grid2DXY<int> *densityGrid)
+QList<size_t> ONF_StepExtractPositionsFromDensity::computeColonize(size_t originColumn, size_t originRow, const CT_Image2D<int> *densityGrid)
 {
     QList<size_t> result;
     size_t index;
@@ -282,7 +284,7 @@ QList<size_t> ONF_StepExtractPositionsFromDensity::computeColonize(size_t origin
     return result;
 }
 
-void ONF_StepExtractPositionsFromDensity::appendIfNotNulValue(QList<size_t> &result, size_t col, size_t lin, const CT_Grid2DXY<int> *densityGrid)
+void ONF_StepExtractPositionsFromDensity::appendIfNotNulValue(QList<size_t> &result, size_t col, size_t lin, const CT_Image2D<int> *densityGrid)
 {
     size_t index;
     if (densityGrid->index(col, lin, index))
@@ -293,3 +295,5 @@ void ONF_StepExtractPositionsFromDensity::appendIfNotNulValue(QList<size_t> &res
         }
     }
 }
+
+#endif

@@ -27,22 +27,6 @@
 
 #include "ct_step/abstract/ct_abstractstep.h"
 
-/*!
- * \class ONF_StepCompare3DGridsContents
- * \ingroup Steps_PB
- * \brief <b>Compare le contenu de deux grilles 3D.</b>
- *
- * Il est préférable que les grilles aient la même résolution et le même calage spatial.
-En sortie l'étape renvoie une grille contenant :
-* 0 si les deux grilles sont inférieures au seuil (vide durable)
-* 1 si la première grille est supérieur au seuil mais pas la seconde (perte)
-* 2 si les deux grilles sont supérieures au seuil (maintien)
-* 3 si la seconde grille est supérieure au seuil mais pas la première (accroissement)
- *
- * \param _threshold 
- *
- */
-
 class ONF_StepCompare3DGridsContents: public CT_AbstractStep
 {
     Q_OBJECT

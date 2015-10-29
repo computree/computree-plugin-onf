@@ -33,28 +33,6 @@
 class CT_AbstractSingularItemDrawable;
 class CT_AbstractItemGroup;
 
-/*!
- * \class ONF_StepSelectCellsInGrid3D
- * \ingroup Steps_PB
- * \brief <b>A#include "ct_tools/model/ct_autorenamemodels.h"
-llow to manally select cells in a 3D grid</b>
- *
- * Manual action is used to obtain a boolean grid defining selected cells in original grid.
- *
- *
- * <b>Input Models:</b>
- *
- * - CT_ResultGroup (Result)\n
- *     - CT_StandardItemGroup...\n
- *         - CT_AbstractItemDrawableWithPointCloud (Item)\n
- *
- * <b>Output Models:</b>
- *
- * - CT_ResultGroup (Result)\n
- *     - <em>cpy CT_StandardItemGroup...</em>\n
- *         - <em>cpy CT_Scene (Item)</em>\n
- *
- */
 
 class ONF_StepSelectCellsInGrid3D: public CT_AbstractStep
 {

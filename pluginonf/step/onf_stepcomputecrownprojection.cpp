@@ -57,7 +57,7 @@ ONF_StepComputeCrownProjection::ONF_StepComputeCrownProjection(CT_StepInitialize
 // Step description (tooltip of contextual menu)
 QString ONF_StepComputeCrownProjection::getStepDescription() const
 {
-    return tr("Projection de houppiers");
+    return tr("Projections de houppier");
 }
 
 // Step detailled description

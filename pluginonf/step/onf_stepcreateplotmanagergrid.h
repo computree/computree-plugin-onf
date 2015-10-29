@@ -27,15 +27,6 @@
 
 #include "ct_step/abstract/ct_abstractstep.h"
 
-/*!
- * \class ONF_StepCreatePlotManagerGrid
- * \ingroup Steps_PB
- * \brief <b>Créée un gestionnaire de placettes (grille) à partir d'une DataSource.</b>
- *
- * No detailled description for this step
- *
- *
- */
 
 class ONF_StepCreatePlotManagerGrid: public CT_AbstractStep
 {

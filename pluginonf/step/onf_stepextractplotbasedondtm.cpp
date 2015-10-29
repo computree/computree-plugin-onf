@@ -25,6 +25,8 @@
 
 #include "onf_stepextractplotbasedondtm.h"
 
+#ifdef USE_OPENCV
+
 #include "ct_global/ct_context.h"
 
 #include "ct_result/model/inModel/ct_inresultmodelgrouptocopy.h"
@@ -34,7 +36,7 @@
 
 #include "ct_itemdrawable/abstract/ct_abstractitemdrawablewithpointcloud.h"
 #include "ct_itemdrawable/ct_referencepoint.h"
-#include "ct_itemdrawable/ct_grid2dxy.h"
+#include "ct_itemdrawable/ct_image2d.h"
 #include "ct_result/ct_resultgroup.h"
 #include "ct_itemdrawable/abstract/ct_abstractitemgroup.h"
 #include "ct_itemdrawable/ct_scene.h"
@@ -59,28 +61,18 @@
 
 ONF_StepExtractPlotBasedOnDTM::ONF_StepExtractPlotBasedOnDTM(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
-    _x   = 0.00;
-    _y = 0.00;
-    _radiusmin = 0.00;
-    _radius = 17.00;
-    _azbegin = 0;
-    _azend = 400;
     _zmin = 1.0;
     _zmax = 1.6;
 }
 
 QString ONF_StepExtractPlotBasedOnDTM::getStepDescription() const
 {
-    return tr("Extraction d'une placette // MNT (cpy)");
+    return tr("Extraire les points dans une tranche parallèle au MNT");
 }
 
 QString ONF_StepExtractPlotBasedOnDTM::getStepDetailledDescription() const
 {
-    return tr("Cette étape permet d'extraire les points de la scène d'entrée contenus dans une placette circulaire.<br>"
-              "On définit dans les paramètres son <b>centre (X,Y)</b>, son <b>rayon</b> (maximal), le <b>niveau Z minimum</b> et le <b>niveau Z maximum</b>.<br>"
-              "Si on définit un <b>rayon de début de placette</b>, cela permet d'obtenir une placette annulaire.<br>"
-              "On peut également définir un <b>azimut de début</b> et un <b>azimut de fin</b>, pour obtenir un secteur.<br>"
-              "Cette étape fonctionne comme <em>ONF_StepExtractPlot</em>, mais les niveaux Z sont spécifiés sous forme de hauteurs par rapport au MNT de référence choisi.");
+    return tr("Cette étape permet d'extraire les points de la scène d'entrée contenus dans une tranche de hauteur depuis le MNT.");
 }
 
 CT_VirtualAbstractStep* ONF_StepExtractPlotBasedOnDTM::createNewInstance(CT_StepInitializeData &dataInit)
@@ -93,10 +85,10 @@ CT_VirtualAbstractStep* ONF_StepExtractPlotBasedOnDTM::createNewInstance(CT_Step
 
 void ONF_StepExtractPlotBasedOnDTM::createInResultModelListProtected()
 {
-    CT_InResultModelGroupToCopy *resultMNTModel = createNewInResultModelForCopy(DEF_SearchInMNTResult, tr("MNT (Raster)"), "", true);
+    CT_InResultModelGroup *resultMNTModel = createNewInResultModel(DEF_SearchInMNTResult, tr("MNT (Raster)"), "", true);
     resultMNTModel->setZeroOrMoreRootGroup();
     resultMNTModel->addGroupModel("", DEF_SearchInMNTGroup);
-    resultMNTModel->addItemModel(DEF_SearchInMNTGroup, DEF_SearchInMNT, CT_Grid2DXY<double>::staticGetType(), tr("Modèle Numérique de Terrain"));
+    resultMNTModel->addItemModel(DEF_SearchInMNTGroup, DEF_SearchInMNT, CT_Image2D<float>::staticGetType(), tr("Modèle Numérique de Terrain"));
 
     CT_InResultModelGroupToCopy *resultModel = createNewInResultModelForCopy(DEF_SearchInResult, tr("Scène(s)"));
     resultModel->setZeroOrMoreRootGroup();
@@ -108,20 +100,12 @@ void ONF_StepExtractPlotBasedOnDTM::createPostConfigurationDialog()
 {
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
 
-    configDialog->addDouble(tr("Coordonnee X du centre de la placette :"), "m", -1000, 1000, 2, _x);
-    configDialog->addDouble(tr("Coordonnee Y du centre de la placette :"), "m", -1000, 1000, 2, _y);
-    configDialog->addDouble(tr("Rayon de debut de la placette"), "m", 0, 1000, 2, _radiusmin);
-    configDialog->addDouble(tr("Rayon de la placette :"), "m", 1, 1000, 2, _radius);
-    configDialog->addDouble(tr("Azimut debut (Nord = axe Y) :"), "Grades", 0, 400, 2, _azbegin);
-    configDialog->addDouble(tr("Azimut fin (Nord = axe Y) :"), "Grades", 0, 400, 2, _azend);
-    configDialog->addDouble(tr("H minimum :"), "m", -10000, 10000, 2, _zmin);
-    configDialog->addDouble(tr("H maximum :"), "m", -10000, 10000, 2, _zmax);
+    configDialog->addDouble(tr("H minimum :"), "m", -1e+10, 1e+10, 2, _zmin);
+    configDialog->addDouble(tr("H maximum :"), "m", -1e+10, 1e+10, 2, _zmax);
 }
 
 void ONF_StepExtractPlotBasedOnDTM::createOutResultModelListProtected()
 {
-    createNewOutResultModelToCopy(DEF_SearchInMNTResult);
-
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
     res->addItemModel(DEF_SearchInGroup, _outSceneModel, new CT_Scene(), tr("Scène extraite"));
 }
@@ -129,16 +113,18 @@ void ONF_StepExtractPlotBasedOnDTM::createOutResultModelListProtected()
 void ONF_StepExtractPlotBasedOnDTM::compute()
 {
     // Récupération du résultat de sortie
-    CT_ResultGroup* outMNTResult = getOutResultList().at(0);
-    CT_ResultGroup *outResult = getOutResultList().at(1);
+    CT_ResultGroup* inMNTResult = getInputResults().at(0);
+    CT_ResultGroup *outResult = getOutResultList().at(0);
 
-    CT_ResultItemIterator it(outMNTResult, this, DEF_SearchInMNT);
+    CT_ResultItemIterator it(inMNTResult, this, DEF_SearchInMNT);
     if(it.hasNext())
     {
-        CT_Grid2DXY<double>* mnt = (CT_Grid2DXY<double>*) it.next();
+        CT_Image2D<float>* mnt = (CT_Image2D<float>*) it.next();
 
         if (mnt != NULL)
-        {        
+        {
+            double na = mnt->NA();
+
             CT_ResultGroupIterator itsc(outResult, this, DEF_SearchInGroup);
             while(!isStopped() && itsc.hasNext())
             {
@@ -154,16 +140,8 @@ void ONF_StepExtractPlotBasedOnDTM::compute()
 
                     CT_PointCloudIndexVector *resPointCloudIndex = new CT_PointCloudIndexVector();
 
-                    qDebug() << " le nombre de points dans ma scene : " << n_points;
-
                     // Extraction des points de la placette
                     size_t i = 0;
-                    double distance = 0;
-                    double azimut = 0;
-                    double asinx = 0;
-                    double acosy = 0;
-                    double xx = 0;
-                    double yy = 0;
 
                     double xmin = std::numeric_limits<double>::max();
                     double ymin = std::numeric_limits<double>::max();
@@ -179,65 +157,24 @@ void ONF_StepExtractPlotBasedOnDTM::compute()
                         const CT_Point &point = itP.next().currentPoint();
                         size_t index = itP.currentGlobalIndex();
 
-                        xx = point(0) - _x;
-                        yy = point(1) - _y;
-
                         double hauteur;
-                        double na = mnt->NA();
-                        double zMNT = mnt->valueAtXY(point(0), point(1));
+                        double zMNT = mnt->valueAtCoords(point(0), point(1));
                         if (zMNT != na) {
                             hauteur = point(2) - zMNT;
                         } else {
                             hauteur = -std::numeric_limits<double>::max();
                         }
 
-                        // Calcul de l'azimut du point par rapport au centre de la placette extraite
-                        // Le nord est place dans la direction de l'axe Y
-                        distance = sqrt(xx*xx + yy*yy);
-                        asinx = asin(xx/distance);
-                        acosy = acos(yy/distance);
+                        if (hauteur >= _zmin && hauteur <= _zmax) {
 
-                        if (asinx>=0) {
-                            azimut = acosy;
-                        } else {
-                            azimut = 2*M_PI-acosy;
-                        }
+                            resPointCloudIndex->addIndex(index);
 
-                        // Conversion en grades 0-400
-                        azimut = azimut/(2*M_PI)*400;
-
-
-                        if (distance <= _radius && distance >= _radiusmin) {
-                            if (hauteur >= _zmin && hauteur <= _zmax) {
-
-
-                                if (_azbegin <= _azend) {
-                                    if (azimut >= _azbegin && azimut <= _azend)
-                                    {
-                                        resPointCloudIndex->addIndex(index);
-
-                                        if (point(0)<xmin) {xmin = point(0);}
-                                        if (point(0)>xmax) {xmax = point(0);}
-                                        if (point(1)<ymin) {ymin = point(1);}
-                                        if (point(1)>ymax) {ymax = point(1);}
-                                        if (point(2)<zmin) {zmin = point(2);}
-                                        if (point(2)>zmax) {zmax = point(2);}
-                                    }
-                                } else {
-                                    if ((azimut >= _azbegin && azimut <= 400) || (azimut >= 0 && azimut <= _azend))
-                                    {
-
-                                        resPointCloudIndex->addIndex(index);
-
-                                        if (point(0)<xmin) {xmin = point(0);}
-                                        if (point(0)>xmax) {xmax = point(0);}
-                                        if (point(1)<ymin) {ymin = point(1);}
-                                        if (point(1)>ymax) {ymax = point(1);}
-                                        if (point(2)<zmin) {zmin = point(2);}
-                                        if (point(2)>zmax) {zmax = point(2);}
-                                    }
-                                }
-                            }
+                            if (point(0)<xmin) {xmin = point(0);}
+                            if (point(0)>xmax) {xmax = point(0);}
+                            if (point(1)<ymin) {ymin = point(1);}
+                            if (point(1)>ymax) {ymax = point(1);}
+                            if (point(2)<zmin) {zmin = point(2);}
+                            if (point(2)>zmax) {zmax = point(2);}
                         }
 
                         // progres de 0 à 100
@@ -266,3 +203,4 @@ void ONF_StepExtractPlotBasedOnDTM::compute()
         }
     }
 }
+#endif

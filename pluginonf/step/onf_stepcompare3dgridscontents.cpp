@@ -54,7 +54,7 @@ ONF_StepCompare3DGridsContents::ONF_StepCompare3DGridsContents(CT_StepInitialize
 // Step description (tooltip of contextual menu)
 QString ONF_StepCompare3DGridsContents::getStepDescription() const
 {
-    return tr("Compare le contenu de deux grilles 3D");
+    return tr("Comparer deux grilles 3D");
 }
 
 // Step detailled description

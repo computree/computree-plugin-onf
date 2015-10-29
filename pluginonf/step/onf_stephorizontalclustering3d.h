@@ -38,13 +38,7 @@
 
 #include <QMutex>
 
-/*!
- * \class ONF_StepHorizontalClustering3D
- * \ingroup Steps_OE
- * \brief <b>Create small clusters of points in horizontal thin layers by scene</b>
- *
- *
- */
+
 class ONF_StepHorizontalClustering3D : public CT_AbstractStep
 {
     // IMPORTANT in order to obtain step name

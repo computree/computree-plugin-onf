@@ -48,7 +48,7 @@ ONF_StepFilterGroupsByGroupsNumber::ONF_StepFilterGroupsByGroupsNumber(CT_StepIn
 
 QString ONF_StepFilterGroupsByGroupsNumber::getStepDescription() const
 {
-    return tr("Filtrage de groupes niv.1 / nb. de groupes niv.2");
+    return tr("2- Filter les Billons par nombre de Clusters");
 }
 
 QString ONF_StepFilterGroupsByGroupsNumber::getStepDetailledDescription() const

@@ -39,52 +39,6 @@
 
 
 
-/*!
- * \class ONF_StepMergeEndToEndSections04
- * \ingroup Steps_OE
- * \brief <b>Merging of sections with a vertical continuity, supposed describing the same real tree.</b>
- *
- * \em First: new clusters of vertical thickness \b _thickness are created in each section,
- * with the algorithm of the step ONF_StepChangeClusterThickness02. \n
- * \em Second: CT_ReferencePoint are created for barycenters of new clusters,
- * with the algorithm of the step ONF_StepRefPointFromBarycenter02. \n
- * \em Note : the CT_ReferencePoint xyBuffer value is the horizontal distance between the barycenter and the farthest point of the cluster. \n
- * \em Third: sections are taken by increasing vertical position (first cluster).
- * Each one (base section) is compared with other sections (tested sections).
- * A "base" line is fitted on the \b _n lasts (top) barycenters of the base section.
- * An "tested" line is fittes on the _n firsts (bottom) barycenters of the tested section.
- * A first intersection is computed between the base line and a plane at the tested first barycenter, perpendicular to tested line.
- * A second intersection is computed between the tested line and a plane at the base last barycenter, perpendicular to base line.
- *
- * For each intersection, the distance in the intersection plane and the corresponding barycenter is computed.
- * If the two intersections are inferior to \b _mult * MaxDist, the sections are merged.
- * MaxDist is computed as the maximum xyBuffer value of all barycenters of base section.
- *
- *
- * \param _thickness Vertical thickness of clusters (in meters)
- * \param _searchDistance Maximum autorised distance between extremities of two sections to be merged (in meters)
- * \param _n Number of barycenters to consider to define extremities directions
- * \param  _mult Multiplicative factor for MaxDist
- * \param _zTolerance Maximum accepted Z overlaping between sections to merge
- *
- *
- *
- * <b>Input Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - CT_StandardItemGroup (Section)... \n
- *          - CT_StandardItemGroup (ClusterGroup)... \n
- *              - CT_PointCluster (Cluster) \n
- *
- * <b>Output Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - CT_StandardItemGroup (Section)... \n
- *          - CT_StandardItemGroup (ClusterGroup)... \n
- *              - CT_PointCluster (Cluster) \n
- *              - CT_ReferencePoint (Barycenter) \n
- *
- */
 class ONF_StepMergeEndToEndSections04 : public CT_AbstractStep
 {
     // IMPORTANT in order to obtain step name

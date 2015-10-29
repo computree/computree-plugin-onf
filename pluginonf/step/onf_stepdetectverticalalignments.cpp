@@ -68,7 +68,7 @@ ONF_StepDetectVerticalAlignments::ONF_StepDetectVerticalAlignments(CT_StepInitia
 // Step description (tooltip of contextual menu)
 QString ONF_StepDetectVerticalAlignments::getStepDescription() const
 {
-    return tr("Détecte des alignements verticaux");
+    return tr("Détecter des alignements verticaux de points");
 }
 
 // Step detailled description

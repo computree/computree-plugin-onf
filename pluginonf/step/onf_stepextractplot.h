@@ -28,43 +28,6 @@
 
 #include "ct_step/abstract/ct_abstractstep.h"
 
-/*!
- * \class ONF_StepExtractPlot
- * \ingroup Steps_OE
- * \brief <b>Extract a sub-plot from original scene</b>
- *
- * This step only keeps points included in the enveloppe defined by the steps parameter.
- * The enveloppe could be a simple cylinder (if azimuts and radius parameters are not changed).
- * The enveloppe is the zone beetween an external and an internal cylinder, both centered at the same point.
- * The internal cylinder is so included in the external one.
- * All points outside the external cylinder are removed.
- * All points inside the internal cylinder are removed also.
- * Moreover, only point beetween _azbegin and _azend (defined from the common center of cylinders), and beetween _zmin and _zmax are conserved.
- *
- * \param _x X coordinate of the center of both cylinders
- * \param _y Y coordinate of the center of both cylinders
- * \param _radiusmin Radius (m) of the internal cylinder
- * \param _radius Radius (m) of the external cylinder
- * \param _azbegin Begining azimut (grades : 0 - 400) of the conserved zone
- * \param _azend Ending azimut (grades : 0 - 400) of the conserved zone
- * \param _zmin Minimum Z value of conserved points
- * \param _zmax Maximum Z value of conserved points
- *
- *
- * <b>Input Models:</b>
- *
- *  - CT_ResultGroup \n
- *      (...)
- *      - CT_StandardItemGroup \n
- *          - CT_Scene (Scene) \n
- *
- * <b>Output Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - CT_StandardItemGroup \n
- *          - CT_Scene (Scene) \n
- *
- */
 class ONF_StepExtractPlot : public CT_AbstractStep
 {
     // IMPORTANT in order to obtain step name

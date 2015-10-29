@@ -27,17 +27,6 @@
 
 #include "ct_step/ct_stepbeginloop.h"
 
-/*!
- * \class ONF_StepLoadPositionsForMatching
- * \ingroup Steps_PB
- * \brief <b>Charge deux sources de positions pour mise en correspondance.</b>
- *
- * No detailled description for this step
- *
- * \param _refFileName 
- * \param _transFileName 
- *
- */
 
 class ONF_StepLoadPositionsForMatching: public CT_StepBeginLoop
 {

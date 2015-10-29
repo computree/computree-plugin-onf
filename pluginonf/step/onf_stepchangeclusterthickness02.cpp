@@ -66,7 +66,7 @@ ONF_StepChangeClusterThickness02::ONF_StepChangeClusterThickness02(CT_StepInitia
 
 QString ONF_StepChangeClusterThickness02::getStepDescription() const
 {
-    return tr("Création de clusters horizontaux / billon");
+    return tr("Modifier épaisseur de clusters horizontaux");
 }
 
 QString ONF_StepChangeClusterThickness02::getStepDetailledDescription() const

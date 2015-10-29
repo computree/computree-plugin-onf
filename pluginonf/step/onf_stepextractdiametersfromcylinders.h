@@ -29,38 +29,7 @@
 #include "ct_step/abstract/ct_abstractstep.h"
 #include "ct_tools/model/ct_autorenamemodels.h"
 
-/*!
- * \class ONF_StepExtractDiametersFromCylinders
- * \ingroup Steps_OE
- * \brief <b>Adjust a Diameter for each section, based on fitted cylinders.</b>
- *
- * \param _h Height od the diameter estimation
- * \param _hmin Minimum height of considered cylinders
- * \param _hmax Maximum height of considered cylinders
- * \param _deltaDMax Maximum metric decreasing in diameter
- * \param _minCylinderNumber Minimum number of cylinder to consider
- *
- *
- * <b>Input Models:</b>
- *
- *  - CT_ResultGroup \n
- *      (...)
- *      - CT_StandardItemGroup (Section)... \n
- *          - CT_ReferencePoint (DTM coordinate) \n
- *          - CT_StandardItemGroup (Cylinder group)... \n
- *              - CT_Cylinder (Cylinder) \n
- *
- * <b>Output Models:</b>
- *
- *  - CT_ResultGroup \n
- *  *      (...)
- *      - CT_StandardItemGroup (Section)... \n
- *          - <em>cpy CT_ReferencePoint (DTM coordinate)</em> \n
- *          - <b>CT_Circle (Diameter)</b> \n
- *          - CT_StandardItemGroup (Cylinder group)... \n
- *              - <em>cpy CT_Cylinder (Cylinder)</em> \n
- *
- */
+
 class ONF_StepExtractDiametersFromCylinders : public CT_AbstractStep
 {
     // IMPORTANT in order to obtain step name

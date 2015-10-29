@@ -69,7 +69,7 @@ ONF_StepComputeSphereVoxels::ONF_StepComputeSphereVoxels(CT_StepInitializeData &
 // Step description (tooltip of contextual menu)
 QString ONF_StepComputeSphereVoxels::getStepDescription() const
 {
-    return tr("Calul d'une densité de points corrigée / sphère");
+    return tr("Caluler densité de points corrigée par sphère");
 }
 
 QString ONF_StepComputeSphereVoxels::getStepDetailledDescription() const
@@ -108,11 +108,11 @@ void ONF_StepComputeSphereVoxels::createPostConfigurationDialog()
 {
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
 
-    configDialog->addFileChoice("Fichier des sphères", CT_FileChoiceButton::OneExistingFile, "Fichier texte (*.txt)", _spheresFileName);
-    configDialog->addDouble("Résolution du scanner", "°", 0, 360, 5, _res, 180/M_PI);
-    configDialog->addDouble("Centre du scanner X", "°", -10000, 10000, 3, _xscan);
-    configDialog->addDouble("Centre du scanner Y", "°", -10000, 10000, 3, _yscan);
-    configDialog->addDouble("Centre du scanner Z", "°", -10000, 10000, 3, _zscan);
+    configDialog->addFileChoice(tr("Fichier des sphères"), CT_FileChoiceButton::OneExistingFile, "Fichier texte (*.txt)", _spheresFileName);
+    configDialog->addDouble(tr("Résolution du scanner"), "°", 0, 360, 5, _res, 180/M_PI);
+    configDialog->addDouble(tr("Centre du scanner X"), "°", -10000, 10000, 3, _xscan);
+    configDialog->addDouble(tr("Centre du scanner Y"), "°", -10000, 10000, 3, _yscan);
+    configDialog->addDouble(tr("Centre du scanner Z"), "°", -10000, 10000, 3, _zscan);
 }
 
 void ONF_StepComputeSphereVoxels::compute()

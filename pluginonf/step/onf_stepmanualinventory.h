@@ -29,35 +29,12 @@
 #include "ct_itemdrawable/ct_scene.h"
 #include "ct_itemdrawable/ct_circle.h"
 #include "ct_itemdrawable/ct_point2d.h"
-#include "ct_itemdrawable/ct_grid2dxy.h"
+#include "ct_itemdrawable/ct_image2d.h"
 #include "ct_tools/model/ct_autorenamemodels.h"
 
 class CT_AbstractSingularItemDrawable;
 class CT_AbstractItemGroup;
 
-/*!
- * \class ONF_StepManualInventory
- * \ingroup Steps_PB
- * \brief <b>Etape qui permet de sélectionner manuellement des ItemDrawable et génère un résultat de sortie avec les items sélectionnés.</b>
- *
- * Detailed decription of step purpose.
- * Please also give a general view of the algorithm.
- *
- *
- *
- * <b>Input Models:</b>
- *
- * - CT_ResultGroup (Result)\n
- *     - CT_StandardItemGroup...\n
- *         - CT_AbstractItemDrawableWithPointCloud (Item)\n
- *
- * <b>Output Models:</b>
- *
- * - CT_ResultGroup (Result)\n
- *     - <em>cpy CT_StandardItemGroup...</em>\n
- *         - <em>cpy CT_Scene (Item)</em>\n
- *
- */
 
 class ONF_StepManualInventory: public CT_AbstractStep
 {
@@ -139,9 +116,9 @@ private:
     DocumentInterface                               *m_doc;
     int                                             m_status;
 
-    const CT_Grid2DXY<double>                                       *_itemIn_mnt;
+    const CT_Image2D<float>                                         *_itemIn_mnt;
     QMap<const CT_Scene*, const CT_Circle*>                         *_selectedDbh;
-    QMap<const CT_Scene*, const CT_Point2D*>                        _positions;
+    QMap<const CT_Scene*, const CT_Point2D*>                         _positions;
     QMap<const CT_Scene*, QMultiMap<double, const CT_Circle*> >     *_availableDbh;
     QMap<const CT_Scene*, QMap<QString, QString> >                  *_suppAttributes;
     QList<const CT_Circle*>                                         *_preferredDbh;

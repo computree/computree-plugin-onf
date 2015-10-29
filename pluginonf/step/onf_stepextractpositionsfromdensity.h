@@ -25,21 +25,12 @@
 #ifndef ONF_STEPEXTRACTPOSITIONSFROMDENSITY_H
 #define ONF_STEPEXTRACTPOSITIONSFROMDENSITY_H
 
+#ifdef USE_OPENCV
+
 #include "ct_step/abstract/ct_abstractstep.h"
-#include "ct_itemdrawable/ct_grid2dxy.h"
+#include "ct_itemdrawable/ct_image2d.h"
 #include "ct_tools/model/ct_autorenamemodels.h"
 
-/*!
- * \class ONF_StepExtractPositionsFromDensity
- * \ingroup Steps_PB
- * \brief <b>Créée des positions 2D à partir de la densité des points.</b>
- *
- * No detailled description for this step
- *
- * \param _resolution 
- * \param _threshold 
- *
- */
 
 class ONF_StepExtractPositionsFromDensity: public CT_AbstractStep
 {
@@ -119,9 +110,10 @@ private:
     CT_AutoRenameModels    _position2DAttMax_ModelName;
     CT_AutoRenameModels    _grid2D_ModelName;
 
-    void fillCellsInList(QList<size_t> &liste, const int cluster, CT_Grid2DXY<int> *clustersGrid, CT_Grid2DXY<int> *densityGrid, int &density, int &densityMax);
-    QList<size_t> computeColonize(size_t originColumn, size_t originRow, const CT_Grid2DXY<int> *densityGrid);
-    void appendIfNotNulValue(QList<size_t> &result, size_t col, size_t lin, const CT_Grid2DXY<int> *densityGrid);
+    void fillCellsInList(QList<size_t> &liste, const int cluster, CT_Image2D<int> *clustersGrid, CT_Image2D<int> *densityGrid, int &density, int &densityMax);
+    QList<size_t> computeColonize(size_t originColumn, size_t originRow, const CT_Image2D<int> *densityGrid);
+    void appendIfNotNulValue(QList<size_t> &result, size_t col, size_t lin, const CT_Image2D<int> *densityGrid);
 };
 
+#endif
 #endif // ONF_STEPEXTRACTPOSITIONSFROMDENSITY_H

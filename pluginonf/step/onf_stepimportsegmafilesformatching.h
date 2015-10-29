@@ -27,17 +27,6 @@
 
 #include "ct_step/abstract/ct_abstractstepcanbeaddedfirst.h"
 
-/*!
- * \class ONF_StepImportSegmaFilesForMatching
- * \ingroup Steps_TEST
- * \brief <b>Importe deux fichiers Segma : un de ref, un à transformer.</b>
- *
- * No detailled description for this step
- *
- * \param _refFile 
- * \param _transFile 
- *
- */
 
 class ONF_StepImportSegmaFilesForMatching: public CT_AbstractStepCanBeAddedFirst
 {

@@ -35,53 +35,7 @@
 #include "ct_itemdrawable/ct_pointcluster.h"
 #include "ct_itemdrawable/ct_standarditemgroup.h"
 
-/*!
- * \class ONF_StepMergeNeighbourSections04
- * \ingroup Steps_OE
- * \brief <b>Merging of parallel numerical sections supposed describing the same real tree.</b>
- *
- * \em First: new clusters of vertical thickness \b _thickness are created in each section,
- * with the algorithm of the step ONF_StepChangeClusterThickness02. \n
- * \em Second: CT_ReferencePoint are created for barycenters of new clusters,
- * with the algorithm of the step ONF_StepRefPointFromBarycenter02. \n
- * \em Note : the CT_ReferencePoint xyBuffer value is the horizontal distance between the barycenter and the farthest point of the cluster. \n
- * \em Third: sections are taken by deacreasing vertical length.
- * Each one is compared with other sections closer than \b _searchDistance.
- * For each pair of sections to compare, barycenters are sequentially compared in z ascending order.
- * A barycenter of section A is compared with a barycenter of section B
- * only if their vertical distance is less than \b _deltaZ.
- * For each comparaison of barycenters, their distance 3D is computed. \n
- * The sections are merged if : \n
- * - for ALL barycenters comparisons distance 3D between barycenters is smaller than \b _maxDistance \n
- * - at least for one barycenters comparison the distRatio is inferior to \b _maxInd1
- *
- * The distRatio is computed as \f$\displaystyle \frac{distance\;3D\;between\;barycenters}{maximum;value\;of\;compared\;barycenters\;xyBuffers}\f$.
- *
- *
- * \param _thickness Vertical thickness of clusters (in meters)
- * \param _searchDistance Maximum autorised distance between two sections to be merged. It is an optimization parameter: it's value is generaly set relatively high (in meters)
- * \param _maxDistance Maximum horizontal distance accepted between barycenters (in meters)
- * \param _deltaZ Maximum vertical distance between barycenters to be compared (in meters)
- * \param _maxInd1 Maximum accepted value for ratio \f$\displaystyle \frac{distance\;3D\;between\;barycenters}{minimum\;value\;of\;compared\;barycenters\;xyBuffers}\f$
- *
- *
- *
- * <b>Input Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - CT_StandardItemGroup (Section)... \n
- *          - CT_StandardItemGroup (ClusterGroup)... \n
- *              - CT_PointCluster (Cluster) \n
- *
- * <b>Output Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - CT_StandardItemGroup (Section)... \n
- *          - CT_StandardItemGroup (ClusterGroup)... \n
- *              - CT_PointCluster (Cluster) \n
- *              - CT_ReferencePoint (Barycenter) \n
- *
- */
+
 class ONF_StepMergeNeighbourSections04 : public CT_AbstractStep
 {
     // IMPORTANT in order to obtain step name

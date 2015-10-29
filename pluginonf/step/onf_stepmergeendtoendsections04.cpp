@@ -67,7 +67,7 @@ ONF_StepMergeEndToEndSections04::ONF_StepMergeEndToEndSections04(CT_StepInitiali
 
 QString ONF_StepMergeEndToEndSections04::getStepDescription() const
 {
-    return tr("Fusion de billons alignés");
+    return tr("4- Fusionner les Billons successifs");
 }
 
 QString ONF_StepMergeEndToEndSections04::getStepDetailledDescription() const

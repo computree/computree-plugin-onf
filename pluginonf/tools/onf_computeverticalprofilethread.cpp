@@ -23,19 +23,19 @@
 *****************************************************************************/
 
 
-#include "onf_computehitsthread.h"
+#include "onf_computeverticalprofilethread.h"
 
 #include "ct_pointcloudindex/abstract/ct_abstractpointcloudindex.h"
 #include "ct_iterator/ct_pointiterator.h"
 
-ONF_ComputeHitsThread::ONF_ComputeHitsThread(CT_Grid3D<int> *grilleHits,
+ONF_ComputeVerticalProfileThread::ONF_ComputeVerticalProfileThread(CT_Profile<int> *profile,
                                            const CT_Scene *scene) : CT_MonitoredQThread()
 {
-    _grilleHits = grilleHits;
+    _profile = profile;
     _scene = scene;
 }
 
-void ONF_ComputeHitsThread::run()
+void ONF_ComputeVerticalProfileThread::run()
 {
     CT_PointIterator itP(_scene->getPointCloudIndex());
     size_t n_points = itP.size();
@@ -49,12 +49,12 @@ void ONF_ComputeHitsThread::run()
         const CT_Point &point = itP.next().currentPoint();
         size_t indice;
 
-        if (_grilleHits->indexAtXYZ(point(0), point(1), point(2), indice))
+        if (_profile->indexForXYZ(point(0), point(1), point(2), indice))
         {
             // Hits Computing
-            _grilleHits->addValueAtIndex(indice, 1);
+            _profile->addValueAtIndex(indice, 1);
         } else {
-            qDebug() << "Le point "<< i << " de la scene n'est pas dans la grille";
+            qDebug() << "Le point "<< i << " de la scene n'est pas dans l'emprise du profil";
         }
 
         ++i;
@@ -67,7 +67,7 @@ void ONF_ComputeHitsThread::run()
         }
     }
 
-    _grilleHits->computeMinMax();
+    _profile->computeMinMax();
 
     _progress = 100;
     emit progressChanged();

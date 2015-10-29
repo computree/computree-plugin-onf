@@ -31,15 +31,6 @@
 // Inclusion of auto-indexation system
 #include "ct_tools/model/ct_autorenamemodels.h"
 
-/*!
- * \class ONF_StepAddAttributeValue
- * \ingroup Steps_PB
- * \brief <b>Corrigé le profil de densité de points ALS.</b>
- *
- * No detailled description for this step
- *
- *
- */
 
 class ONF_StepAddAttributeValue: public CT_AbstractStep
 {

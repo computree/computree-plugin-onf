@@ -43,7 +43,7 @@ ONF_StepAddAffiliationID::ONF_StepAddAffiliationID(CT_StepInitializeData &dataIn
 
 QString ONF_StepAddAffiliationID::getStepDescription() const
 {
-    return tr("Ajout d'un ID / groupe");
+    return tr("Ajouter un ID par groupe");
 }
 
 QString ONF_StepAddAffiliationID::getStepDetailledDescription() const

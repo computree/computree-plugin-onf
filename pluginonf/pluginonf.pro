@@ -13,7 +13,6 @@ HEADERS += \
     actions/onf_actiondefineheightlayer.h \
     actions/onf_actionmanualinventory.h \
     actions/onf_actionmodifyaffiliations.h \
-    actions/onf_actionmodifyclustersgroups.h \
     actions/onf_actionmodifyclustersgroups02.h \
     actions/onf_actionmodifypositions2d.h \
     actions/onf_actionsegmentcrowns.h \
@@ -35,7 +34,6 @@ HEADERS += \
     step/onf_stepcomputeattributemapfromclusters.h \
     step/onf_stepcomputecrownprojection.h \
     step/onf_stepcomputedsm.h \
-    step/onf_stepcomputedtm.h \
     step/onf_stepcomputedtm02.h \
     step/onf_stepcomputehitgrid.h \
     step/onf_stepcomputelai2000data.h \
@@ -45,17 +43,13 @@ HEADERS += \
     step/onf_stepcorrectalsprofile.h \
     step/onf_stepcreateplotmanagerfromfile.h \
     step/onf_stepcreateplotmanagergrid.h \
-    step/onf_stepdetectsection06.h \
     step/onf_stepdetectsection07.h \
     step/onf_stepdetectverticalalignments.h \
     step/onf_stepextractdiametersfromcylinders.h \
     step/onf_stepextractlogbuffer.h \
     step/onf_stepextractplot.h \
     step/onf_stepextractplotbasedondtm.h \
-    step/onf_stepextractplotbasedonmnt02.h \
     step/onf_stepextractpositionsfromdensity.h \
-    step/onf_stepextractsoil03.h \
-    step/onf_stepextractsoil04.h \
     step/onf_stepfilterclustersbysize.h \
     step/onf_stepfiltergroupsbygroupsnumber.h \
     step/onf_stepfilteritemsbyposition.h \
@@ -72,7 +66,6 @@ HEADERS += \
     step/onf_steploadtreemap.h \
     step/onf_stepmanualinventory.h \
     step/onf_stepmatchitemspositions.h \
-    step/onf_stepmergeclustersfrompositions.h \
     step/onf_stepmergeclustersfrompositions02.h \
     step/onf_stepmergeendtoendsections04.h \
     step/onf_stepmergeneighboursections04.h \
@@ -98,7 +91,6 @@ HEADERS += \
     views/actions/onf_actionmanualinventoryattributesdialog.h \
     views/actions/onf_actionmanualinventoryoptions.h \
     views/actions/onf_actionmodifyaffiliationsoptions.h \
-    views/actions/onf_actionmodifyclustersgroupsoptions.h \
     views/actions/onf_actionmodifyclustersgroupsoptions02.h \
     views/actions/onf_actionmodifypositions2doptions.h \
     views/actions/onf_actionsegmentcrownsoptions.h \
@@ -107,7 +99,9 @@ HEADERS += \
     views/actions/onf_actionselectcellsingrid3doptions.h \
     views/actions/onf_actionslicepointcloudoptions.h \
     views/actions/onf_actionvalidateinventoryattributesdialog.h \
-    views/actions/onf_actionvalidateinventoryoptions.h
+    views/actions/onf_actionvalidateinventoryoptions.h \
+    tools/onf_computeverticalprofilethread.h \
+    step/onf_stepcomputeverticalprofile.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -115,7 +109,6 @@ SOURCES += \
     actions/onf_actiondefineheightlayer.cpp \
     actions/onf_actionmanualinventory.cpp \
     actions/onf_actionmodifyaffiliations.cpp \
-    actions/onf_actionmodifyclustersgroups.cpp \
     actions/onf_actionmodifyclustersgroups02.cpp \
     actions/onf_actionmodifypositions2d.cpp \
     actions/onf_actionsegmentcrowns.cpp \
@@ -137,7 +130,6 @@ SOURCES += \
     step/onf_stepcomputeattributemapfromclusters.cpp \
     step/onf_stepcomputecrownprojection.cpp \
     step/onf_stepcomputedsm.cpp \
-    step/onf_stepcomputedtm.cpp \
     step/onf_stepcomputedtm02.cpp \
     step/onf_stepcomputehitgrid.cpp \
     step/onf_stepcomputelai2000data.cpp \
@@ -147,17 +139,13 @@ SOURCES += \
     step/onf_stepcorrectalsprofile.cpp \
     step/onf_stepcreateplotmanagerfromfile.cpp \
     step/onf_stepcreateplotmanagergrid.cpp \
-    step/onf_stepdetectsection06.cpp \
     step/onf_stepdetectsection07.cpp \
     step/onf_stepdetectverticalalignments.cpp \
     step/onf_stepextractdiametersfromcylinders.cpp \
     step/onf_stepextractlogbuffer.cpp \
     step/onf_stepextractplot.cpp \
     step/onf_stepextractplotbasedondtm.cpp \
-    step/onf_stepextractplotbasedonmnt02.cpp \
     step/onf_stepextractpositionsfromdensity.cpp \
-    step/onf_stepextractsoil03.cpp \
-    step/onf_stepextractsoil04.cpp \
     step/onf_stepfilterclustersbysize.cpp \
     step/onf_stepfiltergroupsbygroupsnumber.cpp \
     step/onf_stepfilteritemsbyposition.cpp \
@@ -174,7 +162,6 @@ SOURCES += \
     step/onf_steploadtreemap.cpp \
     step/onf_stepmanualinventory.cpp \
     step/onf_stepmatchitemspositions.cpp \
-    step/onf_stepmergeclustersfrompositions.cpp \
     step/onf_stepmergeclustersfrompositions02.cpp \
     step/onf_stepmergeendtoendsections04.cpp \
     step/onf_stepmergeneighboursections04.cpp \
@@ -200,7 +187,6 @@ SOURCES += \
     views/actions/onf_actionmanualinventoryattributesdialog.cpp \
     views/actions/onf_actionmanualinventoryoptions.cpp \
     views/actions/onf_actionmodifyaffiliationsoptions.cpp \
-    views/actions/onf_actionmodifyclustersgroupsoptions.cpp \
     views/actions/onf_actionmodifyclustersgroupsoptions02.cpp \
     views/actions/onf_actionmodifypositions2doptions.cpp \
     views/actions/onf_actionsegmentcrownsoptions.cpp \
@@ -209,7 +195,9 @@ SOURCES += \
     views/actions/onf_actionselectcellsingrid3doptions.cpp \
     views/actions/onf_actionslicepointcloudoptions.cpp \
     views/actions/onf_actionvalidateinventoryattributesdialog.cpp \
-    views/actions/onf_actionvalidateinventoryoptions.cpp
+    views/actions/onf_actionvalidateinventoryoptions.cpp \
+    tools/onf_computeverticalprofilethread.cpp \
+    step/onf_stepcomputeverticalprofile.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts

@@ -27,15 +27,7 @@
 
 #include "ct_step/abstract/ct_abstractstep.h"
 
-/*!
- * \class ONF_StepConvertSceneToCluster
- * \ingroup Steps_OE
- * \brief <b>No short description for this step.</b>
- *
- * No detailled description for this step
- *
- *
- */
+
 
 class ONF_StepConvertSceneToCluster: public CT_AbstractStep
 {

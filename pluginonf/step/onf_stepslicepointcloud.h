@@ -29,22 +29,6 @@
 #include "ct_itemdrawable/ct_scene.h"
 #include "actions/onf_actionslicepointcloud.h"
 
-/*!
- * \class ONF_StepSlicePointCloud
- * \ingroup Steps_PB
- * \brief <b>Découpe une scène en tranche.</b>
- *
- * Action manuelle permettant de découper une scène d'entrée en tranches horizontales.
-Il est possible d'en régler intéractivement :
-- Le Z minimum (<b>_zMin</b>)
-- Le Z maximum (<b>_zMax</b>)
-- L'épaisseur (<b>_thickness</b>)
-- L'espacement entre deux tranches (<b>_spacing</b>)
-
-N.B. : Cette étape peut également fonctionner en mode non interactif, avec les paramètres choisis dans la boite de configuration. 
- *
- *
- */
 
 class ONF_StepSlicePointCloud: public CT_AbstractStep
 {

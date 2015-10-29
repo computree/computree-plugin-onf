@@ -66,7 +66,7 @@ ONF_StepComputeDSM::ONF_StepComputeDSM(CT_StepInitializeData &dataInit) : CT_Abs
 
 QString ONF_StepComputeDSM::getStepDescription() const
 {
-    return tr("Création d'un MNS et d'un MNH");
+    return tr("Créer MNS et MNH");
 }
 
 QString ONF_StepComputeDSM::getStepDetailledDescription() const

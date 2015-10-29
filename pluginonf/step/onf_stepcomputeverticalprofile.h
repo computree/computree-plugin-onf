@@ -23,8 +23,8 @@
 *****************************************************************************/
 
 
-#ifndef ONF_STEPCOMPUTEHITGRID_H
-#define ONF_STEPCOMPUTEHITGRID_H
+#ifndef ONF_STEPCOMPUTEVERTICALPROFILE_H
+#define ONF_STEPCOMPUTEVERTICALPROFILE_H
 
 #include "ct_step/abstract/ct_abstractstep.h"                    // The step inherits from ct_abstractstep
 
@@ -35,7 +35,7 @@
 #include <QMutex>
 
 
-class ONF_StepComputeHitGrid : public CT_AbstractStep
+class ONF_StepComputeVerticalProfile : public CT_AbstractStep
 {
     /** \def    Q_OBJECT :
         \brief  Macro from the Qt environment. Useful to get the name of the step (among others)*/
@@ -48,7 +48,7 @@ public:
     *  Constructor of the class
     *  \param dataInit : informations about the step : parent step, plugin manager managing this step and some settings from Qt (for the Q_OBJECT?).
     */
-    ONF_StepComputeHitGrid(CT_StepInitializeData &dataInit);
+    ONF_StepComputeVerticalProfile(CT_StepInitializeData &dataInit);
 
     /*!
     *  \brief Gives a description of the step
@@ -120,7 +120,7 @@ public slots:
 private:
 
     // Declaration of autoRenames Variables (groups or items addes to In models copies)
-    CT_AutoRenameModels _hits_ModelName;
+    CT_AutoRenameModels _itemOut_prz_ModelName;
 
     QList<CT_MonitoredQThread*>     _threadList;
     QMutex                          _mutex;
@@ -137,7 +137,7 @@ private:
 
 };
 
-#endif // ONF_STEPCOMPUTEHITGRID_H
+#endif // ONF_STEPCOMPUTEVERTICALPROFILE_H
 
 
 

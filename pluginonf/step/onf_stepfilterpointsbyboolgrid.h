@@ -30,11 +30,7 @@
 // Inclusion of auto-indexation system
 #include "ct_tools/model/ct_autorenamemodels.h"
 
-/*!
- * \class ONF_StepFilterPointsByBoolGrid
- * \ingroup Steps_PB
- *
- */
+
 class ONF_StepFilterPointsByBoolGrid: public CT_AbstractStep
 {
     Q_OBJECT

@@ -27,28 +27,6 @@
 
 #include "ct_step/abstract/ct_abstractstep.h"
 
-/*!
- * \class ONF_StepComputeSphereVoxels
- * \ingroup Steps_OE
- * \brief <b>Compute Ni, Nb and Nt for specified spheres.</b>
- *
- * \param _spheresFileName File containing spheres positions and radius
- * \param _res Scanner resolution in radians
- *
- *
- * <b>Input Models:</b>
- *
- * - CT_ResultGroup (resultIn)\n
- *     - CT_StandardItemGroup...\n
- *         - CT_Scene (sceneModel)\n
- *
- * <b>Output Models:</b>
- *
- * - CT_ResultGroup (resultOut)\n
- *     - CT_StandardItemGroup (group)...\n
- *         - CT_Scene (spModel)\n
- *
- */
 
 class ONF_StepComputeSphereVoxels: public CT_AbstractStep
 {

@@ -70,7 +70,7 @@ ONF_StepManualInventory::ONF_StepManualInventory(CT_StepInitializeData &dataInit
 // Step description (tooltip of contextual menu)
 QString ONF_StepManualInventory::getStepDescription() const
 {
-    return tr("Séléction d'un dbh / scène");
+    return tr("Séléctionner un DBH par arbre");
 }
 
 // Step copy method
@@ -86,7 +86,7 @@ void ONF_StepManualInventory::createInResultModelListProtected()
 {
     CT_InResultModelGroup *resIn_mntres = createNewInResultModel(DEFin_mntres, tr("MNT"), "", true);
     resIn_mntres->setRootGroup(DEFin_mntgrp, CT_AbstractItemGroup::staticGetType(), tr("MNT"));
-    resIn_mntres->addItemModel(DEFin_mntgrp, DEFin_mnt, CT_Grid2DXY<double>::staticGetType(), tr("MNT"));
+    resIn_mntres->addItemModel(DEFin_mntgrp, DEFin_mnt, CT_Image2D<float>::staticGetType(), tr("MNT"));
 
     CT_InResultModelGroupToCopy *resIn_scres = createNewInResultModelForCopy(DEFin_scres, tr("Scènes"));
     resIn_scres->setZeroOrMoreRootGroup();
@@ -199,7 +199,7 @@ void ONF_StepManualInventory::compute()
     CT_ResultItemIterator itIn_mntgrp(resIn_mntres, this, DEFin_mnt);
     if (itIn_mntgrp.hasNext())
     {
-        _itemIn_mnt = (CT_Grid2DXY<double>*)itIn_mntgrp.next();
+        _itemIn_mnt = (CT_Image2D<float>*)itIn_mntgrp.next();
     }
 
     if (_itemIn_mnt != NULL)
@@ -234,7 +234,7 @@ void ONF_StepManualInventory::compute()
 
                 double x = itemCpy_position->getCenterX(); // Use Position coordinates for Height reference
                 double y = itemCpy_position->getCenterY();
-                double mntZ = _itemIn_mnt->valueAtXY(x, y);
+                double mntZ = _itemIn_mnt->valueAtCoords(x, y);
 
                 _sceneDTMValues->insert(itemCpy_scene, mntZ);
 
@@ -298,7 +298,7 @@ void ONF_StepManualInventory::compute()
                     double dbh = bestCircle->getRadius() * 200.0;
                     double x = itemCpy_position->getCenterX(); // Use Position coordinates for Height reference
                     double y = itemCpy_position->getCenterY();
-                    double mntZ = _itemIn_mnt->valueAtXY(x, y);
+                    double mntZ = _itemIn_mnt->valueAtCoords(x, y);
                     double height = computeMaxZ(itemCpy_scene) - mntZ;
 
                     if ((height < 0) || (mntZ == _itemIn_mnt->NA())) {height = 0;}
@@ -407,7 +407,7 @@ void ONF_StepManualInventory::findBestCircleForEachScene()
         const CT_Point2D* pos = itScenes.value();
         double x = pos->getCenterX();
         double y = pos->getCenterY();
-        double z = _itemIn_mnt->valueAtXY(x, y) + 1.3;
+        double z = _itemIn_mnt->valueAtCoords(x, y) + 1.3;
         
         QList<const CT_Circle*> circles = (_availableDbh->value(scene)).values();
 

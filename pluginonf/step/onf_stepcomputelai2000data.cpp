@@ -61,7 +61,7 @@ ONF_StepComputeLAI2000Data::ONF_StepComputeLAI2000Data(CT_StepInitializeData &da
 // Step description (tooltip of contextual menu)
 QString ONF_StepComputeLAI2000Data::getStepDescription() const
 {
-    return tr("Calcul de données LAI-2000");
+    return tr("Calculer données LAI-2000");
 }
 
 QString ONF_StepComputeLAI2000Data::getStepDetailledDescription() const
@@ -100,7 +100,7 @@ void ONF_StepComputeLAI2000Data::createPostConfigurationDialog()
 {
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
 
-    configDialog->addDouble("Résolution de scan", "°", 0, 360, 5, _resInRadians, 180/M_PI);
+    configDialog->addDouble(tr("Résolution de scan"), "°", 0, 360, 5, _resInRadians, 180/M_PI);
 }
 
 void ONF_StepComputeLAI2000Data::compute()

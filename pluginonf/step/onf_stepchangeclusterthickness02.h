@@ -32,33 +32,7 @@
 #include "ct_itemdrawable/ct_pointcluster.h"
 #include "ct_itemdrawable/ct_standarditemgroup.h"
 
-/*!
- * \class ONF_StepChangeClusterThickness02
- * \ingroup Steps_OE
- * \brief <b>Create new clusters in sections, with specified thickness.</b>
- *
- * For each section, the CT_Point in CT_PointCluster are rearranged
- * into new CT_PointCluster of the specified thickness.
- * In this 02 version, computeOneSection() method can be called from other steps.
- *
- * \param _thickness Thickness along Z axis of new clusters (in meters)
- *
- *
- * <b>Input Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - CT_StandardItemGroup (Section)... \n
- *          - CT_StandardItemGroup (ClusterGroup)... \n
- *              - CT_PointCluster (Cluster) \n
- *
- * <b>Output Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - <em>cpy CT_StandardItemGroup (Section)...</em> \n
- *          - CT_StandardItemGroup (ClusterGroup)... \n
- *              - CT_PointCluster (Cluster) \n
- *
- */
+
 class ONF_StepChangeClusterThickness02 : public CT_AbstractStep
 {
     // IMPORTANT in order to obtain step name

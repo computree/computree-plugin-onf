@@ -67,7 +67,7 @@ ONF_StepDetectSection07::ONF_StepDetectSection07(CT_StepInitializeData &dataInit
 
 QString ONF_StepDetectSection07::getStepDescription() const
 {
-    return tr("Aggrégation verticale de clusters en billon");
+    return tr("1- Aggréger verticalement les Clusters en Billons");
 }
 
 QString ONF_StepDetectSection07::getStepDetailledDescription() const

@@ -54,7 +54,7 @@ ONF_StepComputeAttributeMapFromClusters::ONF_StepComputeAttributeMapFromClusters
 // Step description (tooltip of contextual menu)
 QString ONF_StepComputeAttributeMapFromClusters::getStepDescription() const
 {
-    return tr("Calcul d'un raster attribut à partir de clusters");
+    return tr("Mapper attribut par clusters (raster)");
 }
 
 // Step detailled description

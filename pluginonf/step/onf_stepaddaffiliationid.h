@@ -30,13 +30,6 @@
 #include "ct_step/abstract/ct_abstractstep.h"
 #include "ct_tools/model/ct_autorenamemodels.h"
 
-/*!
- * \class ONF_StepAddAffiliationID
- * \ingroup Steps_PB
- * \brief <b>Add an affiliation ID to a group level.</b>
-
- *
- */
 class ONF_StepAddAffiliationID : public CT_AbstractStep
 {
     // IMPORTANT in order to obtain step name

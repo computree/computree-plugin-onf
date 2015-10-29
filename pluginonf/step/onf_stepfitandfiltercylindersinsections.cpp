@@ -74,7 +74,7 @@ void ONF_StepFitAndFilterCylindersInSections::setDocuments(QList<DocumentInterfa
 
 QString ONF_StepFitAndFilterCylindersInSections::getStepDescription() const
 {
-    return tr("Ajustement/Filtrage des cylindres / billon");
+    return tr("6- Ajuster des Cylindres par Clusters/Billons");
 }
 
 QString ONF_StepFitAndFilterCylindersInSections::getStepDetailledDescription() const

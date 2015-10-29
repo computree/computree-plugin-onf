@@ -30,33 +30,6 @@
 
 class CT_AbstractItemGroup;
 
-/*!
- * \class ONF_StepFilterClustersBySize
- * \ingroup Steps_OE
- * \brief <b>Drop clusters with less than _minSize points.</b>
- *
- * For each CT_AbstractItemDrawableWithPointCloud, the number of CT_Point is count.
- * If the number is less than \b _minSize, the group containing the cluster is dropped.
- * If all groups in a parent group are dropped, this parent group is removed too (and so on recusively).
- *
- * \param _minSize Minimum number of point in a cluster
- *
- *
- * <b>Input Models:</b>
- *
- *  - CT_ResultGroup \n
- *      (...)
- *      - CT_StandardItemGroup (ClusterGroup)... \n
- *          - CT_AbstractItemDrawableWithPointCloud (Cluster) \n
- *
- * <b>Output Models:</b>
- *
- *  - CT_ResultGroup \n
- *      (...)
- *      - <em>cpy- CT_StandardItemGroup (ClusterGroup)...</em> \n
- *          - <em>cpy CT_AbstractItemDrawableWithPointCloud (Cluster)</em> \n
- *
- */
 class ONF_StepFilterClustersBySize : public CT_AbstractStep
 {
     // IMPORTANT in order to obtain step name

@@ -23,31 +23,29 @@
 *****************************************************************************/
 
 
-#ifndef ONF_COMPUTEHITSTHREAD_H
-#define ONF_COMPUTEHITSTHREAD_H
+#ifndef ONF_COMPUTEVERTICALPROFILETHREAD_H
+#define ONF_COMPUTEVERTICALPROFILETHREAD_H
 
 #include "ct_tools/ct_monitoredqthread.h"
 
-#include "ct_itemdrawable/ct_grid3d.h"
 #include "ct_itemdrawable/ct_scene.h"
-
+#include "ct_itemdrawable/ct_profile.h"
 
 
 #include <QThread>
 
-
-class ONF_ComputeHitsThread : public CT_MonitoredQThread
+class ONF_ComputeVerticalProfileThread : public CT_MonitoredQThread
 {
     Q_OBJECT
 public:
-    ONF_ComputeHitsThread(CT_Grid3D<int> *grilleHits,
+    ONF_ComputeVerticalProfileThread(CT_Profile<int> *profile,
                          const CT_Scene *scene);
 
     void run();
 
 private:
-    CT_Grid3D<int>*     _grilleHits;
+    CT_Profile<int>*     _profile;
     const CT_Scene*     _scene;
 };
 
-#endif // ONF_COMPUTEHITSTHREAD_H
+#endif // ONF_COMPUTEVERTICALPROFILETHREAD_H

@@ -30,15 +30,6 @@
 // Inclusion of auto-indexation system
 #include "ct_tools/model/ct_autorenamemodels.h"
 
-/*!
- * \class ONF_StepFitCylinderOnCluster
- * \ingroup Steps_PB
- * \brief <b>Ajuste des cylindres sur des clusters.</b>
- *
- * No detailled description for this step
- *
- *
- */
 
 class ONF_StepFitCylinderOnCluster: public CT_AbstractStep
 {

@@ -68,7 +68,7 @@ ONF_StepMergeNeighbourSections04::ONF_StepMergeNeighbourSections04(CT_StepInitia
 
 QString ONF_StepMergeNeighbourSections04::getStepDescription() const
 {
-    return tr("Fusion de billons parallèles");
+    return tr("3- Fusionner les Billons parallèles");
 }
 
 QString ONF_StepMergeNeighbourSections04::getStepDetailledDescription() const

@@ -29,11 +29,7 @@
 #include "ct_step/abstract/ct_abstractstep.h"
 #include "ct_tools/model/ct_autorenamemodels.h"
 
-/*!
- * \class ONF_StepReducePointsDensity
- * \ingroup Steps_OE
- * \brief <b>Reduce points density</b>
- */
+
 class ONF_StepReducePointsDensity : public CT_AbstractStep
 {
     // IMPORTANT in order to obtain step name

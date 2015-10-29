@@ -31,18 +31,7 @@
 // Inclusion of auto-indexation system
 #include "ct_tools/model/ct_autorenamemodels.h"
 
-/*!
- * \class ONF_StepComputeCrownProjection
- * \ingroup Steps_PB
- * \brief <b>Projection de houppiers.</b>
- *
- * No detailled description for this step
- *
- * \param _computeSlices 
- * \param _spacing 
- * \param _thickness 
- *
- */
+
 
 class ONF_StepComputeCrownProjection: public CT_AbstractStep
 {

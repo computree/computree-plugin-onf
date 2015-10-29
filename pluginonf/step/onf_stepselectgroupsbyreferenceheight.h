@@ -30,29 +30,6 @@
 class CT_AbstractSingularItemDrawable;
 class CT_AbstractItemGroup;
 
-/*!
- * \class ONF_StepSelectGroupsByReferenceHeight
- * \ingroup Steps_PB
- * \brief <b>Etape qui permet de sélectionner manuellement des ItemDrawable et génère un résultat de sortie avec les items sélectionnés.</b>
- *
- * Detailed decription of step purpose.
- * Please also give a general view of the algorithm.
- *
- *
- *
- * <b>Input Models:</b>
- *
- * - CT_ResultGroup (Result)\n
- *     - CT_StandardItemGroup...\n
- *         - CT_AbstractItemDrawableWithPointCloud (Item)\n
- *
- * <b>Output Models:</b>
- *
- * - CT_ResultGroup (Result)\n
- *     - <em>cpy CT_StandardItemGroup...</em>\n
- *         - <em>cpy CT_Scene (Item)</em>\n
- *
- */
 
 class ONF_StepSelectGroupsByReferenceHeight: public CT_AbstractStep
 {

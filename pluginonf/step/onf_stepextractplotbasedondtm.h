@@ -25,36 +25,12 @@
 
 #ifndef ONF_STEPEXTRACTPLOTBASEDONDTM_H
 #define ONF_STEPEXTRACTPLOTBASEDONDTM_H
+#ifdef USE_OPENCV
 
 #include "ct_step/abstract/ct_abstractstep.h"
 #include "ct_tools/model/ct_autorenamemodels.h"
 
-/*!
- * \class ONF_StepExtractPlotBasedOnDTM
- * \ingroup Steps_OE
- * \brief <b>Short description of the step.</b>
- *
- * Detailed decription of step purpose.
- * Please also give a general view of the algorithm.
- *
- * \param ParameterName Description of the parameter to give in the DialogBox
- *
- *
- * <b>Input Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - CT_StandardItemGroup (name)... \n
- *          - CT_ItemDrawable (name) \n
- *          - CT_ItemDrawable (name) \n
- *
- * <b>Output Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - CT_StandardItemGroup (Section)... \n
- *          - <em>cpy CT_ItemDrawable (name)</em> \n
- *          - <em>cpy+ CT_ItemDrawable (name)</em> \n
- *
- */
+
 class ONF_StepExtractPlotBasedOnDTM : public CT_AbstractStep
 {
     // IMPORTANT in order to obtain step name
@@ -119,14 +95,9 @@ private:
     CT_AutoRenameModels     _outFootCoordinateModelName;
     CT_AutoRenameModels     _outSceneModel;
 
-    double _x;                            /*!< Coordonnee X du centre de la placette a extraire*/
-    double _y;                            /*!< Coordonnee Y du centre de la placette a extraire*/
-    double _radiusmin;                    /*!< Rayon (m) de debut de la placette a extraire*/
-    double _radius;                       /*!< Rayon (m) de la placette a extraire*/
-    double _azbegin;                      /*!< Azimut de debut (degres) de la placette a extraire*/
-    double _azend;                        /*!< Azimut de fin (degres) de la placette a extraire*/
     double _zmin;                         /*!< Z minimum de la placette a extraire*/
     double _zmax;                         /*!< Z maximum de la placette a extraire*/
 };
 
+#endif
 #endif // ONF_STEPEXTRACTPLOTBASEDONDTM_H

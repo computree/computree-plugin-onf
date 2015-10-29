@@ -73,7 +73,7 @@ ONF_StepComputeDTM02::ONF_StepComputeDTM02(CT_StepInitializeData &dataInit) : CT
 
 QString ONF_StepComputeDTM02::getStepDescription() const
 {
-    return tr("Création d'un MNT (v2)");
+    return tr("Créer MNT");
 }
 
 QString ONF_StepComputeDTM02::getStepDetailledDescription() const

@@ -28,19 +28,6 @@
 #include "ct_step/abstract/ct_abstractstep.h"
 #include "ct_itemdrawable/abstract/ct_abstractitemgroup.h"
 
-/*!
- * \class ONF_StepFilterItemsByPosition
- * \ingroup Steps_PB
- * \brief <b>Garde les items proches d'une coordonnée.</b>
- *
- * No detailled description for this step
- *
- * \param _xcoord 
- * \param _ycoord 
- * \param _radius 
- *
- */
-
 class ONF_StepFilterItemsByPosition: public CT_AbstractStep
 {
     Q_OBJECT

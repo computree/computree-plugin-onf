@@ -32,17 +32,6 @@
 // Inclusion of auto-indexation system
 #include "ct_tools/model/ct_autorenamemodels.h"
 
-/*!
- * \class ONF_StepExtractLogBuffer
- * \ingroup Steps_PB
- * \brief <b>Extraction des points d'une scène, situés autour d'un billon.</b>
- *
- * No detailled description for this step
- *
- * \param _circleIncrement 
- * \param _buffer 
- *
- */
 
 class ONF_StepExtractLogBuffer: public CT_AbstractStep
 {

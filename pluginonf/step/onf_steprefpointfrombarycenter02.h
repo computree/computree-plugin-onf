@@ -32,32 +32,7 @@
 #include "ct_itemdrawable/ct_pointcluster.h"
 #include "ct_itemdrawable/ct_referencepoint.h"
 
-/*!
- * \class ONF_StepRefPointFromBarycenter02
- * \ingroup Steps_OE
- * \brief <b>Short description of the step.</b>
- *
- * Detailed decription of step purpose.
- * Please also give a general view of the algorithm.
- *
- * \param ParameterName Description of the parameter to give in the DialogBox
- *
- *
- * <b>Input Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - CT_StandardItemGroup (name)... \n
- *          - CT_ItemDrawable (name) \n
- *          - CT_ItemDrawable (name) \n
- *
- * <b>Output Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - CT_StandardItemGroup (Section)... \n
- *          - <em>cpy CT_ItemDrawable (name)</em> \n
- *          - <em>cpy+ CT_ItemDrawable (name)</em> \n
- *
- */
+
 class ONF_StepRefPointFromBarycenter02 : public CT_AbstractStep
 {
     // IMPORTANT in order to obtain step name

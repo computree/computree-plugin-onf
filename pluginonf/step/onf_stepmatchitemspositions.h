@@ -29,18 +29,6 @@
 #include <Eigen/Eigen>
 #include <math.h>
 
-/*!
- * \class ONF_StepMatchItemsPositions
- * \ingroup Steps_PB
- * \brief <b>Co-registration entre deux ensembles de positions 2D.</b>
- *
- * No detailled description for this step
- *
- * \param _distThreshold 
- * \param _relativeSizeThreshold 
- * \param _minRelativeSize 
- *
- */
 
 class ONF_StepMatchItemsPositions: public CT_AbstractStep
 {

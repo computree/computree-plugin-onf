@@ -25,6 +25,8 @@
 #ifndef ONF_STEPMERGECLUSTERSFROMPOSITIONS02_H
 #define ONF_STEPMERGECLUSTERSFROMPOSITIONS02_H
 
+#ifdef USE_OPENCV
+
 #include "ct_step/abstract/ct_abstractstep.h"
 #include "ct_itemdrawable/ct_point2d.h"
 #include "ct_itemdrawable/ct_pointcluster.h"
@@ -32,19 +34,6 @@
 
 class CT_AbstractItemGroup;
 
-/*!
- * \class ONF_StepMergeClustersFromPositions02
- * \ingroup Steps_PB
- * \brief <b>Regroupe des clusters à partir de positions 2D.</b>
- *
- * Cette étape permet de générer une scène pour chaque positions 2D fournie.
-Chaque cluster d'entrée est affilié à la position la plus proche (en 2D XY).
-
-Ensuite une action interactive permet de corriger cette attribution automatique.
- *
- * \param _interactiveMode 
- *
- */
 
 class ONF_StepMergeClustersFromPositions02: public CT_AbstractStep
 {
@@ -177,4 +166,5 @@ private:
 
 };
 
+#endif
 #endif // ONF_STEPMERGECLUSTERSFROMPOSITIONS02_H

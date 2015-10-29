@@ -48,7 +48,7 @@ ONF_StepAddAttributeValue::ONF_StepAddAttributeValue(CT_StepInitializeData &data
 // Step description (tooltip of contextual menu)
 QString ONF_StepAddAttributeValue::getStepDescription() const
 {
-    return tr("Corriger le profil de densité de points ALS");
+    return tr("Ajouter un attribut aux items");
 }
 
 // Step detailled description
@@ -95,7 +95,7 @@ void ONF_StepAddAttributeValue::createPostConfigurationDialog()
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
 
     configDialog->addString(tr("Nom de l'attribut"), "", _name);
-    configDialog->addDouble(tr("Valeur de l'attribut"), "", -1e+06, 1e+06, 4, _value);
+    configDialog->addDouble(tr("Valeur de l'attribut"), "", -1e+10, 1e+10, 4, _value);
 }
 
 void ONF_StepAddAttributeValue::compute()

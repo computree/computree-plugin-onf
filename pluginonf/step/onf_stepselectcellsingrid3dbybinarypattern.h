@@ -27,19 +27,6 @@
 
 #include "ct_step/abstract/ct_abstractstep.h"
 
-/*!
- * \class ONF_StepSelectCellsInGrid3DByBinaryPattern
- * \ingroup Steps_PB
- * \brief <b>Créée une grille booléenne de séléction à partir d'un motif binaire.</b>
- *
- * No detailled description for this step
- *
- * \param _inThreshold 
- * \param _pattern 
- * \param _trash 
- * \param _outThreshold 
- *
- */
 
 class ONF_StepSelectCellsInGrid3DByBinaryPattern: public CT_AbstractStep
 {

@@ -71,11 +71,12 @@ ONF_StepClassifyGround::ONF_StepClassifyGround(CT_StepInitializeData &dataInit) 
     _soilwidth = 0.32;
     _min_density = 200;
     _dist = 3;
+    _filter = true;
 }
 
 QString ONF_StepClassifyGround::getStepDescription() const
 {
-    return tr("Classification des points sol");
+    return tr("Classifier les points sol");
 }
 
 QString ONF_StepClassifyGround::getStepDetailledDescription() const

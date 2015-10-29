@@ -27,28 +27,6 @@
 
 #include "ct_step/abstract/ct_abstractstep.h"
 
-/*!
- * \class ONF_StepComputeLAI2000Data
- * \ingroup Steps_OE
- * \brief <b>Computes indicators correponding to LAI-2000 outputs.</b>
- *
- * \param _resInRadians Scan angular resolution
- *
- *
- * <b>Input Models:</b>
- *
- * - CT_ResultGroup (inResultModel)\n
- *     - CT_StandardItemGroup...\n
- *         - CT_Scene (sceneModel)\n
- *
- * <b>Output Models:</b>
- *
- * - CT_ResultGroup (outResultModel)\n
- *     - CT_StandardItemGroup (groupModel)...\n
- *         - CT_Scene (laiDataModel)\n
- *
- */
-
 class ONF_StepComputeLAI2000Data: public CT_AbstractStep
 {
     Q_OBJECT

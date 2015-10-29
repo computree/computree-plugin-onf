@@ -24,8 +24,10 @@
 
 #include "onf_stepmergeclustersfrompositions02.h"
 
+#ifdef USE_OPENCV
+
 #include "ct_itemdrawable/ct_scene.h"
-#include "ct_itemdrawable/ct_grid2dxy.h"
+#include "ct_itemdrawable/ct_image2d.h"
 #include "ct_pointcloudindex/ct_pointcloudindexvector.h"
 #include "ct_itemdrawable/tools/iterator/ct_groupiterator.h"
 #include "ct_result/ct_resultgroup.h"
@@ -81,14 +83,14 @@ ONF_StepMergeClustersFromPositions02::ONF_StepMergeClustersFromPositions02(CT_St
 // Step description (tooltip of contextual menu)
 QString ONF_StepMergeClustersFromPositions02::getStepDescription() const
 {
-    return tr("Regroupe des clusters à partir de positions 2D (V2)");
+    return tr("Isoler les houppiers à partir de positions (et de clusters)");
 }
 
 // Step detailled description
 QString ONF_StepMergeClustersFromPositions02::getStepDetailledDescription() const
 {
     return tr("Cette étape permet de générer une scène pour chaque positions 2D fournie.<br>"
-              "Chaque cluster d'entrée est affilié à la position la plus proche (en 2D XY).<br>"
+              "A partir de chaque position, les clusters fournis en entrée sont agrégés pas à pas au plus proche voisin.<br>"
               "<br>"
               "Ensuite une action interactive permet de corriger cette attribution automatique.");
 }
@@ -124,7 +126,7 @@ void ONF_StepMergeClustersFromPositions02::createInResultModelListProtected()
     CT_InResultModelGroup *resultMNTModel = createNewInResultModel(DEF_SearchInMNTResult, tr("MNT (Raster)"), "", true);
     resultMNTModel->setZeroOrMoreRootGroup();
     resultMNTModel->addGroupModel("", DEF_SearchInMNTGroup);
-    resultMNTModel->addItemModel(DEF_SearchInMNTGroup, DEF_SearchInMNT, CT_Grid2DXY<double>::staticGetType(), tr("Modèle Numérique de Terrain"));
+    resultMNTModel->addItemModel(DEF_SearchInMNTGroup, DEF_SearchInMNT, CT_Image2D<float>::staticGetType(), tr("Modèle Numérique de Terrain"));
     resultMNTModel->setMinimumNumberOfPossibilityThatMustBeSelectedForOneTurn(0);
 
     resIn_rclusters->setMaximumNumberOfPossibilityThatCanBeSelectedForOneTurn(1);
@@ -161,9 +163,9 @@ void ONF_StepMergeClustersFromPositions02::compute()
     CT_ResultGroup* res_rsc = outResultList.at(0);
 
     // Récupération du MNT
-    CT_Grid2DXY<double>* mnt = NULL;
+    CT_Image2D<float>* mnt = NULL;
     CT_ResultItemIterator it(inMNTResult, this, DEF_SearchInMNT);
-    if(it.hasNext()) {mnt = (CT_Grid2DXY<double>*) it.next();}
+    if(it.hasNext()) {mnt = (CT_Image2D<float>*) it.next();}
 
     QMap<const CT_Point2D*, double> positionsZRef;
 
@@ -181,7 +183,7 @@ void ONF_StepMergeClustersFromPositions02::compute()
             _positionsData.insert(position, QPair<CT_PointCloudIndexVector*, QList<const CT_PointCluster*>* >(cloudIndexVector, new QList<const CT_PointCluster*>()));
 
             double mntVal = 0;
-            if (mnt != NULL) {mntVal = mnt->valueAtXY(position->getCenterX(), position->getCenterY());}
+            if (mnt != NULL) {mntVal = mnt->valueAtCoords(position->getCenterX(), position->getCenterY());}
             if (mntVal == mnt->NA()) {mntVal = 0;}
 
             positionsZRef.insert(position, mntVal + _hRef);
@@ -457,3 +459,5 @@ void ONF_StepMergeClustersFromPositions02::useManualMode(bool quit)
         }
     }
 }
+
+#endif

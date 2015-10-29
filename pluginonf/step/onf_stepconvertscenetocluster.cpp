@@ -52,7 +52,7 @@ ONF_StepConvertSceneToCluster::ONF_StepConvertSceneToCluster(CT_StepInitializeDa
 // Step description (tooltip of contextual menu)
 QString ONF_StepConvertSceneToCluster::getStepDescription() const
 {
-    return tr("Conversion d'une scène en cluster ordonné");
+    return tr("Convertir CT_Scene en CT_PointCluster");
 }
 
 // Step detailled description

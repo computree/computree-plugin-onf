@@ -30,29 +30,7 @@
 
 class CT_AbstractItemGroup;
 
-/*!
- * \class ONF_StepFilterGroupsByGroupsNumber
- * \ingroup Steps_OE
- * \brief <b>Filter groups, considering number of children groups their contains.</b>
- *
- * This very generical step, drops groups which contains less than _minSize children (specified) groups.
- *
- * \param _minSize Minimum number of children groups to be concerved
- *
- *
- * <b>Input Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - CT_StandardItemGroup... \n
- *          - CT_StandardItemGroup (children group) \n
- *
- * <b>Output Models:</b>
- *
- *  - CT_ResultGroup \n
- *      - CT_StandardItemGroup... \n
- *          - <em>cpy- CT_StandardItemGroup (children group)</em> \n
- *
- */
+
 class ONF_StepFilterGroupsByGroupsNumber : public CT_AbstractStep
 {
     // IMPORTANT in order to obtain step name
