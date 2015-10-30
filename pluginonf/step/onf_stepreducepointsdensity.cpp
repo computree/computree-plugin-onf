@@ -66,7 +66,7 @@ ONF_StepReducePointsDensity::ONF_StepReducePointsDensity(CT_StepInitializeData &
 
 QString ONF_StepReducePointsDensity::getStepDescription() const
 {
-    return tr("Réduction de la densité de points");
+    return tr("Réduire la Densité de points");
 }
 
 QString ONF_StepReducePointsDensity::getStepDetailledDescription() const

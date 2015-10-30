@@ -59,7 +59,7 @@ ONF_StepSelectBBoxByFileName::ONF_StepSelectBBoxByFileName(CT_StepInitializeData
 // Step description (tooltip of contextual menu)
 QString ONF_StepSelectBBoxByFileName::getStepDescription() const
 {
-    return tr("Charge l'emprise correspondant au nom de fichier");
+    return tr("Charger l'emprise correspondant à un nom de fichier");
 }
 
 // Step detailled description
@@ -86,15 +86,21 @@ CT_VirtualAbstractStep* ONF_StepSelectBBoxByFileName::createNewInstance(CT_StepI
 // Creation and affiliation of IN models
 void ONF_StepSelectBBoxByFileName::createInResultModelListProtected()
 {
-    CT_InResultModelGroup *resIn_res = createNewInResultModelForCopy(DEFin_resBBox, tr("Emprises"));
+    CT_InResultModelGroup *resIn_res = createNewInResultModelForCopy(DEFin_resBBox, tr("Emprises disponibles"),
+                                                                     tr("Résultat contenant toutes les emprises disponibles.\n"
+                                                                        "Chaque groupe contient :\n"
+                                                                        "- Une Emprise (item ayant une boite englobante : en général Forme 2D)\n"
+                                                                        "- Un item avec un attribut conteant le nom du fichier correspondant (Header)\n"));
     resIn_res->setZeroOrMoreRootGroup();
     resIn_res->addGroupModel("", DEFin_grpBBox, CT_AbstractItemGroup::staticGetType(), tr("Groupe"));
     resIn_res->addItemModel(DEFin_grpBBox, DEFin_header, CT_AbstractSingularItemDrawable::staticGetType(), tr("Item Nom de fichier"));
     resIn_res->addItemAttributeModel(DEFin_header, DEF_inATT, QList<QString>() << CT_AbstractCategory::DATA_VALUE, CT_AbstractCategory::STRING, tr("Nom de fichier"));
-    resIn_res->addItemModel(DEFin_grpBBox, DEFin_bbox, CT_AbstractSingularItemDrawable::staticGetType(), tr("Item Emprise"));
+    resIn_res->addItemModel(DEFin_grpBBox, DEFin_bbox, CT_AbstractSingularItemDrawable::staticGetType(), tr("Emprise correspondante"));
 
 
-    CT_InResultModelGroupToCopy *resIn_resCpy = createNewInResultModelForCopy(DEFin_resHeader, tr("Fichier"), "", true);
+    CT_InResultModelGroupToCopy *resIn_resCpy = createNewInResultModelForCopy(DEFin_resHeader, tr("Fichier dont l'emprise doit être chargée"),
+                                                                              tr("Résultat contenant le nom du fichier pour lequel il faut charger l'emprise (Header)"),
+                                                                              true);
     resIn_resCpy->setZeroOrMoreRootGroup();
     resIn_resCpy->addGroupModel("", DEFin_grpHeader, CT_AbstractItemGroup::staticGetType(), tr("Groupe"));
     resIn_resCpy->addItemModel(DEFin_grpHeader, DEFin_header, CT_FileHeader::staticGetType(), tr("Entête de fichier"));

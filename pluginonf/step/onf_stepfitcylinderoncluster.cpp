@@ -47,7 +47,7 @@ ONF_StepFitCylinderOnCluster::ONF_StepFitCylinderOnCluster(CT_StepInitializeData
 // Step description (tooltip of contextual menu)
 QString ONF_StepFitCylinderOnCluster::getStepDescription() const
 {
-    return tr("Ajuste des cylindres sur des clusters");
+    return tr("Ajuster un Cylindre par cluster (en 3D)");
 }
 
 // Step detailled description

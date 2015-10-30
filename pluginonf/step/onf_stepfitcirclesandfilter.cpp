@@ -49,7 +49,7 @@ ONF_StepFitCirclesAndFilter::ONF_StepFitCirclesAndFilter(CT_StepInitializeData &
 
 QString ONF_StepFitCirclesAndFilter::getStepDescription() const
 {
-    return tr("Ajustement/Filtrage des cercles / cluster");
+    return tr("Ajuster/Filtrer un Cercle horizontal par Cluster");
 }
 
 QString ONF_StepFitCirclesAndFilter::getStepDetailledDescription() const

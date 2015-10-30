@@ -71,7 +71,7 @@ ONF_StepSegmentCrowns::ONF_StepSegmentCrowns(CT_StepInitializeData &dataInit) : 
 // Step description (tooltip of contextual menu)
 QString ONF_StepSegmentCrowns::getStepDescription() const
 {
-    return tr("Segmentation de houppiers en 2D");
+    return tr("Segmenter des houppiers en 2D");
 }
 
 // Step description (tooltip of contextual menu)

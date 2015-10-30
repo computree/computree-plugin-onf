@@ -103,7 +103,7 @@ void ONF_StepValidateInventory::createPostConfigurationDialog()
 {
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
     configDialog->addFileChoice(tr("Fichier d'espèces"), CT_FileChoiceButton::OneExistingFile, "Fichier ascii (*.txt)", _speciesFileName);
-    configDialog->addDouble(tr("Hauteur de référence"), "m", 0, 9999, 2, _hRef);
+    configDialog->addDouble(tr("Hauteur de référence"), "m", 0, 1e+10, 2, _hRef);
 }
 
 void ONF_StepValidateInventory::compute()

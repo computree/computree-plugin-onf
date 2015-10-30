@@ -75,7 +75,7 @@ ONF_StepLoadPositionsForMatching::ONF_StepLoadPositionsForMatching(CT_StepInitia
 // Step description (tooltip of contextual menu)
 QString ONF_StepLoadPositionsForMatching::getStepDescription() const
 {
-    return tr("Charge deux fichiers de positions pour mise en correspondance");
+    return tr("Fichiers de positions (2) pour mise en correspondance");
 }
 
 // Step detailled description

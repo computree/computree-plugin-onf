@@ -69,7 +69,7 @@ ONF_StepSelectCellsInGrid3DByBinaryPattern::ONF_StepSelectCellsInGrid3DByBinaryP
 // Step description (tooltip of contextual menu)
 QString ONF_StepSelectCellsInGrid3DByBinaryPattern::getStepDescription() const
 {
-    return tr("Créée une grille booléenne de séléction à partir d'un motif binaire");
+    return tr("Créer Grille Booléenne à partir d'une Grille de Convolution");
 }
 
 // Step detailled description

@@ -48,7 +48,7 @@ ONF_StepFilterClustersBySize::ONF_StepFilterClustersBySize(CT_StepInitializeData
 
 QString ONF_StepFilterClustersBySize::getStepDescription() const
 {
-    return tr("Filtrage de clusters / nb. de points");
+    return tr("Filtrer les Clusters par nombre de points");
 }
 
 QString ONF_StepFilterClustersBySize::getStepDetailledDescription() const

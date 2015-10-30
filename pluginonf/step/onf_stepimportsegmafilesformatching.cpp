@@ -53,7 +53,7 @@ ONF_StepImportSegmaFilesForMatching::ONF_StepImportSegmaFilesForMatching(CT_Step
 // Step description (tooltip of contextual menu)
 QString ONF_StepImportSegmaFilesForMatching::getStepDescription() const
 {
-    return tr("Importe deux fichiers SEGMA : un de ref, un à transformer");
+    return tr("Fichiers SEGMA : un de ref, un à transformer");
 }
 
 // Step detailled description

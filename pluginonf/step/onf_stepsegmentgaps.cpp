@@ -74,7 +74,7 @@ ONF_StepSegmentGaps::ONF_StepSegmentGaps(CT_StepInitializeData &dataInit) : CT_A
 // Step description (tooltip of contextual menu)
 QString ONF_StepSegmentGaps::getStepDescription() const
 {
-    return tr("Segmentation de trouées en 2D");
+    return tr("Segmenter des trouées en 2D");
 }
 
 // Step description (tooltip of contextual menu)

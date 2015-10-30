@@ -50,7 +50,7 @@ ONF_StepFilterItemsByPosition::ONF_StepFilterItemsByPosition(CT_StepInitializeDa
 // Step description (tooltip of contextual menu)
 QString ONF_StepFilterItemsByPosition::getStepDescription() const
 {
-    return tr("Garde les items proches d'une coordonnée");
+    return tr("Garder les Items proches d'une coordonnée");
 }
 
 // Step detailled description
@@ -96,9 +96,9 @@ void ONF_StepFilterItemsByPosition::createPostConfigurationDialog()
 {
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
 
-    configDialog->addDouble("Coordonnée X :", "m", -1e+09, 1e+09, 4, _xcoord, 1);
-    configDialog->addDouble("Coordonnée Y :", "m", -1e+09, 1e+09, 4, _ycoord, 1);
-    configDialog->addDouble("Rayon", "m", 0, 1e+09, 4, _radius, 1);
+    configDialog->addDouble("Coordonnée X :", "m", -1e+10, 1e+10, 4, _xcoord, 1);
+    configDialog->addDouble("Coordonnée Y :", "m", -1e+10, 1e+10, 4, _ycoord, 1);
+    configDialog->addDouble("Rayon", "m", 0, 1e+10, 4, _radius, 1);
 }
 
 void ONF_StepFilterItemsByPosition::compute()

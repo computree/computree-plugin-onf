@@ -57,7 +57,7 @@ ONF_StepSetAffiliationIDFromReference::ONF_StepSetAffiliationIDFromReference(CT_
 
 QString ONF_StepSetAffiliationIDFromReference::getStepDescription() const
 {
-    return tr("Correspondance entre deux résultats");
+    return tr("Jointure entre deux résultats ç l'aide d'IDs d'affiliation");
 }
 
 QString ONF_StepSetAffiliationIDFromReference::getStepDetailledDescription() const

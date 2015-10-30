@@ -58,7 +58,7 @@ ONF_StepLoadDataFromItemPosition::ONF_StepLoadDataFromItemPosition(CT_StepInitia
 // Step description (tooltip of contextual menu)
 QString ONF_StepLoadDataFromItemPosition::getStepDescription() const
 {
-    return tr("Charge des fichiers d'un DataSource intersectant la BoudingBox d'items");
+    return tr("Fichiers d'un DataSource intersectant l'emprise d'Items");
 }
 
 // Step detailled description

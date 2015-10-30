@@ -65,7 +65,7 @@ ONF_StepSelectGroupsByReferenceHeight::ONF_StepSelectGroupsByReferenceHeight(CT_
 // Step description (tooltip of contextual menu)
 QString ONF_StepSelectGroupsByReferenceHeight::getStepDescription() const
 {
-    return tr("Séléction de groupes // hauteur de référence");
+    return tr("Filter des items dans une tranche de hauteur depuis un MNT");
 }
 
 // Step copy method
@@ -97,7 +97,7 @@ void ONF_StepSelectGroupsByReferenceHeight::createOutResultModelListProtected()
 void ONF_StepSelectGroupsByReferenceHeight::createPostConfigurationDialog()
 {
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
-    configDialog->addDouble(tr("Hauteur de référence"), "m", 0, 9999, 2, _hRef);
+    configDialog->addDouble(tr("Hauteur de référence"), "m", 0, 1e+10, 2, _hRef);
 
 }
 

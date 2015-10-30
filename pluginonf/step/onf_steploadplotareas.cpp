@@ -65,7 +65,7 @@ ONF_StepLoadPlotAreas::ONF_StepLoadPlotAreas(CT_StepInitializeData &dataInit) : 
 // Step description (tooltip of contextual menu)
 QString ONF_StepLoadPlotAreas::getStepDescription() const
 {
-    return tr("Charge l'emprise de placettes");
+    return tr("Fichier ASCII contenant l'emprises de placettes circulaires");
 }
 
 // Step detailled description

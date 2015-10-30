@@ -147,7 +147,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewGeometricalShapesStep<ONF_StepAddAttributeValue>(CT_StepsMenu::LP_Analyze);
     addNewGeometricalShapesStep<ONF_StepComputeLAI2000Data>(CT_StepsMenu::LP_Analyze);
     addNewLoadStep<ONF_StepImportSegmaFilesForMatching>("");
-    addNewLoadStep<ONF_StepLoadDataFromItemPosition>("");
+    addNewLoadStep<ONF_StepLoadDataFromItemPosition>(QObject::tr("DataSources"));
     addNewLoadStep<ONF_StepLoadPlotAreas>("");
     addNewLoadStep<ONF_StepLoadPositionsForMatching>();
     addNewLoadStep<ONF_StepLoadTreeMap>("");

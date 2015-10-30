@@ -51,7 +51,7 @@ ONF_StepRefPointFromBarycenter02::ONF_StepRefPointFromBarycenter02(CT_StepInitia
 
 QString ONF_StepRefPointFromBarycenter02::getStepDescription() const
 {
-    return tr("Création de points de réf. à partir de barycentres");
+    return tr("Créer des points de référence à partir de Barycentres");
 }
 
 QString ONF_StepRefPointFromBarycenter02::getStepDetailledDescription() const

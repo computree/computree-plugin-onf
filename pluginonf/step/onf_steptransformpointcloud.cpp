@@ -60,7 +60,7 @@ ONF_StepTransformPointCloud::ONF_StepTransformPointCloud(CT_StepInitializeData &
 // Step description (tooltip of contextual menu)
 QString ONF_StepTransformPointCloud::getStepDescription() const
 {
-    return tr("Applique une matrice de transformation à une (des) scène(s)");
+    return tr("Appliquer une Matrice de Transformation à une Scène");
 }
 
 // Step detailled description

@@ -49,7 +49,7 @@ ONF_StepSmoothSkeleton::ONF_StepSmoothSkeleton(CT_StepInitializeData &dataInit) 
 
 QString ONF_StepSmoothSkeleton::getStepDescription() const
 {
-    return tr("Lissage d'une séquence de points de référence");
+    return tr("Lisser une séquence de Points de référence");
 }
 
 QString ONF_StepSmoothSkeleton::getStepDetailledDescription() const

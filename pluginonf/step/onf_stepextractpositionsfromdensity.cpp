@@ -57,7 +57,7 @@ ONF_StepExtractPositionsFromDensity::ONF_StepExtractPositionsFromDensity(CT_Step
 // Step description (tooltip of contextual menu)
 QString ONF_StepExtractPositionsFromDensity::getStepDescription() const
 {
-    return tr("Créée des positions 2D à partir de la densité des points");
+    return tr("Créer des positions 2D à partir des densités des points");
 }
 
 // Step detailled description

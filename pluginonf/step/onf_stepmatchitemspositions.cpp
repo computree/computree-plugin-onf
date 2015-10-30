@@ -115,7 +115,7 @@ ONF_StepMatchItemsPositions::ONF_StepMatchItemsPositions(CT_StepInitializeData &
 // Step description (tooltip of contextual menu)
 QString ONF_StepMatchItemsPositions::getStepDescription() const
 {
-    return tr("Co-registration entre deux ensembles de positions 2D");
+    return tr("Co-registration de deux ensembles de positions 2D");
 }
 
 // Step detailled description

@@ -49,7 +49,7 @@ ONF_StepRefPointFromArcCenter::ONF_StepRefPointFromArcCenter(CT_StepInitializeDa
 
 QString ONF_StepRefPointFromArcCenter::getStepDescription() const
 {
-    return tr("Création de points de réf. à partir d'arcs");
+    return tr("Créer des points de référence à partir d'Arcs");
 }
 
 QString ONF_StepRefPointFromArcCenter::getStepDetailledDescription() const

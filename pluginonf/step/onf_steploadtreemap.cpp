@@ -66,7 +66,7 @@ ONF_StepLoadTreeMap::ONF_StepLoadTreeMap(CT_StepInitializeData &dataInit) : CT_A
 // Step description (tooltip of contextual menu)
 QString ONF_StepLoadTreeMap::getStepDescription() const
 {
-    return tr("Charge une tree map");
+    return tr("Placette d'inventaire forestier (Tree Map)");
 }
 
 // Step detailled description

@@ -58,7 +58,7 @@ ONF_StepFilterPointsByBoolGrid::ONF_StepFilterPointsByBoolGrid(CT_StepInitialize
 // Step description (tooltip of contextual menu)
 QString ONF_StepFilterPointsByBoolGrid::getStepDescription() const
 {
-    return tr("Filtrage d'un nuage de points // grille 3D booléenne");
+    return tr("Filtrer les points par une Grille Booléenne");
 }
 
 // Step description (tooltip of contextual menu)

@@ -56,7 +56,7 @@ ONF_StepSegmentCrownsFromStemClusters::ONF_StepSegmentCrownsFromStemClusters(CT_
 // Step description (tooltip of contextual menu)
 QString ONF_StepSegmentCrownsFromStemClusters::getStepDescription() const
 {
-    return tr("Segmente des houppiers à partir de clusters tiges");
+    return tr("Segmenter des houppiers à partir de Clusters tiges");
 }
 
 // Step detailled description

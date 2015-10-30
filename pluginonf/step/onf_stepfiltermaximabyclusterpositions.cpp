@@ -53,7 +53,7 @@ ONF_StepFilterMaximaByClusterPositions::ONF_StepFilterMaximaByClusterPositions(C
 // Step description (tooltip of contextual menu)
 QString ONF_StepFilterMaximaByClusterPositions::getStepDescription() const
 {
-    return tr("Filtre les maxima par des rayons d'exclusion");
+    return tr("Filtrer les maxima à partir de clusters de référence");
 }
 
 // Step detailled description

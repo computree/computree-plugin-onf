@@ -74,7 +74,7 @@ ONF_StepSelectCellsInGrid3D::ONF_StepSelectCellsInGrid3D(CT_StepInitializeData &
 // Step description (tooltip of contextual menu)
 QString ONF_StepSelectCellsInGrid3D::getStepDescription() const
 {
-    return tr("Séléction d'un sous-ensemble d'une grille 3D");
+    return tr("Séléctionner une partie de Grille 3D");
 }
 
 // Step description (tooltip of contextual menu)

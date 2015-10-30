@@ -83,7 +83,7 @@ ONF_StepSlicePointCloud::~ONF_StepSlicePointCloud()
 // Step description (tooltip of contextual menu)
 QString ONF_StepSlicePointCloud::getStepDescription() const
 {
-    return tr("Découpage d'une scène en tranches horizontales");
+    return tr("Découper une scène en Tranches Horizontales");
 }
 
 // Step detailled description
