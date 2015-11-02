@@ -63,6 +63,7 @@ ONF_StepDetectVerticalAlignments::ONF_StepDetectVerticalAlignments(CT_StepInitia
     _heightThreshold = 0.6;
     _ratioDist = 1.0;
     _maxDiamRatio = 0.1;
+    _circleDistThreshold = 0.05;
 }
 
 // Step description (tooltip of contextual menu)
@@ -146,6 +147,7 @@ void ONF_StepDetectVerticalAlignments::createPostConfigurationDialog()
     configDialog->addDouble(tr("Supprimer les clusters qui commence au dessus de "), "% de Hscene", 0, 100, 0, _heightThreshold, 100);
     configDialog->addDouble(tr("Valeur max. pour (DistMed - DistMoy) / DistMoy"), "%", 0, 100, 0, _ratioDist, 100);
     configDialog->addDouble(tr("Ecart max Dmax n et n-1"), "%", 0, 100, 0, _maxDiamRatio, 100);
+    configDialog->addDouble(tr("Distance au cercle max"), "cm", 0, 99999, 0, _circleDistThreshold, 100);
 }
 
 
@@ -503,9 +505,6 @@ void ONF_StepDetectVerticalAlignments::AlignmentsDetectorForScene::detectAlignme
                 }
 
 
-
-
-
                 double critere = (distVal->_q50 - distVal->_mean) / distVal->_mean;
 
                 // Test de validité pour le cluster
@@ -517,8 +516,8 @@ void ONF_StepDetectVerticalAlignments::AlignmentsDetectorForScene::detectAlignme
                         critere < _step->_ratioDist)
                 {
 
-                    // Compute diameter of the stem (using max distance between two projected points;
-                    QList<float> diamEqs;
+                    // Compute diameter of the stem (using max distance between two projected points)
+                    QMultiMap<int, float> diamEqs;
                     for (int ii = 0 ; ii < projPts.size() ; ii++)
                     {
                         const Eigen::Vector2d *pt1 = projPts.at(ii);
@@ -526,29 +525,26 @@ void ONF_StepDetectVerticalAlignments::AlignmentsDetectorForScene::detectAlignme
                         {
                             const Eigen::Vector2d *pt2 = projPts.at(jj);
                             float dist = sqrt(pow((*pt1)(0) - (*pt2)(0), 2) + pow((*pt1)(1) - (*pt2)(1), 2));
-                            diamEqs.append(dist);
+
+                            Eigen::Vector2d center = (*pt1 + *pt2) / 2.0;
+
+                            int nb = 0;
+                            for (int kk = 0 ; kk < projPts.size() && kk != ii && kk != jj; kk++)
+                            {
+                                const Eigen::Vector2d *pt3 = projPts.at(kk);
+                                float distCircle = sqrt(pow(center(0) - (*pt3)(0), 2) + pow(center(1) - (*pt3)(1), 2));
+
+                                if (distCircle <= _step->_circleDistThreshold) {nb++;}
+                            }
+
+                            diamEqs.insert(nb, dist);
                         }
                     }
-                    qSort(diamEqs);
 
                     double diamEq = 0;
                     if (diamEqs.size() > 0)
                     {
                         diamEq = diamEqs.last();
-                        bool stop = false;
-                        int index = diamEqs.size() - 2;
-                        while (index >= 0 && !stop)
-                        {
-                            double previousDiam = diamEqs.at(index);
-                            double ratio = (diamEq - previousDiam) / previousDiam;
-                            if (ratio > _step->_maxDiamRatio)
-                            {
-                                diamEq = previousDiam;
-                                index--;
-                            } else {
-                                stop = true;
-                            }
-                        }
                         diamEqs.clear();
                     }
 
