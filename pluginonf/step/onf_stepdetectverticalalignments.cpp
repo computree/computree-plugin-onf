@@ -502,43 +502,9 @@ void ONF_StepDetectVerticalAlignments::AlignmentsDetectorForScene::detectAlignme
                     poly->setZValue(lineData->getP1()(2));
                 }
 
-                // Compute diameter of the stem (using max distance between two projected points;
-                QList<float> diamEqs;
-                for (int ii = 0 ; ii < projPts.size() ; ii++)
-                {
-                    const Eigen::Vector2d *pt1 = projPts.at(ii);
-                    for (int jj = ii + 1 ; jj < projPts.size() ; jj++)
-                    {
-                        const Eigen::Vector2d *pt2 = projPts.at(jj);
-                        float dist = sqrt(pow((*pt1)(0) - (*pt2)(0), 2) + pow((*pt1)(1) - (*pt2)(1), 2));
-                        diamEqs.append(dist);
-                    }
-                }
-                qSort(diamEqs);
-
-                double diamEq = 0;
-                if (diamEqs.size() > 0)
-                {
-                    diamEq = diamEqs.last();
-                    bool stop = false;
-                    int index = diamEqs.size() - 2;
-                    while (index >= 0 && !stop)
-                    {
-                        double previousDiam = diamEqs.at(index);
-                        double ratio = (diamEq - previousDiam) / previousDiam;
-                        if (ratio > _step->_maxDiamRatio)
-                        {
-                            diamEq = previousDiam;
-                            index--;
-                        } else {
-                            stop = true;
-                        }
-                    }
-                    diamEqs.clear();
-                }
 
 
-                qDeleteAll(projPts);
+
 
                 double critere = (distVal->_q50 - distVal->_mean) / distVal->_mean;
 
@@ -550,6 +516,41 @@ void ONF_StepDetectVerticalAlignments::AlignmentsDetectorForScene::detectAlignme
                         !toRemoveBecauseOfProximity.contains(cluster) &&    // Proximité
                         critere < _step->_ratioDist)
                 {
+
+                    // Compute diameter of the stem (using max distance between two projected points;
+                    QList<float> diamEqs;
+                    for (int ii = 0 ; ii < projPts.size() ; ii++)
+                    {
+                        const Eigen::Vector2d *pt1 = projPts.at(ii);
+                        for (int jj = ii + 1 ; jj < projPts.size() ; jj++)
+                        {
+                            const Eigen::Vector2d *pt2 = projPts.at(jj);
+                            float dist = sqrt(pow((*pt1)(0) - (*pt2)(0), 2) + pow((*pt1)(1) - (*pt2)(1), 2));
+                            diamEqs.append(dist);
+                        }
+                    }
+                    qSort(diamEqs);
+
+                    double diamEq = 0;
+                    if (diamEqs.size() > 0)
+                    {
+                        diamEq = diamEqs.last();
+                        bool stop = false;
+                        int index = diamEqs.size() - 2;
+                        while (index >= 0 && !stop)
+                        {
+                            double previousDiam = diamEqs.at(index);
+                            double ratio = (diamEq - previousDiam) / previousDiam;
+                            if (ratio > _step->_maxDiamRatio)
+                            {
+                                diamEq = previousDiam;
+                                index--;
+                            } else {
+                                stop = true;
+                            }
+                        }
+                        diamEqs.clear();
+                    }
 
                     // Création des items
                     CT_StandardItemGroup* grpCl = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
@@ -610,10 +611,13 @@ void ONF_StepDetectVerticalAlignments::AlignmentsDetectorForScene::detectAlignme
                     grpClDropped->addItemDrawable(line);
                 }
 
+                qDeleteAll(projPts);
+
             } else {
                 delete cluster;
                 qDebug() << "Problème";
             }
+
         }
 
         qDeleteAll(distValues.values());
