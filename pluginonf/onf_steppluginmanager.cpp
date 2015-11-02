@@ -195,6 +195,20 @@ bool ONF_StepPluginManager::loadCanBeAddedFirstStep()
     return true;
 }
 
+bool ONF_StepPluginManager::loadFilters()
+{
+    addNewFilter(new ONF_FilterByReturnType());
+    addNewFilter(new ONF_FilterRemoveUpperOutliers());
+    return true;
+}
+
+bool ONF_StepPluginManager::loadMetrics()
+{
+    addNewMetric(new ONF_MetricComputeStats());
+    addNewMetric(new ONF_MetricQuantiles());
+    return true;
+}
+
 bool ONF_StepPluginManager::loadActions()
 {
     return true;

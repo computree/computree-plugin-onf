@@ -41,6 +41,9 @@ protected:
     bool loadGenericsStep();
     bool loadOpenFileStep();
     bool loadCanBeAddedFirstStep();
+    bool loadFilters();
+    bool loadMetrics();
+
     bool loadActions();
     bool loadExporters();
     bool loadReaders();
