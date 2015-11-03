@@ -57,12 +57,11 @@ ONF_StepDetectVerticalAlignments::ONF_StepDetectVerticalAlignments(CT_StepInitia
     _maxAngle = 30.0;
 
     _minPtsNb = 3;
-    _lineDistThreshold = 1.0;
+    _lineDistThreshold = 0.8;
 
-    _lengthThreshold = 1.0;
+    _lengthThreshold = 2.0;
     _heightThreshold = 0.6;
     _ratioDist = 1.0;
-    _maxDiamRatio = 0.1;
     _circleDistThreshold = 0.05;
 }
 
@@ -146,8 +145,7 @@ void ONF_StepDetectVerticalAlignments::createPostConfigurationDialog()
     configDialog->addDouble(tr("Supprimer les clusters dont la longueur est inférieure à"), "m", 0, 1000, 2, _lengthThreshold);
     configDialog->addDouble(tr("Supprimer les clusters qui commence au dessus de "), "% de Hscene", 0, 100, 0, _heightThreshold, 100);
     configDialog->addDouble(tr("Valeur max. pour (DistMed - DistMoy) / DistMoy"), "%", 0, 100, 0, _ratioDist, 100);
-    configDialog->addDouble(tr("Ecart max Dmax n et n-1"), "%", 0, 100, 0, _maxDiamRatio, 100);
-    configDialog->addDouble(tr("Distance au cercle max"), "cm", 0, 99999, 0, _circleDistThreshold, 100);
+    configDialog->addDouble(tr("Seuil de distance par rapport au cercles"), "cm", 0, 99999, 2, _circleDistThreshold, 100);
 }
 
 
@@ -508,9 +506,9 @@ void ONF_StepDetectVerticalAlignments::AlignmentsDetectorForScene::detectAlignme
                 double critere = (distVal->_q50 - distVal->_mean) / distVal->_mean;
 
                 // Test de validité pour le cluster
-                if (    nbPts >= _step->_minPtsNb &&                               // Nombre de points
+                if (    nbPts >= _step->_minPtsNb &&                        // Nombre de points
                         phi < maxAngleRadians &&                            // Verticalité
-                        lineData->length() > _step->_lengthThreshold &&            // Longueur
+                        lineData->length() > _step->_lengthThreshold &&     // Longueur
                         cluster->minZ() < hMax &&                           // Hauteur de base
                         !toRemoveBecauseOfProximity.contains(cluster) &&    // Proximité
                         critere < _step->_ratioDist)
@@ -524,17 +522,24 @@ void ONF_StepDetectVerticalAlignments::AlignmentsDetectorForScene::detectAlignme
                         for (int jj = ii + 1 ; jj < projPts.size() ; jj++)
                         {
                             const Eigen::Vector2d *pt2 = projPts.at(jj);
+
                             float dist = sqrt(pow((*pt1)(0) - (*pt2)(0), 2) + pow((*pt1)(1) - (*pt2)(1), 2));
 
-                            Eigen::Vector2d center = (*pt1 + *pt2) / 2.0;
+                            Eigen::Vector2d center;
+                            center(0) = ((*pt1)(0) + (*pt2)(0)) / 2.0;
+                            center(1) = ((*pt1)(1) + (*pt2)(1)) / 2.0;
 
-                            int nb = 0;
-                            for (int kk = 0 ; kk < projPts.size() && kk != ii && kk != jj; kk++)
+                            float nb = 0;
+                            for (int kk = 0 ; kk < projPts.size(); kk++)
                             {
-                                const Eigen::Vector2d *pt3 = projPts.at(kk);
-                                float distCircle = sqrt(pow(center(0) - (*pt3)(0), 2) + pow(center(1) - (*pt3)(1), 2));
-
-                                if (distCircle <= _step->_circleDistThreshold) {nb++;}
+                                if (kk != ii && kk != jj)
+                                {
+                                    const Eigen::Vector2d *pt3 = projPts.at(kk);
+                                    float distCircle = fabs(sqrt(pow(center(0) - (*pt3)(0), 2) + pow(center(1) - (*pt3)(1), 2)) - (dist / 2.0));
+                                    float ratio = _step->_circleDistThreshold / distCircle;
+                                    if (ratio > 1) {ratio = 1;}
+                                    nb += ratio;
+                                }
                             }
 
                             diamEqs.insert(nb, dist);

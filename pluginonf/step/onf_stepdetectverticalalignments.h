@@ -204,7 +204,6 @@ private:
     double    _lengthThreshold;
     double    _heightThreshold;
     double    _ratioDist;
-    double    _maxDiamRatio;
     double    _circleDistThreshold;
 
 };
