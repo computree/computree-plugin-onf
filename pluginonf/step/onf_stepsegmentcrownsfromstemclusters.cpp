@@ -31,7 +31,6 @@
 #include "ct_result/model/inModel/ct_inresultmodelgrouptocopy.h"
 #include "ct_result/model/outModel/tools/ct_outresultmodelgrouptocopypossibilities.h"
 #include "ct_view/ct_stepconfigurabledialog.h"
-#include "ct_itemdrawable/ct_scene.h"
 #include "ct_pointcloudindex/ct_pointcloudindexvector.h"
 #include "ct_iterator/ct_pointiterator.h"
 
@@ -95,7 +94,7 @@ void ONF_StepSegmentCrownsFromStemClusters::createInResultModelListProtected()
 void ONF_StepSegmentCrownsFromStemClusters::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resCpy_res = createNewOutResultModelToCopy(DEFin_res);
-    resCpy_res->addItemModel(DEFin_grpPos, _outScene_ModelName, new CT_Scene(), tr("Scène segmentée"));
+    resCpy_res->addItemModel(DEFin_grpPos, _outScene_ModelName, new CT_PointCluster(), tr("Cluster segmenté"));
     resCpy_res->addItemAttributeModel(_outScene_ModelName, _outAttZmax_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_Z), tr("Zmax"));
 }
 
@@ -205,20 +204,17 @@ void ONF_StepSegmentCrownsFromStemClusters::compute()
                 StemData* stem = stems.at(i);
                 if (stem->size() > 0)
                 {
-                    CT_PointCloudIndexVector *resPointCloudIndex = new CT_PointCloudIndexVector();
+                    CT_PointCluster *outCluster = new CT_PointCluster(_outScene_ModelName.completeName(), res);
 
                     for (int j = 0 ; j < stem->size() ; j++)
                     {
-                        resPointCloudIndex->addIndex(stem->_points.at(j)->_index);
+                        outCluster->addPoint(stem->_points.at(j)->_index);
                     }
 
                     // creation et ajout de la scene
-                    CT_Scene *outScene = new CT_Scene(_outScene_ModelName.completeName(), res, PS_REPOSITORY->registerPointCloudIndex(resPointCloudIndex));
-                    outScene->updateBoundingBox();
+                    outCluster->addItemAttribute(new CT_StdItemAttributeT<double>(_outAttZmax_ModelName.completeName(), CT_AbstractCategory::DATA_Z, res, stem->maxZ()));
 
-                    outScene->addItemAttribute(new CT_StdItemAttributeT<double>(_outAttZmax_ModelName.completeName(), CT_AbstractCategory::DATA_Z, res, stem->maxZ()));
-
-                    stem->_group->addItemDrawable(outScene);
+                    stem->_group->addItemDrawable(outCluster);
                 }
 
                 delete stem;

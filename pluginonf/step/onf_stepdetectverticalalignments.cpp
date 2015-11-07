@@ -27,6 +27,7 @@
 #include "ct_itemdrawable/abstract/ct_abstractitemdrawablewithpointcloud.h"
 #include "ct_itemdrawable/ct_pointcluster.h"
 #include "ct_itemdrawable/ct_polygon2d.h"
+#include "ct_itemdrawable/ct_circle2d.h"
 #include "ct_itemdrawable/ct_line.h"
 #include "ct_itemdrawable/ct_attributeslist.h"
 #include "ct_itemdrawable/tools/iterator/ct_groupiterator.h"
@@ -111,6 +112,7 @@ void ONF_StepDetectVerticalAlignments::createOutResultModelListProtected()
     resCpy->addItemModel(_grpCluster_ModelName, _cluster_ModelName, new CT_PointCluster(), tr("Cluster conservé"));
     resCpy->addItemModel(_grpCluster_ModelName, _line_ModelName, new CT_Line(), tr("Ligne conservée"));
     resCpy->addItemModel(_grpCluster_ModelName, _convexProj_ModelName, new CT_Polygon2D(), tr("Enveloppe convexe projetée"));
+    resCpy->addItemModel(_grpCluster_ModelName, _circle_ModelName, new CT_Circle2D(), tr("Diamètre Estimé"));
     resCpy->addItemAttributeModel(_line_ModelName, _attMin_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("DistMin"));
     resCpy->addItemAttributeModel(_line_ModelName, _attQ25_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("DistQ25"));
     resCpy->addItemAttributeModel(_line_ModelName, _attQ50_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("DistMed"));
@@ -535,10 +537,17 @@ void ONF_StepDetectVerticalAlignments::AlignmentsDetectorForScene::detectAlignme
                                 if (kk != ii && kk != jj)
                                 {
                                     const Eigen::Vector2d *pt3 = projPts.at(kk);
-                                    float distCircle = fabs(sqrt(pow(center(0) - (*pt3)(0), 2) + pow(center(1) - (*pt3)(1), 2)) - (dist / 2.0));
-                                    float ratio = _step->_circleDistThreshold / distCircle;
-                                    if (ratio > 1) {ratio = 1;}
-                                    nb += ratio;
+                                    float distCircle = sqrt(pow(center(0) - (*pt3)(0), 2) + pow(center(1) - (*pt3)(1), 2)) - (dist / 2.0);
+                                    float absDistCircle = fabs(distCircle);
+
+                                    if (absDistCircle > _step->_circleDistThreshold && distCircle < 0)
+                                    {
+                                        nb -= 1;
+                                    } else {
+                                        float ratio = _step->_circleDistThreshold / absDistCircle;
+                                        if (ratio > 1) {ratio = 1;}
+                                        nb += ratio;
+                                    }
                                 }
                             }
 
@@ -564,6 +573,17 @@ void ONF_StepDetectVerticalAlignments::AlignmentsDetectorForScene::detectAlignme
 
                     CT_Line* line = new CT_Line(_step->_line_ModelName.completeName(), _res, lineData);
                     grpCl->addItemDrawable(line);
+
+                    if (diamEq > 0)
+                    {
+                        Eigen::Vector2d center;
+                        center(0) = line->getP1_X();
+                        center(1) = line->getP1_Y();
+
+                        CT_Circle2D *circle = new CT_Circle2D(_step->_circle_ModelName.completeName(), _res, new CT_Circle2DData(center, diamEq/2.0));
+                        grpCl->addItemDrawable(circle);
+                    }
+
 
                     line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMin_ModelName.completeName(),
                                                                                CT_AbstractCategory::DATA_VALUE,

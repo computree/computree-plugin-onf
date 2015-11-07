@@ -101,7 +101,8 @@ HEADERS += \
     views/actions/onf_actionvalidateinventoryattributesdialog.h \
     views/actions/onf_actionvalidateinventoryoptions.h \
     tools/onf_computeverticalprofilethread.h \
-    step/onf_stepcomputeverticalprofile.h
+    step/onf_stepcomputeverticalprofile.h \
+    step/onf_stepdetectverticalalignments02.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -197,7 +198,8 @@ SOURCES += \
     views/actions/onf_actionvalidateinventoryattributesdialog.cpp \
     views/actions/onf_actionvalidateinventoryoptions.cpp \
     tools/onf_computeverticalprofilethread.cpp \
-    step/onf_stepcomputeverticalprofile.cpp
+    step/onf_stepcomputeverticalprofile.cpp \
+    step/onf_stepdetectverticalalignments02.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts

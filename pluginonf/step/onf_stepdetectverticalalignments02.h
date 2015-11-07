@@ -22,12 +22,13 @@
  along with PluginONF.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
 *****************************************************************************/
 
-#ifndef ONF_STEPDETECTVERTICALALIGNMENTS_H
-#define ONF_STEPDETECTVERTICALALIGNMENTS_H
+#ifndef ONF_STEPDETECTVERTICALALIGNMENTS02_H
+#define ONF_STEPDETECTVERTICALALIGNMENTS02_H
 
 #include "ct_step/abstract/ct_abstractstep.h"
 
 #include "ct_itemdrawable/ct_standarditemgroup.h"
+#include "ct_itemdrawable/ct_line.h"
 
 // Inclusion of auto-indexation system
 #include "ct_tools/model/ct_autorenamemodels.h"
@@ -36,40 +37,40 @@
 #include "eigen/Eigen/Core"
 
 
-class ONF_StepDetectVerticalAlignments: public CT_AbstractStep
+class ONF_StepDetectVerticalAlignments02: public CT_AbstractStep
 {
     Q_OBJECT
 
 public:
 
     /*! \brief Step constructor
-     * 
+     *
      * Create a new instance of the step
-     * 
+     *
      * \param dataInit Step parameters object
      */
-    ONF_StepDetectVerticalAlignments(CT_StepInitializeData &dataInit);
+    ONF_StepDetectVerticalAlignments02(CT_StepInitializeData &dataInit);
 
     /*! \brief Step description
-     * 
+     *
      * Return a description of the step function
      */
     QString getStepDescription() const;
 
     /*! \brief Step detailled description
-     * 
+     *
      * Return a detailled description of the step function
      */
     QString getStepDetailledDescription() const;
 
     /*! \brief Step URL
-     * 
+     *
      * Return a URL of a wiki for this step
      */
     QString getStepURL() const;
 
     /*! \brief Step copy
-     * 
+     *
      * Step copy, used when a step is added by step contextual menu
      */
     CT_VirtualAbstractStep* createNewInstance(CT_StepInitializeData &dataInit);
@@ -77,36 +78,46 @@ public:
 protected:
 
     /*! \brief Input results specification
-     * 
+     *
      * Specification of input results models needed by the step (IN)
      */
     void createInResultModelListProtected();
 
     /*! \brief Parameters DialogBox
-     * 
+     *
      * DialogBox asking for step parameters
      */
     void createPostConfigurationDialog();
 
     /*! \brief Output results specification
-     * 
+     *
      * Specification of output results models created by the step (OUT)
      */
     void createOutResultModelListProtected();
 
     /*! \brief Algorithm of the step
-     * 
+     *
      * Step computation, using input results, and creating output results
      */
     void compute();
 
 private:
 
+    struct DistValues {
+        double _min;
+        double _max;
+        double _mean;
+        double _q25;
+        double _q50;
+        double _q75;
+    };
+
+
     class AlignmentsDetectorForScene
     {
     public:
 
-        AlignmentsDetectorForScene(ONF_StepDetectVerticalAlignments* step, CT_ResultGroup* res)
+        AlignmentsDetectorForScene(ONF_StepDetectVerticalAlignments02* step, CT_ResultGroup* res)
         {
             _step = step;
             _res = res;
@@ -120,8 +131,9 @@ private:
 
         void detectAlignmentsForScene(CT_StandardItemGroup* grp);
 
+        ONF_StepDetectVerticalAlignments02::DistValues* computeDistVals(const CT_AbstractPointCloudIndex* cloudIndex, CT_LineData* lineData);
     private:
-        ONF_StepDetectVerticalAlignments* _step;
+        ONF_StepDetectVerticalAlignments02* _step;
         CT_ResultGroup* _res;
     };
 
@@ -129,6 +141,9 @@ private:
     struct LineData {
         LineData(const CT_Point &pLow, const CT_Point &pHigh, size_t index1, size_t index2, float phi, double bottomLevel, double topLevel)
         {
+            _processed = false;
+            _distSum = 0;
+
             _index1 = index1;
             _index2 = index2;
             _pLow = pLow;
@@ -149,7 +164,7 @@ private:
             _highCoord(0) = pLow(0) + t*dir(0);
             _highCoord(1) = pLow(1) + t*dir(1);
             _highCoord(2) = topLevel;
-        }
+        }        
 
         float _phi;
         size_t _index1;
@@ -160,21 +175,25 @@ private:
         Eigen::Vector3d _highCoord;
 
 
+        QList<ONF_StepDetectVerticalAlignments02::LineData*> _neighbors;
+        bool                                                 _processed;
+        double                                               _distSum;
+
+        inline size_t neighborsCount() const {return _neighbors.size();}
+
     };
 
-    struct DistValues {
-        double _min;
-        double _max;
-        double _mean;
-        double _q25;
-        double _q50;
-        double _q75;
-    };
-
-    static bool lessThan(LineData *s1, LineData *s2)
+    static bool orderByAscendingPhi(LineData *s1, LineData *s2)
     {
         return s1->_phi < s2->_phi;
     }
+
+    static bool orderByDescendingNeighborCount(LineData *s1, LineData *s2)
+    {
+        if (s1->neighborsCount() > 0 && s1->neighborsCount() == s2->neighborsCount()) {return (s1->_distSum / s1->neighborsCount()) < (s2->_distSum / s2->neighborsCount());}
+        return s1->neighborsCount() > s2->neighborsCount();
+    }
+
 
 
     // Declaration of autoRenames Variables (groups or items added to In models copies)
@@ -198,15 +217,16 @@ private:
 
 
     // Step parameters
-    double    _maxAngle;
-    double    _distThreshold;
+    double    _maxPhiAngle;
+    double    _pointDistThreshold;
     double    _lineDistThreshold;
+    double    _maxSpacing;
     int       _minPtsNb;
     double    _lengthThreshold;
     double    _heightThreshold;
-    double    _ratioDist;
     double    _circleDistThreshold;
+    bool      _clusterDebugMode;
 
 };
 
-#endif // ONF_STEPDETECTVERTICALALIGNMENTS_H
+#endif // ONF_STEPDETECTVERTICALALIGNMENTS02_H

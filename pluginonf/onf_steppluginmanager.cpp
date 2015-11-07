@@ -69,6 +69,7 @@
 #include "step/onf_stepcreateplotmanagerfromfile.h"
 #include "step/onf_stepcreateplotmanagergrid.h"
 #include "step/onf_stepdetectverticalalignments.h"
+#include "step/onf_stepdetectverticalalignments02.h"
 #include "step/onf_stepextractlogbuffer.h"
 #include "step/onf_stepextractpositionsfromdensity.h"
 #include "step/onf_stepfilteritemsbyposition.h"
@@ -135,6 +136,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
 
     addNewGeometricalShapesStep<ONF_StepComputeCrownProjection>(CT_StepsMenu::LP_Crowns);
     addNewGeometricalShapesStep<ONF_StepDetectVerticalAlignments>(CT_StepsMenu::LP_Stems);
+    addNewGeometricalShapesStep<ONF_StepDetectVerticalAlignments02>(CT_StepsMenu::LP_Stems);
     addNewGeometricalShapesStep<ONF_StepExtractPositionsFromDensity>("");
     addNewGeometricalShapesStep<ONF_StepFilterItemsByPosition>(CT_StepsMenu::LP_Filter);
     addNewGeometricalShapesStep<ONF_StepFitCylinderOnCluster>(CT_StepsMenu::LP_Fit);
