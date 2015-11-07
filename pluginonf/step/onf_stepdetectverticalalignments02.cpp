@@ -55,7 +55,7 @@
 ONF_StepDetectVerticalAlignments02::ONF_StepDetectVerticalAlignments02(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
     _pointDistThreshold = 4.0;
-    _maxPhiAngle = 30.0;
+    _maxPhiAngle = 20.0;
 
     _lineDistThreshold = 0.4;
     _maxSpacing = 0.4;
@@ -327,6 +327,37 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlign
                     CT_LineData* lineData = CT_LineData::staticCreateLineDataFromPointCloud(*cloudIndex);
                     pointsClusters.insert(lineData, cluster);
 
+                    float phi, theta, length;
+                    CT_SphericalLine3D::convertToSphericalCoordinates(&(lineData->getP1()), &(lineData->getP2()), phi, theta, length);
+
+                    if (phi > maxPhiRadians)
+                    {
+                        if (_step->_clusterDebugMode) // mode Debug Cluster
+                        {
+                            CT_StandardItemGroup* grpClDropped = new CT_StandardItemGroup(_step->_grpDroppedCluster_ModelName.completeName(), _res);
+                            grp->addGroup(grpClDropped);
+
+                            cluster->setModel(_step->_droppedCluster_ModelName.completeName());
+                            grpClDropped->addItemDrawable(cluster);
+
+                            CT_Line* line = new CT_Line(_step->_droppedLine_ModelName.completeName(), _res, lineData);
+                            grpClDropped->addItemDrawable(line);
+                        } else {
+                            delete cluster;
+                            delete lineData;
+                        }
+                    } else if (_step->_clusterDebugMode) // mode Debug Cluster
+                    {
+                        CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
+                        grp->addGroup(grpClKept);
+
+                        cluster->setModel(_step->_cluster_ModelName.completeName());
+                        grpClKept->addItemDrawable(cluster);
+
+                        CT_Line* line = new CT_Line(_step->_line_ModelName.completeName(), _res, lineData);
+                        grpClKept->addItemDrawable(line);
+                    }
+                } else {
                     if (_step->_clusterDebugMode) // mode Debug Cluster
                     {
                         CT_StandardItemGroup* grpClDropped = new CT_StandardItemGroup(_step->_grpDroppedCluster_ModelName.completeName(), _res);
@@ -334,12 +365,9 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlign
 
                         cluster->setModel(_step->_droppedCluster_ModelName.completeName());
                         grpClDropped->addItemDrawable(cluster);
-
-                        CT_Line* line = new CT_Line(_step->_droppedLine_ModelName.completeName(), _res, lineData);
-                        grpClDropped->addItemDrawable(line);
+                    } else {
+                        delete cluster;
                     }
-                } else {
-                    delete cluster;
                 }
             }
         }
