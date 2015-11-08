@@ -222,6 +222,7 @@ private:
     double    _lineDistThreshold;
     double    _maxSpacing;
     int       _minPtsNb;
+    double    _lineLengthRatio;
     double    _lengthThreshold;
     double    _heightThreshold;
     double    _circleDistThreshold;

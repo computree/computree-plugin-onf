@@ -61,6 +61,7 @@ ONF_StepDetectVerticalAlignments02::ONF_StepDetectVerticalAlignments02(CT_StepIn
     _maxSpacing = 0.4;
     _minPtsNb = 3;
 
+    _lineLengthRatio = 0.8;
     _lengthThreshold = 2.0;
     _heightThreshold = 0.6;
     _circleDistThreshold = 0.05;
@@ -144,6 +145,7 @@ void ONF_StepDetectVerticalAlignments02::createPostConfigurationDialog()
     configDialog->addDouble(tr("Distance maximum XY entre deux droites candidates à agréger"), "m", 0, 1000, 2, _lineDistThreshold);
     configDialog->addDouble(tr("Eloignement maximal sur 1 m en Z entre deux droites candidates à agréger"), "m", 0, 1000, 2, _maxSpacing);
     configDialog->addInt(   tr("Nombre de points minimum dans un cluster"), "", 3, 1000, _minPtsNb);
+    configDialog->addDouble(tr("Pourcentage maximum de la longueur de segment sans points"), "%", 0, 100, 0, _lineLengthRatio, 100);
 
     configDialog->addEmpty();
     configDialog->addTitle(tr("3- Paramètres de validation des clusters obtenus :"));
@@ -346,16 +348,60 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlign
                             delete cluster;
                             delete lineData;
                         }
-                    } else if (_step->_clusterDebugMode) // mode Debug Cluster
-                    {
-                        CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
-                        grp->addGroup(grpClKept);
+                    } else {
 
-                        cluster->setModel(_step->_cluster_ModelName.completeName());
-                        grpClKept->addItemDrawable(cluster);
+                        QList<double> dists;
 
-                        CT_Line* line = new CT_Line(_step->_line_ModelName.completeName(), _res, lineData);
-                        grpClKept->addItemDrawable(line);
+                        CT_PointIterator itP(cloudIndex);
+                        while(itP.hasNext())
+                        {
+                            const CT_Point &point = itP.next().currentPoint();
+
+                            Eigen::Vector3d projPoint;
+                            dists.append(CT_MathPoint::distanceOnLineForPointProjection(lineData->getP1(), lineData->getDirection(), point, projPoint));
+                        }
+
+                        qSort(dists);
+
+                        bool okLength = true;
+                        double maxLength = _step->_lineLengthRatio * lineData->length();
+                        for (int dd = 1 ; dd < dists.size() && okLength; dd++)
+                        {
+                            double currentDist = dists.at(dd) - dists.at(dd - 1);
+                            if (currentDist > maxLength) {okLength = false;}
+                        }
+                        dists.clear();
+
+                        if (okLength)
+                        {
+                            if (_step->_clusterDebugMode) // mode Debug Cluster
+                            {
+                                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
+                                grp->addGroup(grpClKept);
+
+                                cluster->setModel(_step->_cluster_ModelName.completeName());
+                                grpClKept->addItemDrawable(cluster);
+
+                                CT_Line* line = new CT_Line(_step->_line_ModelName.completeName(), _res, lineData);
+                                grpClKept->addItemDrawable(line);
+                            }
+                        } else {
+                            if (_step->_clusterDebugMode) // mode Debug Cluster
+                            {
+                                CT_StandardItemGroup* grpClDropped = new CT_StandardItemGroup(_step->_grpDroppedCluster_ModelName.completeName(), _res);
+                                grp->addGroup(grpClDropped);
+
+                                cluster->setModel(_step->_droppedCluster_ModelName.completeName());
+                                grpClDropped->addItemDrawable(cluster);
+
+                                CT_Line* line = new CT_Line(_step->_droppedLine_ModelName.completeName(), _res, lineData);
+                                grpClDropped->addItemDrawable(line);
+                            } else {
+                                delete cluster;
+                                delete lineData;
+                            }
+                        }
+
                     }
                 } else {
                     if (_step->_clusterDebugMode) // mode Debug Cluster
