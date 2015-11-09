@@ -112,32 +112,6 @@ private:
         double _q75;
     };
 
-
-    class AlignmentsDetectorForScene
-    {
-    public:
-
-        AlignmentsDetectorForScene(ONF_StepDetectVerticalAlignments02* step, CT_ResultGroup* res)
-        {
-            _step = step;
-            _res = res;
-        }
-
-        typedef void result_type;
-        void operator()(CT_StandardItemGroup* grp)
-        {
-            detectAlignmentsForScene(grp);
-        }
-
-        void detectAlignmentsForScene(CT_StandardItemGroup* grp);
-
-        ONF_StepDetectVerticalAlignments02::DistValues* computeDistVals(const CT_AbstractPointCloudIndex* cloudIndex, CT_LineData* lineData);
-    private:
-        ONF_StepDetectVerticalAlignments02* _step;
-        CT_ResultGroup* _res;
-    };
-
-
     struct LineData {
         LineData(const CT_Point &pLow, const CT_Point &pHigh, size_t index1, size_t index2, float phi, double bottomLevel, double topLevel)
         {
@@ -164,7 +138,7 @@ private:
             _highCoord(0) = pLow(0) + t*dir(0);
             _highCoord(1) = pLow(1) + t*dir(1);
             _highCoord(2) = topLevel;
-        }        
+        }
 
         float _phi;
         size_t _index1;
@@ -195,6 +169,32 @@ private:
     }
 
 
+    class AlignmentsDetectorForScene
+    {
+    public:
+
+        AlignmentsDetectorForScene(ONF_StepDetectVerticalAlignments02* step, CT_ResultGroup* res)
+        {
+            _step = step;
+            _res = res;
+        }
+
+        typedef void result_type;
+        void operator()(CT_StandardItemGroup* grp)
+        {
+            detectAlignmentsForScene(grp);
+        }
+
+        void detectAlignmentsForScene(CT_StandardItemGroup* grp);
+
+        ONF_StepDetectVerticalAlignments02::DistValues* computeDistVals(const CT_AbstractPointCloudIndex* cloudIndex, CT_LineData* lineData);
+        void findNeighborLines(QList<ONF_StepDetectVerticalAlignments02::LineData*> candidateLines, double distThreshold);
+    private:
+        ONF_StepDetectVerticalAlignments02* _step;
+        CT_ResultGroup* _res;
+    };
+
+
 
     // Declaration of autoRenames Variables (groups or items added to In models copies)
     CT_AutoRenameModels    _grpCluster_ModelName;
@@ -220,7 +220,8 @@ private:
     double    _maxPhiAngle;
     double    _pointDistThreshold;
     double    _lineDistThreshold;
-    double    _maxSpacing;
+    double    _clusterDistThreshold;
+    double    _maxDivergence;
     int       _minPtsNb;
     double    _lineLengthRatio;
     double    _lengthThreshold;
