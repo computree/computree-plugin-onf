@@ -30,11 +30,15 @@
 #include "ct_itemdrawable/ct_standarditemgroup.h"
 #include "ct_itemdrawable/ct_line.h"
 
+
 // Inclusion of auto-indexation system
 #include "ct_tools/model/ct_autorenamemodels.h"
 #include "ct_point.h"
 
 #include "eigen/Eigen/Core"
+
+class CT_PointCluster;
+class CT_StandardItemGroup;
 
 
 class ONF_StepDetectVerticalAlignments02: public CT_AbstractStep
@@ -189,6 +193,7 @@ private:
 
         ONF_StepDetectVerticalAlignments02::DistValues* computeDistVals(const CT_AbstractPointCloudIndex* cloudIndex, CT_LineData* lineData);
         void findNeighborLines(QList<ONF_StepDetectVerticalAlignments02::LineData*> candidateLines, double distThreshold);
+        void sendToDroppedList(CT_StandardItemGroup* grp, CT_PointCluster* cluster, CT_LineData* lineData);
     private:
         ONF_StepDetectVerticalAlignments02* _step;
         CT_ResultGroup* _res;
@@ -208,12 +213,12 @@ private:
     CT_AutoRenameModels    _attQ75_ModelName;
     CT_AutoRenameModels    _attMax_ModelName;
     CT_AutoRenameModels    _attMean_ModelName;
+    CT_AutoRenameModels    _attMaxDist_ModelName;
     CT_AutoRenameModels    _attDiamEq_ModelName;
 
     CT_AutoRenameModels    _grpDroppedCluster_ModelName;
     CT_AutoRenameModels    _droppedCluster_ModelName;
     CT_AutoRenameModels    _droppedLine_ModelName;
-    CT_AutoRenameModels    _convexProjDropped_ModelName;
 
 
     // Step parameters
@@ -222,6 +227,7 @@ private:
     double    _lineDistThreshold;
     double    _clusterDistThreshold;
     double    _maxDivergence;
+    double    _maxDiameter;
     int       _minPtsNb;
     double    _lineLengthRatio;
     double    _lengthThreshold;
