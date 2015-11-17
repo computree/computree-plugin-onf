@@ -22,13 +22,14 @@
  along with PluginONF.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
 *****************************************************************************/
 
-#include "onf_stepdetectverticalalignments02.h"
+#include "onf_stepdetectverticalalignments03.h"
 
 #include "ct_itemdrawable/abstract/ct_abstractitemdrawablewithpointcloud.h"
 #include "ct_itemdrawable/ct_polygon2d.h"
 #include "ct_itemdrawable/ct_circle2d.h"
 #include "ct_itemdrawable/ct_line.h"
 #include "ct_itemdrawable/ct_pointcluster.h"
+#include "ct_itemdrawable/abstract/ct_abstractpointattributesscalar.h"
 #include "ct_itemdrawable/ct_standarditemgroup.h"
 
 #include "ct_itemdrawable/ct_attributeslist.h"
@@ -50,11 +51,12 @@
 #define DEFin_res "res"
 #define DEFin_grp "grp"
 #define DEFin_scene "scene"
+#define DEFin_attLineOfScan "lineOfScan"
 
 
 
 // Constructor : initialization of parameters
-ONF_StepDetectVerticalAlignments02::ONF_StepDetectVerticalAlignments02(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
+ONF_StepDetectVerticalAlignments03::ONF_StepDetectVerticalAlignments03(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
     _pointDistThreshold = 4.0;
     _maxPhiAngle = 30.0;
@@ -70,50 +72,52 @@ ONF_StepDetectVerticalAlignments02::ONF_StepDetectVerticalAlignments02(CT_StepIn
     _lengthThreshold = 2.0;
     _heightThreshold = 0.6;
 
+    _maxDiamRatio = 0.10;
     _circleDistThreshold = 0.05;
 
     _clusterDebugMode = false;
 }
 
 // Step description (tooltip of contextual menu)
-QString ONF_StepDetectVerticalAlignments02::getStepDescription() const
+QString ONF_StepDetectVerticalAlignments03::getStepDescription() const
 {
-    return tr("Détecter des alignements verticaux de points (V2)");
+    return tr("Détecter des alignements verticaux de points (V3)");
 }
 
 // Step detailled description
-QString ONF_StepDetectVerticalAlignments02::getStepDetailledDescription() const
+QString ONF_StepDetectVerticalAlignments03::getStepDetailledDescription() const
 {
     return tr("No detailled description for this step");
 }
 
 // Step URL
-QString ONF_StepDetectVerticalAlignments02::getStepURL() const
+QString ONF_StepDetectVerticalAlignments03::getStepURL() const
 {
     //return tr("STEP URL HERE");
     return CT_AbstractStep::getStepURL(); //by default URL of the plugin
 }
 
 // Step copy method
-CT_VirtualAbstractStep* ONF_StepDetectVerticalAlignments02::createNewInstance(CT_StepInitializeData &dataInit)
+CT_VirtualAbstractStep* ONF_StepDetectVerticalAlignments03::createNewInstance(CT_StepInitializeData &dataInit)
 {
-    return new ONF_StepDetectVerticalAlignments02(dataInit);
+    return new ONF_StepDetectVerticalAlignments03(dataInit);
 }
 
 //////////////////// PROTECTED METHODS //////////////////
 
 // Creation and affiliation of IN models
-void ONF_StepDetectVerticalAlignments02::createInResultModelListProtected()
+void ONF_StepDetectVerticalAlignments03::createInResultModelListProtected()
 {
     CT_InResultModelGroupToCopy *resIn_res = createNewInResultModelForCopy(DEFin_res, tr("Scènes"));
     resIn_res->setZeroOrMoreRootGroup();
     resIn_res->addGroupModel("", DEFin_grp, CT_AbstractItemGroup::staticGetType(), tr("Scènes (grp)"));
     resIn_res->addItemModel(DEFin_grp, DEFin_scene, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène"));
-
+    resIn_res->addItemModel(DEFin_grp, DEFin_attLineOfScan, CT_AbstractPointAttributesScalar::staticGetType(), tr("Ligne de Scan"),
+                            tr("Attribut codant la ligne de scan"), CT_InAbstractModel::C_ChooseOneIfMultiple, CT_InAbstractModel::F_IsOptional);
 }
 
 // Creation and affiliation of OUT models
-void ONF_StepDetectVerticalAlignments02::createOutResultModelListProtected()
+void ONF_StepDetectVerticalAlignments03::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resCpy = createNewOutResultModelToCopy(DEFin_res);
 
@@ -138,7 +142,7 @@ void ONF_StepDetectVerticalAlignments02::createOutResultModelListProtected()
 }
 
 // Semi-automatic creation of step parameters DialogBox
-void ONF_StepDetectVerticalAlignments02::createPostConfigurationDialog()
+void ONF_StepDetectVerticalAlignments03::createPostConfigurationDialog()
 {
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
 
@@ -149,7 +153,7 @@ void ONF_StepDetectVerticalAlignments02::createPostConfigurationDialog()
     configDialog->addEmpty();
     configDialog->addTitle(tr("2- Paramètres de création des clusters (à partir des droites candidates) :"));
     configDialog->addDouble(tr("Distance maximum XY entre deux droites candidates à agréger"), "m", 0, 1000, 2, _lineDistThreshold);
-    configDialog->addInt(   tr("Nombre de points minimum dans un cluster"), "", 2, 1000, _minPtsNb);
+    configDialog->addInt(tr("Nombre de points minimum dans un cluster"), "", 2, 1000, _minPtsNb);
     configDialog->addDouble(tr("Pourcentage maximum de la longueur de segment sans points"), "%", 0, 100, 0, _lineLengthRatio, 100);
 
 
@@ -165,6 +169,7 @@ void ONF_StepDetectVerticalAlignments02::createPostConfigurationDialog()
 
     configDialog->addEmpty();
     configDialog->addTitle(tr("4- Paramètres de validation des diamètres :"));
+    configDialog->addDouble(tr("Ecart max Dmax n et n-1"), "%", 0, 100, 0, _maxDiamRatio, 100);
     configDialog->addDouble(tr("Epaisseur des cercles pour le scoring"), "cm", 0, 99999, 2, _circleDistThreshold, 100);
 
     configDialog->addEmpty();
@@ -173,7 +178,7 @@ void ONF_StepDetectVerticalAlignments02::createPostConfigurationDialog()
 
 
 
-void ONF_StepDetectVerticalAlignments02::compute()
+void ONF_StepDetectVerticalAlignments03::compute()
 {
     QList<CT_ResultGroup*> outResultList = getOutResultList();
     CT_ResultGroup* res = outResultList.at(0);
@@ -199,15 +204,17 @@ void ONF_StepDetectVerticalAlignments02::compute()
 }
 
 
-void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlignmentsForScene(CT_StandardItemGroup* grp)
+void ONF_StepDetectVerticalAlignments03::AlignmentsDetectorForScene::detectAlignmentsForScene(CT_StandardItemGroup* grp)
 {
 
     const CT_AbstractItemDrawableWithPointCloud* scene = (CT_AbstractItemDrawableWithPointCloud*)grp->firstItemByINModelName(_step, DEFin_scene);
+    const CT_AbstractPointAttributesScalar* attributeLineOfScan = (CT_AbstractPointAttributesScalar*)grp->firstItemByINModelName(_step, DEFin_attLineOfScan);
+
     if (scene != NULL)
     {
         double maxPhiRadians = M_PI*_step->_maxPhiAngle/180.0;
 
-        QList<ONF_StepDetectVerticalAlignments02::LineData*> candidateLines;
+        QList<ONF_StepDetectVerticalAlignments03::LineData*> candidateLines;
         const CT_AbstractPointCloudIndex* pointCloudIndex = scene->getPointCloudIndex();
 
         //double deltaZ = scene->maxZ() - scene->minZ();
@@ -220,6 +227,16 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlign
             const CT_Point &point1 = itP1.next().currentPoint();
             size_t index1 = itP1.currentGlobalIndex();
 
+            double lineOfScan1 = 0; // Récupération de la ligne de scan pour le point 1
+            if (attributeLineOfScan != NULL)
+            {
+                size_t localIndex1 = attributeLineOfScan->getPointCloudIndex()->indexOf(index1);
+                if (localIndex1 < pointCloudIndex->size())
+                {
+                    lineOfScan1 = attributeLineOfScan->dValueAt(localIndex1);
+                }
+            }
+
             bool before = true;
             CT_PointIterator itP2(pointCloudIndex);
             while(itP2.hasNext() && (!_step->isStopped()))
@@ -227,8 +244,22 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlign
                 const CT_Point &point2 = itP2.next().currentPoint();
                 size_t index2 = itP2.currentGlobalIndex();
 
+                double lineOfScan2 = 0; // Récupération de la ligne de scan pour le point 2
+                if (attributeLineOfScan != NULL)
+                {
+                    size_t localIndex2 = attributeLineOfScan->getPointCloudIndex()->indexOf(index2);
+                    if (localIndex2 < pointCloudIndex->size())
+                    {
+                        lineOfScan2 = attributeLineOfScan->dValueAt(localIndex2);
+                    }
+                }
+
+
+
                 // Les deux points doivent être disctinct dans l'espace
-                if (!before && ((point1(0) != point2(0) || point1(1) != point2(1) || point1(2) != point2(2))))
+                if (!before &&
+                    ((point1(0) != point2(0) || point1(1) != point2(1) || point1(2) != point2(2))) &&
+                    lineOfScan1 == lineOfScan2) // Les deux points doivent avoir la même ligne de vol
                 {
                     // Les deux points doivent être à moins de _distThreshold
                     double dist = sqrt(pow(point1(0) - point2(0), 2) + pow(point1(1) - point2(1), 2) + pow(point1(2) - point2(2), 2));
@@ -248,7 +279,7 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlign
 
                         if (phi < maxPhiRadians)
                         {
-                            candidateLines.append(new ONF_StepDetectVerticalAlignments02::LineData(pointLow, pointHigh, index1, index2, phi, scene->minZ(), scene->maxZ()));
+                            candidateLines.append(new ONF_StepDetectVerticalAlignments03::LineData(pointLow, pointHigh, index1, index2, phi, scene->minZ(), scene->maxZ(), lineOfScan1));
                         }
                     }
                 }
@@ -258,21 +289,21 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlign
         }
 
         // Tri par Phi croissant... inutile
-        //qSort(candidateLines.begin(), candidateLines.end(), ONF_StepDetectVerticalAlignments02::orderByAscendingPhi);
+        //qSort(candidateLines.begin(), candidateLines.end(), ONF_StepDetectVerticalAlignments03::orderByAscendingPhi);
 
         // Affiliation des lignes proches
         findNeighborLines(candidateLines, _step->_lineDistThreshold);
 
         // Tri par NeighborCount descendant
-        qSort(candidateLines.begin(), candidateLines.end(), ONF_StepDetectVerticalAlignments02::orderByDescendingNeighborCount);
+        qSort(candidateLines.begin(), candidateLines.end(), ONF_StepDetectVerticalAlignments03::orderByDescendingNeighborCount);
 
         // Constitution des clusters de points alignés
-        QMap<ONF_StepDetectVerticalAlignments02::LineData*, CT_PointCluster*> pointsClusters;
+        QMap<ONF_StepDetectVerticalAlignments03::LineData*, CT_PointCluster*> pointsClusters;
         QList<size_t> insertedPoints;
 
         for (int i = 0 ; i < candidateLines.size() ; i++)
         {
-            ONF_StepDetectVerticalAlignments02::LineData* candidateLine = candidateLines.at(i);
+            ONF_StepDetectVerticalAlignments03::LineData* candidateLine = candidateLines.at(i);
             CT_PointCluster* cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
 
             if (!candidateLine->_processed)
@@ -289,10 +320,10 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlign
                 }
                 candidateLine->_processed = true;
 
-                QList<ONF_StepDetectVerticalAlignments02::LineData*> &neighborLines = candidateLine->_neighbors;
+                QList<ONF_StepDetectVerticalAlignments03::LineData*> &neighborLines = candidateLine->_neighbors;
                 for (int j = 0 ; j < neighborLines.size() ; j++)
                 {
-                    ONF_StepDetectVerticalAlignments02::LineData* neighborLine = neighborLines.at(j);
+                    ONF_StepDetectVerticalAlignments03::LineData* neighborLine = neighborLines.at(j);
                     if (!neighborLine->_processed)
                     {
                         if (!insertedPoints.contains(neighborLine->_index1))
@@ -357,7 +388,7 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlign
 
                         if (okLength)
                         {
-                            ONF_StepDetectVerticalAlignments02::LineData *lineData = new ONF_StepDetectVerticalAlignments02::LineData(pointLow, pointHigh, 0, 0, phi, scene->minZ(), scene->maxZ());
+                            ONF_StepDetectVerticalAlignments03::LineData *lineData = new ONF_StepDetectVerticalAlignments03::LineData(pointLow, pointHigh, 0, 0, phi, scene->minZ(), scene->maxZ(), candidateLine->_lineOfScan);
 
                             pointsClusters.insert(lineData, cluster);
 
@@ -393,27 +424,28 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlign
 
         // Regroupement des clusters voisins
         // Affiliation des clusters proches
-        QList<ONF_StepDetectVerticalAlignments02::LineData*> candidateClustersLines = pointsClusters.keys();
+        QList<ONF_StepDetectVerticalAlignments03::LineData*> candidateClustersLines = pointsClusters.keys();
         findNeighborLines(candidateClustersLines, _step->_clusterDistThreshold);
 
         // Tri par NeighborCount descendant
-        qSort(candidateClustersLines.begin(), candidateClustersLines.end(), ONF_StepDetectVerticalAlignments02::orderByDescendingNeighborCount);
+        qSort(candidateClustersLines.begin(), candidateClustersLines.end(), ONF_StepDetectVerticalAlignments03::orderByDescendingNeighborCount);
 
 
+        // Création des clusters fusionnés
         for (int i = 0  ; i < candidateClustersLines.size() ; i++)
         {
-            ONF_StepDetectVerticalAlignments02::LineData* lineData = candidateClustersLines.at(i);
+            ONF_StepDetectVerticalAlignments03::LineData* lineData = candidateClustersLines.at(i);
 
             if (!lineData->_processed)
             {
                 lineData->_processed = true;
 
-                QList<ONF_StepDetectVerticalAlignments02::LineData*> toMerge;
+                QList<ONF_StepDetectVerticalAlignments03::LineData*> toMerge;
                 toMerge.append(lineData);                               
 
                 for (int j = 0 ; j < lineData->_neighbors.size() ; j++)
                 {
-                    ONF_StepDetectVerticalAlignments02::LineData* neighborLineData  = lineData->_neighbors.at(j);
+                    ONF_StepDetectVerticalAlignments03::LineData* neighborLineData  = lineData->_neighbors.at(j);
 
                     if (!neighborLineData->_processed)
                     {
@@ -457,7 +489,7 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlign
 
                     for (int j = 0 ; j < toMerge.size() ; j++)
                     {
-                        ONF_StepDetectVerticalAlignments02::LineData* toMergeLineData = toMerge.at(j);
+                        ONF_StepDetectVerticalAlignments03::LineData* toMergeLineData = toMerge.at(j);
                         CT_PointCluster* toMergeCluster = pointsClusters.take(toMergeLineData);
 
                         const CT_AbstractPointCloudIndex *toMergeCloudIndex = toMergeCluster->getPointCloudIndex();
@@ -535,7 +567,42 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlign
 
 
                     // Compute diameter of the stem (using max distance between two projected points)
+                    QList<float> diamsMax;
+                    for (int ii = 0 ; ii < projPts.size() ; ii++)
+                    {
+                        const Eigen::Vector2d *pt1 = projPts.at(ii);
+                        for (int jj = ii + 1 ; jj < projPts.size() ; jj++)
+                        {
+                            const Eigen::Vector2d *pt2 = projPts.at(jj);
+                            float dist = sqrt(pow((*pt1)(0) - (*pt2)(0), 2) + pow((*pt1)(1) - (*pt2)(1), 2));
+                            diamsMax.append(dist);
+                        }
+                    }
+                    qSort(diamsMax);
+
                     double maxDistForDiameter = 0;
+                    if (diamsMax.size() > 0)
+                    {
+                        maxDistForDiameter = diamsMax.last();
+                        bool stop = false;
+                        int index = diamsMax.size() - 2;
+                        while (index >= 0 && !stop)
+                        {
+                            double previousDiam = diamsMax.at(index);
+                            double ratio = (maxDistForDiameter - previousDiam) / previousDiam;
+                            if (ratio > _step->_maxDiamRatio)
+                            {
+                                maxDistForDiameter = previousDiam;
+                                index--;
+                            } else {
+                                stop = true;
+                            }
+                        }
+                        diamsMax.clear();
+                    }
+
+
+
                     QMultiMap<int, float> diamEqs;
                     for (int ii = 0 ; ii < projPts.size() ; ii++)
                     {
@@ -545,8 +612,6 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlign
                             const Eigen::Vector2d *pt2 = projPts.at(jj);
 
                             float dist = sqrt(pow((*pt1)(0) - (*pt2)(0), 2) + pow((*pt1)(1) - (*pt2)(1), 2));
-
-                            if (dist > maxDistForDiameter) {maxDistForDiameter = dist;}
 
                             Eigen::Vector2d center;
                             center(0) = ((*pt1)(0) + (*pt2)(0)) / 2.0;
@@ -592,7 +657,7 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlign
                         grpClKept->addItemDrawable(circle);
                     }
 
-                    ONF_StepDetectVerticalAlignments02::DistValues* distVal = computeDistVals(clusterPointCloudIndex, mergedLineData);
+                    ONF_StepDetectVerticalAlignments03::DistValues* distVal = computeDistVals(clusterPointCloudIndex, mergedLineData);
 
                     line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMin_ModelName.completeName(),
                                                                             CT_AbstractCategory::DATA_VALUE,
@@ -639,38 +704,42 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::detectAlign
     }
 }
 
-void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::findNeighborLines(QList<ONF_StepDetectVerticalAlignments02::LineData*> candidateLines, double distThreshold)
+void ONF_StepDetectVerticalAlignments03::AlignmentsDetectorForScene::findNeighborLines(QList<ONF_StepDetectVerticalAlignments03::LineData*> candidateLines, double distThreshold)
 {
     for (int i1 = 0 ; i1 < candidateLines.size() ; i1++)
     {
-        ONF_StepDetectVerticalAlignments02::LineData* line1 = candidateLines.at(i1);
+        ONF_StepDetectVerticalAlignments03::LineData* line1 = candidateLines.at(i1);
 
         for (int i2 = i1+1 ; i2 < candidateLines.size() ; i2++)
         {
-            ONF_StepDetectVerticalAlignments02::LineData* line2 = candidateLines.at(i2);
+            ONF_StepDetectVerticalAlignments03::LineData* line2 = candidateLines.at(i2);
 
-            double distLow = sqrt(pow(line1->_lowCoord(0) - line2->_lowCoord(0), 2) + pow(line1->_lowCoord(1) - line2->_lowCoord(1), 2));
-
-            if (distLow < distThreshold)
+            // Les lignes doivent être dans la même ligne de scan
+            if (line2->_lineOfScan == line1->_lineOfScan)
             {
-                double distHigh = sqrt(pow(line1->_highCoord(0) - line2->_highCoord(0), 2) + pow(line1->_highCoord(1) - line2->_highCoord(1), 2));
-                //double spacing = fabs(distHigh - distLow);
+                double distLow = sqrt(pow(line1->_lowCoord(0) - line2->_lowCoord(0), 2) + pow(line1->_lowCoord(1) - line2->_lowCoord(1), 2));
 
-                if (distHigh < distThreshold)
+                if (distLow < distThreshold)
                 {
-                    double maxDist = std::max(distHigh, distLow);
-                    line1->_neighbors.append(line2);
-                    line1->_distSum += maxDist;
+                    double distHigh = sqrt(pow(line1->_highCoord(0) - line2->_highCoord(0), 2) + pow(line1->_highCoord(1) - line2->_highCoord(1), 2));
+                    //double spacing = fabs(distHigh - distLow);
 
-                    line2->_neighbors.append(line1);
-                    line2->_distSum += maxDist;
+                    if (distHigh < distThreshold)
+                    {
+                        double maxDist = std::max(distHigh, distLow);
+                        line1->_neighbors.append(line2);
+                        line1->_distSum += maxDist;
+
+                        line2->_neighbors.append(line1);
+                        line2->_distSum += maxDist;
+                    }
                 }
             }
         }
     }
 }
 
-void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::sendToDroppedList(CT_StandardItemGroup* grp, CT_PointCluster* cluster, CT_LineData* lineData)
+void ONF_StepDetectVerticalAlignments03::AlignmentsDetectorForScene::sendToDroppedList(CT_StandardItemGroup* grp, CT_PointCluster* cluster, CT_LineData* lineData)
 {
     CT_StandardItemGroup* grpClDropped = new CT_StandardItemGroup(_step->_grpDroppedCluster_ModelName.completeName(), _res);
     grp->addGroup(grpClDropped);
@@ -690,9 +759,9 @@ void ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::sendToDropp
 
 
 
-ONF_StepDetectVerticalAlignments02::DistValues* ONF_StepDetectVerticalAlignments02::AlignmentsDetectorForScene::computeDistVals(const CT_AbstractPointCloudIndex* cloudIndex, CT_LineData* lineData)
+ONF_StepDetectVerticalAlignments03::DistValues* ONF_StepDetectVerticalAlignments03::AlignmentsDetectorForScene::computeDistVals(const CT_AbstractPointCloudIndex* cloudIndex, CT_LineData* lineData)
 {
-    ONF_StepDetectVerticalAlignments02::DistValues* distVal = new ONF_StepDetectVerticalAlignments02::DistValues();
+    ONF_StepDetectVerticalAlignments03::DistValues* distVal = new ONF_StepDetectVerticalAlignments03::DistValues();
 
     size_t nbPts = cloudIndex->size();
 
