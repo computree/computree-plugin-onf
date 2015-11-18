@@ -61,7 +61,7 @@ ONF_StepDetectVerticalAlignments03::ONF_StepDetectVerticalAlignments03(CT_StepIn
     _pointDistThreshold = 4.0;
     _maxPhiAngle = 30.0;
 
-    _lineDistThreshold = 0.3;
+    _lineDistThreshold = 0.5;
     _minPtsNb = 3;
     _lineLengthRatio = 0.8;
 
