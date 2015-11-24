@@ -254,7 +254,7 @@ void ONF_ActionSelectCellsInGrid3DOptions::modifyLevel(int modifier)
 void ONF_ActionSelectCellsInGrid3DOptions::modify2D3DMode()
 {
     ui->pb_2d3d->setChecked(!ui->pb_2d3d->isChecked());
-    on_onf_2d3d_clicked(ui->pb_2d3d->isChecked());
+    on_pb_2d3d_clicked(ui->pb_2d3d->isChecked());
 }
 
 
@@ -264,7 +264,7 @@ void ONF_ActionSelectCellsInGrid3DOptions::on_sb_level_valueChanged(int arg1)
     ui->sb_thickness->setMaximum(_maxLevel - arg1 + 1);
 }
 
-void ONF_ActionSelectCellsInGrid3DOptions::on_onf_all_clicked()
+void ONF_ActionSelectCellsInGrid3DOptions::on_pb_all_clicked()
 {
     ui->sb_level->setValue(0);
     ui->sb_thickness->setValue(_maxLevel + 1);
@@ -281,13 +281,13 @@ void ONF_ActionSelectCellsInGrid3DOptions::on_cb_cumulMode_currentTextChanged(co
     emit cumulModeChanged(_mode);
 }
 
-void ONF_ActionSelectCellsInGrid3DOptions::on_onf_copyupwards_clicked()
+void ONF_ActionSelectCellsInGrid3DOptions::on_pb_copyupwards_clicked()
 {
     setSelectionMode(FREEMOVE);
     emit askForUpwardsCopy();
 }
 
-void ONF_ActionSelectCellsInGrid3DOptions::on_onf_copyfull_clicked()
+void ONF_ActionSelectCellsInGrid3DOptions::on_pb_copyfull_clicked()
 {
     setSelectionMode(FREEMOVE);
     emit askForFullCopy();
@@ -295,7 +295,7 @@ void ONF_ActionSelectCellsInGrid3DOptions::on_onf_copyfull_clicked()
 
 
 
-void ONF_ActionSelectCellsInGrid3DOptions::on_onf_2d3d_clicked(bool checked)
+void ONF_ActionSelectCellsInGrid3DOptions::on_pb_2d3d_clicked(bool checked)
 {
     setSelectionMode(FREEMOVE);
     if (checked)
@@ -310,7 +310,7 @@ void ONF_ActionSelectCellsInGrid3DOptions::on_onf_2d3d_clicked(bool checked)
 }
 
 
-void ONF_ActionSelectCellsInGrid3DOptions::on_onf_gridColor_clicked()
+void ONF_ActionSelectCellsInGrid3DOptions::on_pb_gridColor_clicked()
 {
     _gridColor = QColorDialog::getColor(_gridColor);
     if (!_gridColor.isValid()) {_gridColor = QColor(125, 125, 125);}
@@ -318,50 +318,50 @@ void ONF_ActionSelectCellsInGrid3DOptions::on_onf_gridColor_clicked()
     emit gridColorChanged(_gridColor);
 }
 
-void ONF_ActionSelectCellsInGrid3DOptions::on_onf_centerOnCell_clicked()
+void ONF_ActionSelectCellsInGrid3DOptions::on_pb_centerOnCell_clicked()
 {
     emit selectionModeChanged(ONF_ActionSelectCellsInGrid3DOptions::CHANGECENTERCELL);
 }
 
-void ONF_ActionSelectCellsInGrid3DOptions::on_onf_add_clicked()
+void ONF_ActionSelectCellsInGrid3DOptions::on_pb_add_clicked()
 {
     emit selectionModeChanged(ONF_ActionSelectCellsInGrid3DOptions::ADD);
 }
 
-void ONF_ActionSelectCellsInGrid3DOptions::on_onf_colonize_clicked()
+void ONF_ActionSelectCellsInGrid3DOptions::on_pb_colonize_clicked()
 {
 
     emit selectionModeChanged(ONF_ActionSelectCellsInGrid3DOptions::COLONIZE);
 
 }
 
-void ONF_ActionSelectCellsInGrid3DOptions::on_onf_extends_clicked()
+void ONF_ActionSelectCellsInGrid3DOptions::on_pb_extends_clicked()
 {
     emit selectionModeChanged(ONF_ActionSelectCellsInGrid3DOptions::EXTENDS);
 }
 
-void ONF_ActionSelectCellsInGrid3DOptions::on_onf_remove_clicked()
+void ONF_ActionSelectCellsInGrid3DOptions::on_pb_remove_clicked()
 {
     emit selectionModeChanged(ONF_ActionSelectCellsInGrid3DOptions::REMOVE);
 }
 
-void ONF_ActionSelectCellsInGrid3DOptions::on_onf_freemove_clicked()
+void ONF_ActionSelectCellsInGrid3DOptions::on_pb_freemove_clicked()
 {
     emit selectionModeChanged(ONF_ActionSelectCellsInGrid3DOptions::FREEMOVE);
 }
 
-void ONF_ActionSelectCellsInGrid3DOptions::on_onf_colonizeParam_clicked()
+void ONF_ActionSelectCellsInGrid3DOptions::on_pb_colonizeParam_clicked()
 {
     _colonizeDialog.exec();
 }
 
-void ONF_ActionSelectCellsInGrid3DOptions::on_onf_selectNotEmptyCells_clicked()
+void ONF_ActionSelectCellsInGrid3DOptions::on_pb_selectNotEmptyCells_clicked()
 {
     setSelectionMode(FREEMOVE);
     emit askForSelectionOfNotEmptyCells();
 }
 
-void ONF_ActionSelectCellsInGrid3DOptions::on_onf_convexHull_clicked()
+void ONF_ActionSelectCellsInGrid3DOptions::on_pb_convexHull_clicked()
 {
     setSelectionMode(FREEMOVE);
     emit askForConvexHull();

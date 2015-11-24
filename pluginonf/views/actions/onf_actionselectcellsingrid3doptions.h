@@ -109,21 +109,21 @@ signals:
 
 private slots:
     void on_sb_level_valueChanged(int arg1);
-    void on_onf_all_clicked();
+    void on_pb_all_clicked();
     void on_cb_cumulMode_currentTextChanged(const QString &arg1);
-    void on_onf_copyupwards_clicked();
-    void on_onf_copyfull_clicked();
-    void on_onf_2d3d_clicked(bool checked);
-    void on_onf_gridColor_clicked();
-    void on_onf_centerOnCell_clicked();
-    void on_onf_add_clicked();
-    void on_onf_colonize_clicked();
-    void on_onf_extends_clicked();
-    void on_onf_remove_clicked();
-    void on_onf_freemove_clicked();
-    void on_onf_colonizeParam_clicked();
-    void on_onf_selectNotEmptyCells_clicked();
-    void on_onf_convexHull_clicked();
+    void on_pb_copyupwards_clicked();
+    void on_pb_copyfull_clicked();
+    void on_pb_2d3d_clicked(bool checked);
+    void on_pb_gridColor_clicked();
+    void on_pb_centerOnCell_clicked();
+    void on_pb_add_clicked();
+    void on_pb_colonize_clicked();
+    void on_pb_extends_clicked();
+    void on_pb_remove_clicked();
+    void on_pb_freemove_clicked();
+    void on_pb_colonizeParam_clicked();
+    void on_pb_selectNotEmptyCells_clicked();
+    void on_pb_convexHull_clicked();
 };
 
 #endif // ONF_ACTIONSELECTCELLSINGRID3DOPTIONS_H
