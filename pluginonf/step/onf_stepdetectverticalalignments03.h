@@ -230,6 +230,7 @@ private:
     double    _lineDistThreshold;
     double    _clusterDistThreshold;
     double    _maxDivergence;
+    double    _maxPhiAngleAfterMerging;
     double    _maxDiameter;
     int       _minPtsNb;
     double    _lineLengthRatio;

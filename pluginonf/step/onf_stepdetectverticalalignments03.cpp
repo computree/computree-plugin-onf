@@ -68,6 +68,7 @@ ONF_StepDetectVerticalAlignments03::ONF_StepDetectVerticalAlignments03(CT_StepIn
     _clusterDistThreshold = 3.0;
     _maxDiameter = 1.2;
     _maxDivergence = 0.1;
+    _maxPhiAngleAfterMerging = 15.0;
 
     _lengthThreshold = 2.0;
     _heightThreshold = 0.6;
@@ -162,6 +163,7 @@ void ONF_StepDetectVerticalAlignments03::createPostConfigurationDialog()
     configDialog->addDouble(tr("Distance de recherche des clusters voisins"), "m", 0, 1000, 2, _clusterDistThreshold);
     configDialog->addDouble(tr("Diamètre maximal possible pour un arbre"), "cm", 0, 1000, 2, _maxDiameter, 100);
     configDialog->addDouble(tr("Divergence maximale entre clusters à fusionner"), "m", 0, 1000, 2, _maxDivergence);
+    configDialog->addDouble(tr("Angle zénithal maximal de la droite après fusion"), "°", 0, 180, 2, _maxPhiAngleAfterMerging);
 
     configDialog->addDouble(tr("Supprimer les clusters dont la longueur est inférieure à"), "m", 0, 1000, 2, _lengthThreshold);
     configDialog->addDouble(tr("Supprimer les clusters qui commence au dessus de "), "% de Hscene", 0, 100, 0, _heightThreshold, 100);
@@ -213,6 +215,7 @@ void ONF_StepDetectVerticalAlignments03::AlignmentsDetectorForScene::detectAlign
     if (scene != NULL)
     {
         double maxPhiRadians = M_PI*_step->_maxPhiAngle/180.0;
+        double maxPhiRadiansAfterMerging = M_PI*_step->_maxPhiAngleAfterMerging/180.0;
 
         QList<ONF_StepDetectVerticalAlignments03::LineData*> candidateLines;
         const CT_AbstractPointCloudIndex* pointCloudIndex = scene->getPointCloudIndex();
@@ -525,8 +528,10 @@ void ONF_StepDetectVerticalAlignments03::AlignmentsDetectorForScene::detectAlign
                     mergedLineData = new CT_LineData(lineData->_pLow, lineData->_pHigh);
                 }
 
+                float phi, theta, length;
+                CT_SphericalLine3D::convertToSphericalCoordinates(&(mergedLineData->getP1()), &(mergedLineData->getP2()), phi, theta, length);
 
-                if (mergedLineData->length() < _step->_lengthThreshold || (mergedLineData->getP1())(2) > hMax)
+                if (mergedLineData->length() < _step->_lengthThreshold || (mergedLineData->getP1())(2) > hMax || phi > maxPhiRadiansAfterMerging)
                 {
                     sendToDroppedList(grp, cluster, mergedLineData);
                 } else {
