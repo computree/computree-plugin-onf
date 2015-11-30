@@ -1509,7 +1509,7 @@ In 3D mode, this tool only works on selected cells</translation>
     <message>
         <location filename="../filter/onf_filterbyreturntype.cpp" line="90"/>
         <source>Sol (2)</source>
-        <translation>Terrain (2)</translation>
+        <translation>Ground (2)</translation>
     </message>
     <message>
         <location filename="../filter/onf_filterbyreturntype.cpp" line="91"/>
@@ -1774,12 +1774,12 @@ You can also choose which classifications to keep.</source>
     <message>
         <location filename="../step/onf_stepclassifyground.cpp" line="79"/>
         <source>Classifier les points sol</source>
-        <translation>Classify terrain points</translation>
+        <translation>Classify ground points</translation>
     </message>
     <message>
         <location filename="../step/onf_stepclassifyground.cpp" line="84"/>
         <source>Cette étape permet de séparer les points Sol et Végétation&lt;ul&gt;&lt;li&gt;Une grille Zmin est créée à la &lt;b&gt;résolution&lt;/b&gt; spécifiée&lt;/li&gt;&lt;li&gt;La densité de points situés entre Zmin et (Zmin + &lt;b&gt;épaisseur du sol&lt;/b&gt;) est calculée pour chaque case&lt;/li&gt;&lt;li&gt;La valeur NA est affectée à toute case dont la densité est inférieure à la &lt;b&gt;densité minimum&lt;/b&gt;&lt;/li&gt;&lt;li&gt;Un test de cohérence des Zmin restants est réalisé pour chaque case sur le &lt;b&gt;voisinage&lt;/b&gt; spécifié (nombre de cases). La valeur NA est affectée aux cases incohérentes&lt;/li&gt;&lt;/ul&gt;</source>
-        <translation>This step classify terrain and vegetation points&lt;ul&gt;&lt;li&gt;A Zmin grid is created at specified &lt;b&gt;resolution&lt;/b&gt; &lt;/li&gt;&lt;li&gt;The point density between Zmin and (Zmin + &lt;b&gt;terrain thickness&lt;/b&gt;) is computed for each cell&lt;/li&gt;&lt;li&gt;NA value is affected to each cell with a density inferior to &lt;b&gt;minimum density&lt;/b&gt;&lt;/li&gt;&lt;li&gt;A consistency check is done on Zmin values for each cell with the specified &lt;b&gt;neighbourhood&lt;/b&gt; (number of cells). Each cell with an unconsistent value is set to NA. </translation>
+        <translation>This step classify ground and vegetation points&lt;ul&gt;&lt;li&gt;A Zmin grid is created at specified &lt;b&gt;resolution&lt;/b&gt; &lt;/li&gt;&lt;li&gt;The point density between Zmin and (Zmin + &lt;b&gt;terrain thickness&lt;/b&gt;) is computed for each cell&lt;/li&gt;&lt;li&gt;NA value is affected to each cell with a density inferior to &lt;b&gt;minimum density&lt;/b&gt;&lt;/li&gt;&lt;li&gt;A consistency check is done on Zmin values for each cell with the specified &lt;b&gt;neighbourhood&lt;/b&gt; (number of cells). Each cell with an unconsistent value is set to NA. </translation>
     </message>
     <message>
         <location filename="../step/onf_stepclassifyground.cpp" line="103"/>
@@ -1799,7 +1799,7 @@ You can also choose which classifications to keep.</source>
     <message>
         <location filename="../step/onf_stepclassifyground.cpp" line="115"/>
         <source>Epaisseur du sol :</source>
-        <translation>Terrain thickness:</translation>
+        <translation>Ground thickness:</translation>
     </message>
     <message>
         <location filename="../step/onf_stepclassifyground.cpp" line="116"/>
@@ -1829,7 +1829,7 @@ You can also choose which classifications to keep.</source>
     <message>
         <location filename="../step/onf_stepclassifyground.cpp" line="128"/>
         <source>Points sol</source>
-        <translation>Terrain points</translation>
+        <translation>Ground points</translation>
     </message>
     <message>
         <location filename="../step/onf_stepclassifyground.cpp" line="130"/>
@@ -1844,7 +1844,7 @@ You can also choose which classifications to keep.</source>
     <message>
         <location filename="../step/onf_stepclassifyground.cpp" line="133"/>
         <source>Densité pts sol</source>
-        <translation>Terrain points density</translation>
+        <translation>Ground points density</translation>
     </message>
     <message>
         <location filename="../step/onf_stepclassifyground.cpp" line="176"/>
@@ -2005,12 +2005,12 @@ You can also choose which classifications to keep.</source>
     <message>
         <location filename="../step/onf_stepcomputecrownprojection.cpp" line="99"/>
         <source>Enveloppe Convexe au sol</source>
-        <translation>Convex hull (on terrain)</translation>
+        <translation>Convex hull (on ground)</translation>
     </message>
     <message>
         <location filename="../step/onf_stepcomputecrownprojection.cpp" line="100"/>
         <source>Enveloppe Directionnelle au sol</source>
-        <translation>Directionnal hull (on terrain)</translation>
+        <translation>Directionnal hull (on ground)</translation>
     </message>
     <message>
         <location filename="../step/onf_stepcomputecrownprojection.cpp" line="103"/>
@@ -2058,12 +2058,12 @@ You can also choose which classifications to keep.</source>
     <message>
         <location filename="../step/onf_stepcomputedsm.cpp" line="74"/>
         <source>Cette étape permet de générer un MNS et un MNH à partir d&apos;un nuage de points et d&apos;un MNT</source>
-        <translation>This step generate a DSM and a DHM from a terrain point cloud and a DTM</translation>
+        <translation>This step generate a DSM and a DHM from a ground point cloud and a DTM</translation>
     </message>
     <message>
         <location filename="../step/onf_stepcomputedsm.cpp" line="87"/>
         <source>Points sol</source>
-        <translation>Terrain points</translation>
+        <translation>Ground points</translation>
     </message>
     <message>
         <location filename="../step/onf_stepcomputedsm.cpp" line="91"/>
@@ -2121,13 +2121,13 @@ You can also choose which classifications to keep.</source>
     <message>
         <location filename="../step/onf_stepcomputedtm02.cpp" line="81"/>
         <source>Cette étape permet de séparer les points Sol et Végétation, et de générer :un Modèle Numérique de Terrain (MNT).&lt;br&gt;Le MNT est calculé comme une grille Zmin à la &lt;b&gt;résolution&lt;/b&gt; spécifiée. &lt;br&gt;Ce MNT peut être optionellement interpolé et/ou lissée selon les options cochées.</source>
-        <translation> </translation>
+        <translation> This step separate ground and vegetation points, and creates a Digital Terrain Model (DTM).&lt;br&gt; The DTM is computed as a Zmin grid with specified &lt;b&gt;resolution&lt;/b&gt;.&lt;br&gt; This DTM can be optionnally interpolated and / or smoothed. </translation>
     </message>
     <message>
         <location filename="../step/onf_stepcomputedtm02.cpp" line="96"/>
         <location filename="../step/onf_stepcomputedtm02.cpp" line="100"/>
         <source>Points sol</source>
-        <translation>Terrain points</translation>
+        <translation>Ground points</translation>
     </message>
     <message>
         <location filename="../step/onf_stepcomputedtm02.cpp" line="102"/>
@@ -2635,7 +2635,7 @@ You can also choose which classifications to keep.</source>
     <message>
         <location filename="../step/onf_stepdetectsection07.cpp" line="70"/>
         <source>1- Aggréger verticalement les Clusters en Billons</source>
-        <translation type="unfinished">1- Merge clusters vertically into logs</translation>
+        <translation>1- Merge clusters vertically into logs</translation>
     </message>
     <message>
         <location filename="../step/onf_stepdetectsection07.cpp" line="75"/>
