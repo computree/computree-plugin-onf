@@ -217,33 +217,33 @@ void ONF_ActionSegmentGapsOptions::setUndoRedo(bool undo, bool redo)
     ui->pb_redo->setEnabled(redo);
 }
 
-void ONF_ActionSegmentGapsOptions::on_onf_pickup_clicked()
+void ONF_ActionSegmentGapsOptions::on_pb_pickup_clicked()
 {
     setMode(CHOOSECLUSTER);
 }
 
-void ONF_ActionSegmentGapsOptions::on_onf_addCluster_clicked()
+void ONF_ActionSegmentGapsOptions::on_pb_addCluster_clicked()
 {
     setMode(DRAWLIMITS);
     emit askForClusterCreation();
 }
 
-void ONF_ActionSegmentGapsOptions::on_onf_drawLimit_clicked()
+void ONF_ActionSegmentGapsOptions::on_pb_drawLimit_clicked()
 {
     setMode(DRAWLIMITS);
 }
 
-void ONF_ActionSegmentGapsOptions::on_onf_fill_clicked()
+void ONF_ActionSegmentGapsOptions::on_pb_fill_clicked()
 {
     setMode(FILLAREA);
 }
 
-void ONF_ActionSegmentGapsOptions::on_onf_freemove_clicked()
+void ONF_ActionSegmentGapsOptions::on_pb_freemove_clicked()
 {
     setMode(FREEMOVE);
 }
 
-void ONF_ActionSegmentGapsOptions::on_onf_centerOnCell_clicked()
+void ONF_ActionSegmentGapsOptions::on_pb_centerOnCell_clicked()
 {
     setMode(CHANGECENTERCELL);
 }
@@ -276,7 +276,7 @@ void ONF_ActionSegmentGapsOptions::on_dsb_height_valueChanged(double arg1)
     emit parametersChanged();
 }
 
-void ONF_ActionSegmentGapsOptions::on_onf_showClusters_clicked()
+void ONF_ActionSegmentGapsOptions::on_pb_showClusters_clicked()
 {
     emit parametersChanged();
 }
@@ -288,7 +288,7 @@ void ONF_ActionSegmentGapsOptions::on_sb_pencilSize_valueChanged(int arg1)
     emit parametersChanged();
 }
 
-void ONF_ActionSegmentGapsOptions::on_onf_activeClusterColor_toggled(bool checked)
+void ONF_ActionSegmentGapsOptions::on_pb_activeClusterColor_toggled(bool checked)
 {
     Q_UNUSED(checked)
 
@@ -304,7 +304,7 @@ void ONF_ActionSegmentGapsOptions::changeSingleStep(int button)
     else if (ui->rb_cm->isChecked()) {ui->dsb_height->setSingleStep(0.01);}
 }
 
-void ONF_ActionSegmentGapsOptions::on_onf_merge_clicked()
+void ONF_ActionSegmentGapsOptions::on_pb_merge_clicked()
 {
     emit askForMerging(ui->sb_merge->value());
 }

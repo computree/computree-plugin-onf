@@ -96,23 +96,23 @@ signals:
 
 private slots:
 
-    void on_onf_pickup_clicked();
-    void on_onf_addCluster_clicked();
-    void on_onf_drawLimit_clicked();
-    void on_onf_fill_clicked();
-    void on_onf_freemove_clicked();
-    void on_onf_centerOnCell_clicked();
+    void on_pb_pickup_clicked();
+    void on_pb_addCluster_clicked();
+    void on_pb_drawLimit_clicked();
+    void on_pb_fill_clicked();
+    void on_pb_freemove_clicked();
+    void on_pb_centerOnCell_clicked();
     void on_rb_clusters_clicked();
     void on_rb_mns_clicked();
     void on_rb_density_clicked();
     void on_sb_activeCluster_valueChanged(int arg1);
     void on_dsb_height_valueChanged(double arg1);
-    void on_onf_showClusters_clicked();
+    void on_pb_showClusters_clicked();
     void on_sb_pencilSize_valueChanged(int arg1);
-    void on_onf_activeClusterColor_toggled(bool checked);
+    void on_pb_activeClusterColor_toggled(bool checked);
 
     void changeSingleStep(int button);
-    void on_onf_merge_clicked();
+    void on_pb_merge_clicked();
 };
 
 #endif // ONF_ACTIONSEGMENTCROWNSOPTIONS_H

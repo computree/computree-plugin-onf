@@ -171,27 +171,27 @@ void ONF_ActionManualInventoryOptions::on_cb_otherScenes_toggled(bool checked)
     emit visibilityChanged();
 }
 
-void ONF_ActionManualInventoryOptions::on_onf_upper_clicked()
+void ONF_ActionManualInventoryOptions::on_pb_upper_clicked()
 {
     emit chooseUpperCircle();
 }
 
-void ONF_ActionManualInventoryOptions::on_onf_lower_clicked()
+void ONF_ActionManualInventoryOptions::on_pb_lower_clicked()
 {
     emit chooseLowerCircle();
 }
 
-void ONF_ActionManualInventoryOptions::on_onf_toTrash_clicked()
+void ONF_ActionManualInventoryOptions::on_pb_toTrash_clicked()
 {
     emit sendToTrash();
 }
 
-void ONF_ActionManualInventoryOptions::on_onf_fromTrash_clicked()
+void ONF_ActionManualInventoryOptions::on_pb_fromTrash_clicked()
 {
     emit retrieveFromTrash();
 }
 
-void ONF_ActionManualInventoryOptions::on_onf_toValidated_clicked()
+void ONF_ActionManualInventoryOptions::on_pb_toValidated_clicked()
 {
     emit sendToValidated();
 }

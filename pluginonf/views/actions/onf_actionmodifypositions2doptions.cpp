@@ -118,22 +118,22 @@ void ONF_ActionModifyPositions2DOptions::increaseZValue()
     ui->dsb_zval->stepUp();
 }
 
-void ONF_ActionModifyPositions2DOptions::on_onf_freeMove_clicked()
+void ONF_ActionModifyPositions2DOptions::on_pb_freeMove_clicked()
 {
 
 }
 
-void ONF_ActionModifyPositions2DOptions::on_onf_move_clicked()
+void ONF_ActionModifyPositions2DOptions::on_pb_move_clicked()
 {
 
 }
 
-void ONF_ActionModifyPositions2DOptions::on_onf_add_clicked()
+void ONF_ActionModifyPositions2DOptions::on_pb_add_clicked()
 {
 
 }
 
-void ONF_ActionModifyPositions2DOptions::on_onf_remove_clicked()
+void ONF_ActionModifyPositions2DOptions::on_pb_remove_clicked()
 {
 
 }

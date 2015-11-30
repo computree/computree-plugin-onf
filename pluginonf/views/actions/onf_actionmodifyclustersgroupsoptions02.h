@@ -66,16 +66,16 @@ private slots:
     void on_buttonGroupSelection_buttonReleased(int id);
     void on_buttonGroupMode_buttonReleased(int id);
 
-    void on_onf_SetSceneA_clicked();
-    void on_onf_SetSceneB_clicked();
+    void on_pb_SetSceneA_clicked();
+    void on_pb_SetSceneB_clicked();
 
-    void on_onf_ColorA_clicked();
-    void on_onf_ColorB_clicked();
+    void on_pb_ColorA_clicked();
+    void on_pb_ColorB_clicked();
 
-    void on_onf_toA_clicked();
-    void on_onf_toB_clicked();
-    void on_onf_toTmp_clicked();
-    void on_onf_toTrash_clicked();
+    void on_pb_toA_clicked();
+    void on_pb_toB_clicked();
+    void on_pb_toTmp_clicked();
+    void on_pb_toTrash_clicked();
 
     void on_cb_Avisible_toggled(bool checked);
     void on_cb_Bvisible_toggled(bool checked);
@@ -83,9 +83,9 @@ private slots:
     void on_cb_tmpVisible_toggled(bool checked);
     void on_cb_trashVisible_toggled(bool checked);
 
-    void on_onf_extend_clicked();
+    void on_pb_extend_clicked();
 
-    void on_onf_validate_clicked();
+    void on_pb_validate_clicked();
 
     void on_cb_showValidated_toggled(bool checked);
 

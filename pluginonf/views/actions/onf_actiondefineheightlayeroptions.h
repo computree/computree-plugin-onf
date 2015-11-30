@@ -61,7 +61,7 @@ private slots:
     void changeSingleStep(int button);
 
     void on_dsb_zmin_valueChanged(double arg1);
-    void on_onf_computeCrownProjection_clicked();
+    void on_pb_computeCrownProjection_clicked();
 
 signals:
     void redrawNeeded();

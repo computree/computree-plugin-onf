@@ -67,10 +67,10 @@ signals:
     void parametersChanged();
 
 private slots:
-    void on_onf_freeMove_clicked();
-    void on_onf_move_clicked();
-    void on_onf_add_clicked();
-    void on_onf_remove_clicked();
+    void on_pb_freeMove_clicked();
+    void on_pb_move_clicked();
+    void on_pb_add_clicked();
+    void on_pb_remove_clicked();
     void on_dsb_zval_valueChanged(double arg1);
     void singleStepChanged(int button);
     void on_cb_drawPlane_toggled(bool checked);

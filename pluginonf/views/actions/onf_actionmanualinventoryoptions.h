@@ -84,13 +84,13 @@ private slots:
     void on_cb_otherCircles_toggled(bool checked);
     void on_cb_activeScene_toggled(bool checked);
     void on_cb_otherScenes_toggled(bool checked);
-    void on_onf_upper_clicked();
-    void on_onf_lower_clicked();
-    void on_onf_toTrash_clicked();
-    void on_onf_fromTrash_clicked();
+    void on_pb_upper_clicked();
+    void on_pb_lower_clicked();
+    void on_pb_toTrash_clicked();
+    void on_pb_fromTrash_clicked();
     void on_cb_trash_toggled(bool checked);
     void on_cb_trashScenes_toggled(bool checked);
-    void on_onf_toValidated_clicked();
+    void on_pb_toValidated_clicked();
 };
 
 #endif // ONF_ACTIONMANUALINVENTORYOPTIONS_H

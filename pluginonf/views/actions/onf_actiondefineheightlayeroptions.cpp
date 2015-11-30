@@ -157,7 +157,7 @@ void ONF_ActionDefineHeightLayerOptions::on_dsb_zmin_valueChanged(double arg1)
     ui->dsb_zmax->setMinimum(arg1);
     emit zValuesChanged(ui->dsb_zmin->value(), ui->dsb_zmax->value());
 }
-void ONF_ActionDefineHeightLayerOptions::on_onf_computeCrownProjection_clicked()
+void ONF_ActionDefineHeightLayerOptions::on_pb_computeCrownProjection_clicked()
 {
     emit askForCrownProjectionComputing();
 }

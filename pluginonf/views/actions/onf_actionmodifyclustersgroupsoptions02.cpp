@@ -157,17 +157,17 @@ void ONF_ActionModifyClustersGroupsOptions02::setSelectionMode(GraphicsViewInter
     }
 }
 
-void ONF_ActionModifyClustersGroupsOptions02::on_onf_SetSceneA_clicked()
+void ONF_ActionModifyClustersGroupsOptions02::on_pb_SetSceneA_clicked()
 {
     emit selectPositionA();
 }
 
-void ONF_ActionModifyClustersGroupsOptions02::on_onf_SetSceneB_clicked()
+void ONF_ActionModifyClustersGroupsOptions02::on_pb_SetSceneB_clicked()
 {
     emit selectPositionB();
 }
 
-void ONF_ActionModifyClustersGroupsOptions02::on_onf_ColorA_clicked()
+void ONF_ActionModifyClustersGroupsOptions02::on_pb_ColorA_clicked()
 {
     QColor tmp = QColorDialog::getColor(_colorA);
     if (!tmp.isValid()) {return;}
@@ -182,7 +182,7 @@ void ONF_ActionModifyClustersGroupsOptions02::selectColorA(QColor color)
     ui->pb_toA->setStyleSheet("QToolButton { background-color: " + _colorA.name() + "; }");
 }
 
-void ONF_ActionModifyClustersGroupsOptions02::on_onf_ColorB_clicked()
+void ONF_ActionModifyClustersGroupsOptions02::on_pb_ColorB_clicked()
 {
     QColor tmp = QColorDialog::getColor(_colorB);
     if (!tmp.isValid()) {return;}
@@ -217,22 +217,22 @@ void ONF_ActionModifyClustersGroupsOptions02::toggleOthersVisible()
     }
 }
 
-void ONF_ActionModifyClustersGroupsOptions02::on_onf_toA_clicked()
+void ONF_ActionModifyClustersGroupsOptions02::on_pb_toA_clicked()
 {
     emit affectClusterToA();
 }
 
-void ONF_ActionModifyClustersGroupsOptions02::on_onf_toB_clicked()
+void ONF_ActionModifyClustersGroupsOptions02::on_pb_toB_clicked()
 {
     emit affectClusterToB();
 }
 
-void ONF_ActionModifyClustersGroupsOptions02::on_onf_toTmp_clicked()
+void ONF_ActionModifyClustersGroupsOptions02::on_pb_toTmp_clicked()
 {
     emit affectClusterToTMP();
 }
 
-void ONF_ActionModifyClustersGroupsOptions02::on_onf_toTrash_clicked()
+void ONF_ActionModifyClustersGroupsOptions02::on_pb_toTrash_clicked()
 {
     emit affectClusterToTrash();
 }
@@ -268,12 +268,12 @@ void ONF_ActionModifyClustersGroupsOptions02::on_cb_trashVisible_toggled(bool ch
 }
 
 
-void ONF_ActionModifyClustersGroupsOptions02::on_onf_extend_clicked()
+void ONF_ActionModifyClustersGroupsOptions02::on_pb_extend_clicked()
 {
     emit extend();
 }
 
-void ONF_ActionModifyClustersGroupsOptions02::on_onf_validate_clicked()
+void ONF_ActionModifyClustersGroupsOptions02::on_pb_validate_clicked()
 {
     emit validatePosition();
 }
