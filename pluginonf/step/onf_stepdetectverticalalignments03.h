@@ -116,6 +116,20 @@ private:
         double _q75;
     };
 
+
+    struct ClusterHeightData {
+        ClusterHeightData(CT_PointCluster* cluster, CT_LineData* mergedLineData)
+        {
+            _cluster = cluster;
+            _mergedLineData = mergedLineData;
+            _hMaxScene = 0;
+        }
+
+        CT_PointCluster* _cluster;
+        CT_LineData* _mergedLineData;
+        double _hMaxScene;
+    };
+
     struct LineData {
         LineData(const CT_Point &pLow, const CT_Point &pHigh, size_t index1, size_t index2, float phi, double bottomLevel, double topLevel, double lineOfScan)
         {
@@ -197,6 +211,7 @@ private:
         ONF_StepDetectVerticalAlignments03::DistValues* computeDistVals(const CT_AbstractPointCloudIndex* cloudIndex, CT_LineData* lineData);
         void findNeighborLines(QList<ONF_StepDetectVerticalAlignments03::LineData*> candidateLines, double distThreshold);
         void sendToDroppedList(CT_StandardItemGroup* grp, CT_PointCluster* cluster, CT_LineData* lineData);
+        void sendToConservedList(CT_StandardItemGroup* grp, CT_PointCluster* cluster, CT_LineData* mergedLineData, double hMaxScene);
     private:
         ONF_StepDetectVerticalAlignments03* _step;
         CT_ResultGroup* _res;
@@ -218,6 +233,7 @@ private:
     CT_AutoRenameModels    _attMean_ModelName;
     CT_AutoRenameModels    _attMaxDist_ModelName;
     CT_AutoRenameModels    _attDiamEq_ModelName;
+    CT_AutoRenameModels    _attHmax_ModelName;
 
     CT_AutoRenameModels    _grpDroppedCluster_ModelName;
     CT_AutoRenameModels    _droppedCluster_ModelName;
@@ -231,6 +247,7 @@ private:
     double    _clusterDistThreshold;
     double    _maxDivergence;
     double    _maxPhiAngleAfterMerging;
+    double    _radiusHmax;
     double    _maxDiameter;
     int       _minPtsNb;
     double    _lineLengthRatio;

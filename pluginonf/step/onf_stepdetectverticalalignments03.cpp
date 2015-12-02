@@ -50,7 +50,8 @@
 // Alias for indexing models
 #define DEFin_res "res"
 #define DEFin_grp "grp"
-#define DEFin_scene "scene"
+#define DEFin_sceneStem "sceneStem"
+#define DEFin_sceneAll "sceneAll"
 #define DEFin_attLineOfScan "lineOfScan"
 
 
@@ -69,6 +70,7 @@ ONF_StepDetectVerticalAlignments03::ONF_StepDetectVerticalAlignments03(CT_StepIn
     _maxDiameter = 1.2;
     _maxDivergence = 0.1;
     _maxPhiAngleAfterMerging = 15.0;
+    _radiusHmax = 1.5;
 
     _lengthThreshold = 2.0;
     _heightThreshold = 0.6;
@@ -112,9 +114,12 @@ void ONF_StepDetectVerticalAlignments03::createInResultModelListProtected()
     CT_InResultModelGroupToCopy *resIn_res = createNewInResultModelForCopy(DEFin_res, tr("Scènes"));
     resIn_res->setZeroOrMoreRootGroup();
     resIn_res->addGroupModel("", DEFin_grp, CT_AbstractItemGroup::staticGetType(), tr("Scènes (grp)"));
-    resIn_res->addItemModel(DEFin_grp, DEFin_scene, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène"));
+    resIn_res->addItemModel(DEFin_grp, DEFin_sceneStem, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène (tiges)"));
     resIn_res->addItemModel(DEFin_grp, DEFin_attLineOfScan, CT_AbstractPointAttributesScalar::staticGetType(), tr("Ligne de Scan"),
                             tr("Attribut codant la ligne de scan"), CT_InAbstractModel::C_ChooseOneIfMultiple, CT_InAbstractModel::F_IsOptional);
+
+    resIn_res->addItemModel(DEFin_grp, DEFin_sceneAll, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène (complète)"), "",
+                            CT_InAbstractModel::C_ChooseOneIfMultiple, CT_InAbstractModel::F_IsOptional);
 }
 
 // Creation and affiliation of OUT models
@@ -135,6 +140,7 @@ void ONF_StepDetectVerticalAlignments03::createOutResultModelListProtected()
     resCpy->addItemAttributeModel(_line_ModelName, _attMean_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("DistMean"));
     resCpy->addItemAttributeModel(_line_ModelName, _attMaxDist_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("MaxDistBetweenPoints"));
     resCpy->addItemAttributeModel(_line_ModelName, _attDiamEq_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("DiamEq"));
+    resCpy->addItemAttributeModel(_line_ModelName, _attHmax_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Hmax"));
 
     resCpy->addGroupModel(DEFin_grp, _grpDroppedCluster_ModelName, new CT_StandardItemGroup(), tr("Clusters éliminés"));
     resCpy->addItemModel(_grpDroppedCluster_ModelName, _droppedCluster_ModelName, new CT_PointCluster(), tr("Cluster éliminé"));
@@ -164,6 +170,7 @@ void ONF_StepDetectVerticalAlignments03::createPostConfigurationDialog()
     configDialog->addDouble(tr("Diamètre maximal possible pour un arbre"), "cm", 0, 1000, 2, _maxDiameter, 100);
     configDialog->addDouble(tr("Divergence maximale entre clusters à fusionner"), "m", 0, 1000, 2, _maxDivergence);
     configDialog->addDouble(tr("Angle zénithal maximal de la droite après fusion"), "°", 0, 180, 2, _maxPhiAngleAfterMerging);
+    configDialog->addDouble(tr("Rayon de recherche pour Hmax"), "m", 0, 1000, 2, _radiusHmax);
 
     configDialog->addDouble(tr("Supprimer les clusters dont la longueur est inférieure à"), "m", 0, 1000, 2, _lengthThreshold);
     configDialog->addDouble(tr("Supprimer les clusters qui commence au dessus de "), "% de Hscene", 0, 100, 0, _heightThreshold, 100);
@@ -206,22 +213,25 @@ void ONF_StepDetectVerticalAlignments03::compute()
 }
 
 
+
+
 void ONF_StepDetectVerticalAlignments03::AlignmentsDetectorForScene::detectAlignmentsForScene(CT_StandardItemGroup* grp)
 {
 
-    const CT_AbstractItemDrawableWithPointCloud* scene = (CT_AbstractItemDrawableWithPointCloud*)grp->firstItemByINModelName(_step, DEFin_scene);
+    const CT_AbstractItemDrawableWithPointCloud* sceneStem = (CT_AbstractItemDrawableWithPointCloud*)grp->firstItemByINModelName(_step, DEFin_sceneStem);
+    const CT_AbstractItemDrawableWithPointCloud* sceneAll = (CT_AbstractItemDrawableWithPointCloud*)grp->firstItemByINModelName(_step, DEFin_sceneAll);
     const CT_AbstractPointAttributesScalar* attributeLineOfScan = (CT_AbstractPointAttributesScalar*)grp->firstItemByINModelName(_step, DEFin_attLineOfScan);
 
-    if (scene != NULL)
+    if (sceneStem != NULL)
     {
         double maxPhiRadians = M_PI*_step->_maxPhiAngle/180.0;
         double maxPhiRadiansAfterMerging = M_PI*_step->_maxPhiAngleAfterMerging/180.0;
 
         QList<ONF_StepDetectVerticalAlignments03::LineData*> candidateLines;
-        const CT_AbstractPointCloudIndex* pointCloudIndex = scene->getPointCloudIndex();
+        const CT_AbstractPointCloudIndex* pointCloudIndex = sceneStem->getPointCloudIndex();
 
         //double deltaZ = scene->maxZ() - scene->minZ();
-        double hMax = (scene->maxZ() - scene->minZ())*_step->_heightThreshold + scene->minZ();
+        double hMax = (sceneStem->maxZ() - sceneStem->minZ())*_step->_heightThreshold + sceneStem->minZ();
 
         // Parcours tous les couples de points 2 à deux
         CT_PointIterator itP1(pointCloudIndex);
@@ -282,7 +292,7 @@ void ONF_StepDetectVerticalAlignments03::AlignmentsDetectorForScene::detectAlign
 
                         if (phi < maxPhiRadians)
                         {
-                            candidateLines.append(new ONF_StepDetectVerticalAlignments03::LineData(pointLow, pointHigh, index1, index2, phi, scene->minZ(), scene->maxZ(), lineOfScan1));
+                            candidateLines.append(new ONF_StepDetectVerticalAlignments03::LineData(pointLow, pointHigh, index1, index2, phi, sceneStem->minZ(), sceneStem->maxZ(), lineOfScan1));
                         }
                     }
                 }
@@ -391,7 +401,7 @@ void ONF_StepDetectVerticalAlignments03::AlignmentsDetectorForScene::detectAlign
 
                         if (okLength)
                         {
-                            ONF_StepDetectVerticalAlignments03::LineData *lineData = new ONF_StepDetectVerticalAlignments03::LineData(pointLow, pointHigh, 0, 0, phi, scene->minZ(), scene->maxZ(), candidateLine->_lineOfScan);
+                            ONF_StepDetectVerticalAlignments03::LineData *lineData = new ONF_StepDetectVerticalAlignments03::LineData(pointLow, pointHigh, 0, 0, phi, sceneStem->minZ(), sceneStem->maxZ(), candidateLine->_lineOfScan);
 
                             pointsClusters.insert(lineData, cluster);
 
@@ -433,6 +443,8 @@ void ONF_StepDetectVerticalAlignments03::AlignmentsDetectorForScene::detectAlign
         // Tri par NeighborCount descendant
         qSort(candidateClustersLines.begin(), candidateClustersLines.end(), ONF_StepDetectVerticalAlignments03::orderByDescendingNeighborCount);
 
+
+        QList<ClusterHeightData*> clustersHeightsData;
 
         // Création des clusters fusionnés
         for (int i = 0  ; i < candidateClustersLines.size() ; i++)
@@ -535,177 +547,47 @@ void ONF_StepDetectVerticalAlignments03::AlignmentsDetectorForScene::detectAlign
                 {
                     sendToDroppedList(grp, cluster, mergedLineData);
                 } else {
-                    CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
-                    grp->addGroup(grpClKept);
 
-                    cluster->setModel(_step->_cluster_ModelName.completeName());
-                    grpClKept->addItemDrawable(cluster);
-
-                    CT_Line* line = new CT_Line(_step->_line_ModelName.completeName(), _res, mergedLineData);
-                    grpClKept->addItemDrawable(line);
-
-
-                    // Enveloppe convexe des points projetés perpendiculairement à la ligne
-                    QList<Eigen::Vector2d*> projPts;
-                    Eigen::Hyperplane<double, 3> plane(mergedLineData->getDirection(), mergedLineData->getP1());
-
-                    const CT_AbstractPointCloudIndex* clusterPointCloudIndex = cluster->getPointCloudIndex();
-                    CT_PointIterator itCI(clusterPointCloudIndex);
-                    while(itCI.hasNext())
-                    {
-                        itCI.next();
-                        const CT_Point &pt = itCI.currentPoint();
-
-                        Eigen::Vector3d projectedPt = plane.projection(pt);
-                        projPts.append(new Eigen::Vector2d(projectedPt(0), projectedPt(1)));
-                    }
-
-                    CT_Polygon2DData::orderPointsByXY(projPts);
-                    CT_Polygon2DData* polyData = CT_Polygon2DData::createConvexHull(projPts);
-                    CT_Polygon2D* poly = NULL;
-                    if (polyData != NULL)
-                    {
-                        poly = new CT_Polygon2D(_step->_convexProj_ModelName.completeName(), _res, polyData);
-                        poly->setZValue(mergedLineData->getP1()(2));
-                        grpClKept->addItemDrawable(poly);
-                    }
-
-
-                    // Compute diameter of the stem (using max distance between two projected points)
-                    QList<float> diamsMax;
-                    for (int ii = 0 ; ii < projPts.size() ; ii++)
-                    {
-                        const Eigen::Vector2d *pt1 = projPts.at(ii);
-                        for (int jj = ii + 1 ; jj < projPts.size() ; jj++)
-                        {
-                            const Eigen::Vector2d *pt2 = projPts.at(jj);
-                            float dist = sqrt(pow((*pt1)(0) - (*pt2)(0), 2) + pow((*pt1)(1) - (*pt2)(1), 2));
-                            diamsMax.append(dist);
-                        }
-                    }
-                    qSort(diamsMax);
-
-                    double maxDistForDiameter = 0;
-                    if (diamsMax.size() > 0)
-                    {
-                        maxDistForDiameter = diamsMax.last();
-                        bool stop = false;
-                        int index = diamsMax.size() - 2;
-                        while (index >= 0 && !stop)
-                        {
-                            double previousDiam = diamsMax.at(index);
-                            double ratio = (maxDistForDiameter - previousDiam) / previousDiam;
-                            if (ratio > _step->_maxDiamRatio)
-                            {
-                                maxDistForDiameter = previousDiam;
-                                index--;
-                            } else {
-                                stop = true;
-                            }
-                        }
-                        diamsMax.clear();
-                    }
-
-
-
-                    QMultiMap<int, float> diamEqs;
-                    for (int ii = 0 ; ii < projPts.size() ; ii++)
-                    {
-                        const Eigen::Vector2d *pt1 = projPts.at(ii);
-                        for (int jj = ii + 1 ; jj < projPts.size() ; jj++)
-                        {
-                            const Eigen::Vector2d *pt2 = projPts.at(jj);
-
-                            float dist = sqrt(pow((*pt1)(0) - (*pt2)(0), 2) + pow((*pt1)(1) - (*pt2)(1), 2));
-
-                            Eigen::Vector2d center;
-                            center(0) = ((*pt1)(0) + (*pt2)(0)) / 2.0;
-                            center(1) = ((*pt1)(1) + (*pt2)(1)) / 2.0;
-
-                            float nb = 0;
-                            for (int kk = 0 ; kk < projPts.size(); kk++)
-                            {
-                                if (kk != ii && kk != jj)
-                                {
-                                    const Eigen::Vector2d *pt3 = projPts.at(kk);
-                                    float distCircle = sqrt(pow(center(0) - (*pt3)(0), 2) + pow(center(1) - (*pt3)(1), 2)) - (dist / 2.0);
-                                    float absDistCircle = fabs(distCircle);
-
-                                    if (absDistCircle > _step->_circleDistThreshold && distCircle < 0)
-                                    {
-                                        nb -= 1;
-                                    } else {
-                                        float ratio = _step->_circleDistThreshold / absDistCircle;
-                                        if (ratio > 1) {ratio = 1;}
-                                        nb += ratio;
-                                    }
-                                }
-                            }
-                            diamEqs.insert(nb, dist);
-                        }
-                    }
-
-                    double diamEq = 0;
-                    if (diamEqs.size() > 0)
-                    {
-                        diamEq = diamEqs.last();
-                        diamEqs.clear();
-                    }
-
-                    if (diamEq > 0)
-                    {
-                        Eigen::Vector2d center;
-                        center(0) = line->getP1_X();
-                        center(1) = line->getP1_Y();
-
-                        CT_Circle2D *circle = new CT_Circle2D(_step->_circle_ModelName.completeName(), _res, new CT_Circle2DData(center, diamEq/2.0));
-                        grpClKept->addItemDrawable(circle);
-                    }
-
-                    ONF_StepDetectVerticalAlignments03::DistValues* distVal = computeDistVals(clusterPointCloudIndex, mergedLineData);
-
-                    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMin_ModelName.completeName(),
-                                                                            CT_AbstractCategory::DATA_VALUE,
-                                                                            _res,
-                                                                            distVal->_min));
-                    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attQ25_ModelName.completeName(),
-                                                                            CT_AbstractCategory::DATA_VALUE,
-                                                                            _res,
-                                                                            distVal->_q25));
-                    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attQ50_ModelName.completeName(),
-                                                                            CT_AbstractCategory::DATA_VALUE,
-                                                                            _res,
-                                                                            distVal->_q50));
-                    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attQ75_ModelName.completeName(),
-                                                                            CT_AbstractCategory::DATA_VALUE,
-                                                                            _res,
-                                                                            distVal->_q75));
-                    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMax_ModelName.completeName(),
-                                                                            CT_AbstractCategory::DATA_VALUE,
-                                                                            _res,
-                                                                            distVal->_max));
-                    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMean_ModelName.completeName(),
-                                                                            CT_AbstractCategory::DATA_VALUE,
-                                                                            _res,
-                                                                            distVal->_mean));
-
-                    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMaxDist_ModelName.completeName(),
-                                                                            CT_AbstractCategory::DATA_VALUE,
-                                                                            _res,
-                                                                            maxDistForDiameter));
-
-                    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attDiamEq_ModelName.completeName(),
-                                                                            CT_AbstractCategory::DATA_VALUE,
-                                                                            _res,
-                                                                            diamEq));
-
-
+                    clustersHeightsData.append(new ONF_StepDetectVerticalAlignments03::ClusterHeightData(cluster, mergedLineData));
                 }
             }
         }
 
-        qDeleteAll(candidateClustersLines);
+        // Computes Hmax for each cluster
+        if (sceneAll != NULL)
+        {
+            const CT_AbstractPointCloudIndex* pointCloudIndexAll = sceneAll->getPointCloudIndex();
 
+            CT_PointIterator itAll(pointCloudIndexAll);
+            while(itAll.hasNext() && (!_step->isStopped()))
+            {
+                const CT_Point &point = itAll.next().currentPoint();
+
+                for (int i = 0 ; i < clustersHeightsData.size() ; i++)
+                {
+                    ONF_StepDetectVerticalAlignments03::ClusterHeightData *clHD = clustersHeightsData.at(i);
+                    const CT_PointClusterBarycenter &bary = clHD->_cluster->getBarycenter();
+
+                    double distance = sqrt(pow(bary.x() - point(0), 2) + pow(bary.y() - point(1), 2));
+
+                    if (distance < _step->_radiusHmax)
+                    {
+                        if (point(2) > clHD->_hMaxScene) {clHD->_hMaxScene = point(2);}
+                    }
+                }
+            }
+        }
+
+        // Creates kepts items
+        for (int i = 0 ; i < clustersHeightsData.size() ; i++)
+        {
+            ONF_StepDetectVerticalAlignments03::ClusterHeightData *clHD = clustersHeightsData.at(i);
+            sendToConservedList(grp, clHD->_cluster, clHD->_mergedLineData, clHD->_hMaxScene);
+
+            delete clHD;
+        }
+
+        qDeleteAll(candidateClustersLines);
     }
 }
 
@@ -760,6 +642,177 @@ void ONF_StepDetectVerticalAlignments03::AlignmentsDetectorForScene::sendToDropp
         CT_Line* line = new CT_Line(_step->_droppedLine_ModelName.completeName(), _res, lineData);
         grpClDropped->addItemDrawable(line);
     }
+}
+
+void ONF_StepDetectVerticalAlignments03::AlignmentsDetectorForScene::sendToConservedList(CT_StandardItemGroup* grp, CT_PointCluster* cluster, CT_LineData* mergedLineData, double hMaxScene)
+{
+    CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
+    grp->addGroup(grpClKept);
+
+    cluster->setModel(_step->_cluster_ModelName.completeName());
+    grpClKept->addItemDrawable(cluster);
+
+    CT_Line* line = new CT_Line(_step->_line_ModelName.completeName(), _res, mergedLineData);
+    grpClKept->addItemDrawable(line);
+
+    // Enveloppe convexe des points projetés perpendiculairement à la ligne
+    QList<Eigen::Vector2d*> projPts;
+    Eigen::Hyperplane<double, 3> plane(mergedLineData->getDirection(), mergedLineData->getP1());
+
+    const CT_AbstractPointCloudIndex* clusterPointCloudIndex = cluster->getPointCloudIndex();
+    CT_PointIterator itCI(clusterPointCloudIndex);
+    while(itCI.hasNext())
+    {
+        itCI.next();
+        const CT_Point &pt = itCI.currentPoint();
+
+        Eigen::Vector3d projectedPt = plane.projection(pt);
+        projPts.append(new Eigen::Vector2d(projectedPt(0), projectedPt(1)));
+    }
+
+    CT_Polygon2DData::orderPointsByXY(projPts);
+    CT_Polygon2DData* polyData = CT_Polygon2DData::createConvexHull(projPts);
+    CT_Polygon2D* poly = NULL;
+    if (polyData != NULL)
+    {
+        poly = new CT_Polygon2D(_step->_convexProj_ModelName.completeName(), _res, polyData);
+        poly->setZValue(mergedLineData->getP1()(2));
+        grpClKept->addItemDrawable(poly);
+    }
+
+
+    // Compute diameter of the stem (using max distance between two projected points)
+    QList<float> diamsMax;
+    for (int ii = 0 ; ii < projPts.size() ; ii++)
+    {
+        const Eigen::Vector2d *pt1 = projPts.at(ii);
+        for (int jj = ii + 1 ; jj < projPts.size() ; jj++)
+        {
+            const Eigen::Vector2d *pt2 = projPts.at(jj);
+            float dist = sqrt(pow((*pt1)(0) - (*pt2)(0), 2) + pow((*pt1)(1) - (*pt2)(1), 2));
+            diamsMax.append(dist);
+        }
+    }
+    qSort(diamsMax);
+
+    double maxDistForDiameter = 0;
+    if (diamsMax.size() > 0)
+    {
+        maxDistForDiameter = diamsMax.last();
+        bool stop = false;
+        int index = diamsMax.size() - 2;
+        while (index >= 0 && !stop)
+        {
+            double previousDiam = diamsMax.at(index);
+            double ratio = (maxDistForDiameter - previousDiam) / previousDiam;
+            if (ratio > _step->_maxDiamRatio)
+            {
+                maxDistForDiameter = previousDiam;
+                index--;
+            } else {
+                stop = true;
+            }
+        }
+        diamsMax.clear();
+    }
+
+
+
+    QMultiMap<int, float> diamEqs;
+    for (int ii = 0 ; ii < projPts.size() ; ii++)
+    {
+        const Eigen::Vector2d *pt1 = projPts.at(ii);
+        for (int jj = ii + 1 ; jj < projPts.size() ; jj++)
+        {
+            const Eigen::Vector2d *pt2 = projPts.at(jj);
+
+            float dist = sqrt(pow((*pt1)(0) - (*pt2)(0), 2) + pow((*pt1)(1) - (*pt2)(1), 2));
+
+            Eigen::Vector2d center;
+            center(0) = ((*pt1)(0) + (*pt2)(0)) / 2.0;
+            center(1) = ((*pt1)(1) + (*pt2)(1)) / 2.0;
+
+            float nb = 0;
+            for (int kk = 0 ; kk < projPts.size(); kk++)
+            {
+                if (kk != ii && kk != jj)
+                {
+                    const Eigen::Vector2d *pt3 = projPts.at(kk);
+                    float distCircle = sqrt(pow(center(0) - (*pt3)(0), 2) + pow(center(1) - (*pt3)(1), 2)) - (dist / 2.0);
+                    float absDistCircle = fabs(distCircle);
+
+                    if (absDistCircle > _step->_circleDistThreshold && distCircle < 0)
+                    {
+                        nb -= 1;
+                    } else {
+                        float ratio = _step->_circleDistThreshold / absDistCircle;
+                        if (ratio > 1) {ratio = 1;}
+                        nb += ratio;
+                    }
+                }
+            }
+            diamEqs.insert(nb, dist);
+        }
+    }
+
+    double diamEq = 0;
+    if (diamEqs.size() > 0)
+    {
+        diamEq = diamEqs.last();
+        diamEqs.clear();
+    }
+
+    if (diamEq > 0)
+    {
+        Eigen::Vector2d center;
+        center(0) = line->getP1_X();
+        center(1) = line->getP1_Y();
+
+        CT_Circle2D *circle = new CT_Circle2D(_step->_circle_ModelName.completeName(), _res, new CT_Circle2DData(center, diamEq/2.0));
+        grpClKept->addItemDrawable(circle);
+    }
+
+    ONF_StepDetectVerticalAlignments03::DistValues* distVal = computeDistVals(clusterPointCloudIndex, mergedLineData);
+
+    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMin_ModelName.completeName(),
+                                                            CT_AbstractCategory::DATA_VALUE,
+                                                            _res,
+                                                            distVal->_min));
+    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attQ25_ModelName.completeName(),
+                                                            CT_AbstractCategory::DATA_VALUE,
+                                                            _res,
+                                                            distVal->_q25));
+    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attQ50_ModelName.completeName(),
+                                                            CT_AbstractCategory::DATA_VALUE,
+                                                            _res,
+                                                            distVal->_q50));
+    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attQ75_ModelName.completeName(),
+                                                            CT_AbstractCategory::DATA_VALUE,
+                                                            _res,
+                                                            distVal->_q75));
+    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMax_ModelName.completeName(),
+                                                            CT_AbstractCategory::DATA_VALUE,
+                                                            _res,
+                                                            distVal->_max));
+    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMean_ModelName.completeName(),
+                                                            CT_AbstractCategory::DATA_VALUE,
+                                                            _res,
+                                                            distVal->_mean));
+
+    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMaxDist_ModelName.completeName(),
+                                                            CT_AbstractCategory::DATA_VALUE,
+                                                            _res,
+                                                            maxDistForDiameter));
+
+    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attDiamEq_ModelName.completeName(),
+                                                            CT_AbstractCategory::DATA_VALUE,
+                                                            _res,
+                                                            diamEq));
+
+    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attHmax_ModelName.completeName(),
+                                                            CT_AbstractCategory::DATA_VALUE,
+                                                            _res,
+                                                            hMaxScene));
 }
 
 
