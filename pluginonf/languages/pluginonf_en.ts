@@ -3032,202 +3032,207 @@ You can also choose which classifications to keep.</source>
 <context>
     <name>ONF_StepDetectVerticalAlignments03</name>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="84"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="85"/>
         <source>Détecter des alignements verticaux de points (V3)</source>
         <translation>Detect vertical points alignements (V3)</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="90"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="91"/>
         <source>No detailled description for this step</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="111"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="112"/>
         <source>Scènes</source>
         <translation>Scene(s)</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="113"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="114"/>
         <source>Scènes (grp)</source>
         <translation>Scenes (grp)</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="114"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="115"/>
         <source>Scène</source>
         <translation>Scene</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="115"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="116"/>
         <source>Ligne de Scan</source>
         <translation>Scan line ID</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="116"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="117"/>
         <source>Attribut codant la ligne de scan</source>
         <translation>Attribute storing scan line ID</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="124"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="125"/>
         <source>Clusters conservés</source>
         <translation>Kept clusters</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="125"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="126"/>
         <source>Cluster conservé</source>
         <translation>Kept cluster</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="126"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="127"/>
         <source>Ligne conservée</source>
         <translation>Kept line</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="127"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="128"/>
         <source>Enveloppe convexe projetée</source>
         <translation>Projected convex hull</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="128"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="129"/>
         <source>Diamètre Estimé</source>
         <translation>Estimated diameter</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="129"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="130"/>
         <source>DistMin</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="130"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="131"/>
         <source>DistQ25</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="131"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="132"/>
         <source>DistMed</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="132"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="133"/>
         <source>DistQ75</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="133"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="134"/>
         <source>DistMax</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="134"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="135"/>
         <source>DistMean</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="135"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="136"/>
         <source>MaxDistBetweenPoints</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="136"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="137"/>
         <source>DiamEq</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="138"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="139"/>
         <source>Clusters éliminés</source>
         <translation>Dropped clusters</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="139"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="140"/>
         <source>Cluster éliminé</source>
         <translation>Dropped cluster</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="140"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="141"/>
         <source>Ligne éliminée</source>
         <translation>Dropped line</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="149"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="150"/>
         <source>1- Paramètres de création des droites candidates :</source>
         <translation>1- Parameters for creation of candidate lines:</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="150"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="151"/>
         <source>Distance maximum entre deux points d&apos;une droite candidate</source>
         <translation>Maximum distance between two points for a candidate line</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="151"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="152"/>
         <source>Angle zénithal maximal pour une droite candidate</source>
         <translation>Maximum zenithal angle for a candidate line</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="154"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="155"/>
         <source>2- Paramètres de création des clusters (à partir des droites candidates) :</source>
         <translation>2 - Parameters for cluster creation (from candidate lines):</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="155"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="156"/>
         <source>Distance maximum XY entre deux droites candidates à agréger</source>
         <translation>Maximum XY distance between two candidates lines for merging</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="156"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="157"/>
         <source>Nombre de points minimum dans un cluster</source>
         <translation>Minimum points number in one cluster</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="157"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="158"/>
         <source>Pourcentage maximum de la longueur de segment sans points</source>
         <translation>Maximum percentage of segment length without points</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="161"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="162"/>
         <source>3- Paramètres de validation/fusion des clusters obtenus :</source>
         <translation>3- Validation/Merging parameters for obtained clusters:</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="162"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="163"/>
         <source>Distance de recherche des clusters voisins</source>
         <translation>Search distance for neighbour clusters</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="163"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="164"/>
         <source>Diamètre maximal possible pour un arbre</source>
         <translation>Maximum diamter for one tree</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="164"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="165"/>
         <source>Divergence maximale entre clusters à fusionner</source>
         <translation>Maximum divergence between clusters for merging</translation>
     </message>
     <message>
         <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="166"/>
+        <source>Angle zénithal maximal de la droite après fusion</source>
+        <translation>Maximal zenithal angle for the lines after merging</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="168"/>
         <source>Supprimer les clusters dont la longueur est inférieure à</source>
         <translation>Drop clusters with a length inferior to</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="167"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="169"/>
         <source>Supprimer les clusters qui commence au dessus de </source>
         <translation>Drop clusters beginning above</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="171"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="173"/>
         <source>4- Paramètres de validation des diamètres :</source>
         <translation>4- Validation parameters for diameters:</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="172"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="174"/>
         <source>Ecart max Dmax n et n-1</source>
         <translation>Maximum gap for Dmax between n and n-1</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="173"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="175"/>
         <source>Epaisseur des cercles pour le scoring</source>
         <translation>Thickness of horizontal slices</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="176"/>
+        <location filename="../step/onf_stepdetectverticalalignments03.cpp" line="178"/>
         <source>Mode Debug Clusters</source>
         <translation>Clusters debug mode</translation>
     </message>
@@ -4720,109 +4725,109 @@ The &lt;b&gt;maximum distance between two points within a group&lt;/b&gt; is spe
 <context>
     <name>ONF_StepManualInventory</name>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="73"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="74"/>
         <source>Séléctionner un DBH par arbre</source>
         <translation>Select one DBH per tree</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="87"/>
         <location filename="../step/onf_stepmanualinventory.cpp" line="88"/>
         <location filename="../step/onf_stepmanualinventory.cpp" line="89"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="90"/>
         <source>MNT</source>
         <translation>DTM</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="91"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="92"/>
         <source>Scènes</source>
         <translation>Scene(s)</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="93"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="94"/>
         <source>Groupe de base</source>
         <translation>Base group</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="94"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="95"/>
         <source>Niveau Z</source>
         <translation>Z level</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="95"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="96"/>
         <source>Cluster</source>
         <translation>Cluster</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="96"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="97"/>
         <source>Cercle</source>
         <translation>Circle</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="97"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="98"/>
         <source>Scène</source>
         <translation>Scene</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="98"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="99"/>
         <source>Position2D</source>
         <translation>2D Position</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="106"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="107"/>
         <source>Ne pas accepter de cercle plus loin que :</source>
         <translation>Don&apos;t accept circles farther than:</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="107"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="108"/>
         <source>Choisir préférenciellement le diamètre à + ou - :</source>
         <translation>Prefer diameters at + or -:</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="141"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="142"/>
         <source>Cercle du DHP</source>
         <translation>DBH circle</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="142"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="143"/>
         <source>Attributs</source>
         <translation>Attributes</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="146"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="147"/>
         <source>DHP (cm)</source>
         <translation>DBH (cm)</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="149"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="150"/>
         <source>X</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="152"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="153"/>
         <source>Y</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="155"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="156"/>
         <source>Z</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="158"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="159"/>
         <source>H130</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="161"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="162"/>
         <source>Hauteur</source>
         <translation>Height</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="379"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="380"/>
         <source>Mode manuel</source>
         <translation>Manual mode</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepmanualinventory.cpp" line="379"/>
+        <location filename="../step/onf_stepmanualinventory.cpp" line="380"/>
         <source>Bienvenue dans le mode manuel de cette étape !</source>
         <translation>Welcome to the manual mode of this step !</translation>
     </message>
@@ -6200,47 +6205,47 @@ Keep the cursor over a button to obtain informations. </translation>
         <translation type="vanished">Addition od a base coordinante by log // DTM</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="55"/>
+        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="56"/>
         <source>5- Récupérer la coordonnée MNT pour chaque Billon</source>
         <translation>5- Retrieve DTM coordinate for each log</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="60"/>
+        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="61"/>
         <source>No detailled description for this step</source>
         <translation>Pas de description détaillée pour cette étape</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="75"/>
+        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="76"/>
         <source>MNT (Raster)</source>
         <translation>DTM (raster)</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="78"/>
+        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="79"/>
         <source>Modèle Numérique de Terrain</source>
         <translation>Digital Terrain Model</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="82"/>
+        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="83"/>
         <source>Billons</source>
         <translation>Logs</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="84"/>
+        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="85"/>
         <source>Billon (Grp)</source>
         <translation>Log (Grp)</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="85"/>
+        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="86"/>
         <source>Cluster (Grp)</source>
         <translation>Cluster (Grp)</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="86"/>
+        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="87"/>
         <source>Point de référence</source>
         <translation>Reference point</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="96"/>
+        <location filename="../step/onf_stepsetfootcoordinatesvertically.cpp" line="97"/>
         <source>Coordonnée MNT</source>
         <translation>DTM coordinate</translation>
     </message>
@@ -6528,14 +6533,18 @@ Please adjust parameters to define slices. </translation>
         <location filename="../onf_steppluginmanager.cpp" line="120"/>
         <location filename="../onf_steppluginmanager.cpp" line="121"/>
         <location filename="../onf_steppluginmanager.cpp" line="122"/>
-        <location filename="../onf_steppluginmanager.cpp" line="123"/>
         <source>Détéction tiges (ONF 2013)</source>
         <translation>Stem detection (ONF 2013)</translation>
     </message>
     <message>
-        <location filename="../onf_steppluginmanager.cpp" line="154"/>
+        <location filename="../onf_steppluginmanager.cpp" line="151"/>
         <source>DataSources</source>
         <translation></translation>
+    </message>
+    <message>
+        <location filename="../onf_steppluginmanager.cpp" line="172"/>
+        <source>Détection tiges (ONF 2013)</source>
+        <translation>Stem detection (ONF 2013)</translation>
     </message>
 </context>
 </TS>
