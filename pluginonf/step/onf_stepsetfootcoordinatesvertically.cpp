@@ -25,6 +25,7 @@
 
 #include "onf_stepsetfootcoordinatesvertically.h"
 
+#ifdef USE_OPENCV
 #include "ct_result/model/inModel/ct_inresultmodelgrouptocopy.h"
 #include "ct_result/model/outModel/tools/ct_outresultmodelgrouptocopypossibilities.h"
 
@@ -146,3 +147,4 @@ void ONF_StepSetFootCoordinatesVertically::compute()
     }
 
 }
+#endif

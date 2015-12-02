@@ -25,6 +25,7 @@
 #ifndef ONF_STEPMANUALINVENTORY_H
 #define ONF_STEPMANUALINVENTORY_H
 
+#ifdef USE_OPENCV
 #include "ct_step/abstract/ct_abstractstep.h"
 #include "ct_itemdrawable/ct_scene.h"
 #include "ct_itemdrawable/ct_circle.h"
@@ -132,5 +133,6 @@ private:
     double computeMaxZ(const CT_Scene* scene);
 
 };
+#endif
 
 #endif // ONF_STEPMANUALINVENTORY_H

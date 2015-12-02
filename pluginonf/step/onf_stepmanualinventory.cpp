@@ -24,6 +24,7 @@
 
 #include "onf_stepmanualinventory.h"
 
+#ifdef USE_OPENCV
 #include "ct_itemdrawable/ct_attributeslist.h"
 #include "ct_pointcloudindex/ct_pointcloudindexvector.h"
 #include "ct_itemdrawable/tools/iterator/ct_groupiterator.h"
@@ -455,3 +456,5 @@ double ONF_StepManualInventory::computeMaxZ(const CT_Scene* scene)
 
     return zmax;
 }
+
+#endif

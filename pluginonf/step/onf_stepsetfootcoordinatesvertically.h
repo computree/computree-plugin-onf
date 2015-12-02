@@ -26,6 +26,8 @@
 #ifndef ONF_STEPSETFOOTCOORDINATESVERTICALLY_H
 #define ONF_STEPSETFOOTCOORDINATESVERTICALLY_H
 
+
+#ifdef USE_OPENCV
 #include "ct_step/abstract/ct_abstractstep.h"
 #include "ct_tools/model/ct_autorenamemodels.h"
 
@@ -93,5 +95,6 @@ private:
 
     CT_AutoRenameModels     _outFootCoordinateModelName;
 };
+#endif
 
 #endif // ONF_STEPSETFOOTCOORDINATESVERTICALLY_H

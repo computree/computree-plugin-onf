@@ -39,6 +39,8 @@
 #include "step/onf_stepextractplotbasedondtm.h"
 #include "step/onf_stepmergeclustersfrompositions02.h"
 #include "step/onf_stepmanualinventory.h"
+#include "step/onf_stepextractpositionsfromdensity.h"
+#include "step/onf_stepsegmentcrownsfromstemclusters.h"
 #endif
 
 #include "step/onf_stepchangeclusterthickness02.h"
@@ -72,7 +74,6 @@
 #include "step/onf_stepdetectverticalalignments02.h"
 #include "step/onf_stepdetectverticalalignments03.h"
 #include "step/onf_stepextractlogbuffer.h"
-#include "step/onf_stepextractpositionsfromdensity.h"
 #include "step/onf_stepfilteritemsbyposition.h"
 #include "step/onf_stepfilterpointsbyboolgrid.h"
 #include "step/onf_stepfitcylinderoncluster.h"
@@ -85,7 +86,6 @@
 #include "step/onf_stepmodifypositions2d.h"
 #include "step/onf_stepreducepointsdensity.h"
 #include "step/onf_stepsegmentcrowns.h"
-#include "step/onf_stepsegmentcrownsfromstemclusters.h"
 #include "step/onf_stepsegmentgaps.h"
 #include "step/onf_stepselectbboxbyfilename.h"
 #include "step/onf_stepselectcellsingrid3d.h"
@@ -118,7 +118,6 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewGeometricalShapesStep<ONF_StepFilterGroupsByGroupsNumber>(QObject::tr("Détéction tiges (ONF 2013)"));
     addNewGeometricalShapesStep<ONF_StepMergeNeighbourSections04>(QObject::tr("Détéction tiges (ONF 2013)"));
     addNewGeometricalShapesStep<ONF_StepMergeEndToEndSections04>(QObject::tr("Détéction tiges (ONF 2013)"));
-    addNewGeometricalShapesStep<ONF_StepSetFootCoordinatesVertically>(QObject::tr("Détéction tiges (ONF 2013)"));
     addNewGeometricalShapesStep<ONF_StepFitAndFilterCylindersInSections>(QObject::tr("Détéction tiges (ONF 2013)"));
     addNewGeometricalShapesStep<ONF_StepExtractDiametersFromCylinders>(QObject::tr("Détéction tiges (ONF 2013)"));
 
@@ -139,13 +138,11 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewGeometricalShapesStep<ONF_StepDetectVerticalAlignments>(CT_StepsMenu::LP_Stems);
     addNewGeometricalShapesStep<ONF_StepDetectVerticalAlignments02>(CT_StepsMenu::LP_Stems);
     addNewGeometricalShapesStep<ONF_StepDetectVerticalAlignments03>(CT_StepsMenu::LP_Stems);
-    addNewGeometricalShapesStep<ONF_StepExtractPositionsFromDensity>("");
     addNewGeometricalShapesStep<ONF_StepFilterItemsByPosition>(CT_StepsMenu::LP_Filter);
     addNewGeometricalShapesStep<ONF_StepFitCylinderOnCluster>(CT_StepsMenu::LP_Fit);
     addNewGeometricalShapesStep<ONF_StepMatchItemsPositions>("");
     addNewGeometricalShapesStep<ONF_StepModifyPositions2D>(CT_StepsMenu::LP_Transform);
     addNewGeometricalShapesStep<ONF_StepSegmentCrowns>(CT_StepsMenu::LP_Crowns);
-    addNewGeometricalShapesStep<ONF_StepSegmentCrownsFromStemClusters>(CT_StepsMenu::LP_Crowns);
     addNewGeometricalShapesStep<ONF_StepSegmentGaps>(CT_StepsMenu::LP_Crowns);
     addNewGeometricalShapesStep<ONF_StepValidateInventory>(CT_StepsMenu::LP_DBH);
     addNewGeometricalShapesStep<ONF_StepAddAttributeValue>(CT_StepsMenu::LP_Analyze);
@@ -172,6 +169,10 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewWorkflowStep<ONF_StepSetAffiliationIDFromReference>("");
 
 #ifdef USE_OPENCV
+    addNewGeometricalShapesStep<ONF_StepSetFootCoordinatesVertically>(QObject::tr("Détection tiges (ONF 2013)"));
+    addNewGeometricalShapesStep<ONF_StepExtractPositionsFromDensity>("");
+    addNewGeometricalShapesStep<ONF_StepSegmentCrownsFromStemClusters>(CT_StepsMenu::LP_Crowns);
+
     addNewPointsStep<ONF_StepClassifyGround>(CT_StepsMenu::LP_Classify);
     addNewPointsStep<ONF_StepExtractPlotBasedOnDTM>(CT_StepsMenu::LP_Extract);
     addNewRastersStep<ONF_StepComputeDTM02>(CT_StepsMenu::LP_DEM);
