@@ -56,7 +56,7 @@ ONF_StepSlicePointCloud::ONF_StepSlicePointCloud(CT_StepInitializeData &dataInit
     _dataContainer->_thickness = 0.1;
     _dataContainer->_spacing = 0.2;
     _dataContainer->_zBase = 0;
-    _manual = true;
+    _manual = false;
 
     _xmin = 0;
     _ymin = 0;
@@ -65,7 +65,7 @@ ONF_StepSlicePointCloud::ONF_StepSlicePointCloud(CT_StepInitializeData &dataInit
     _ymax = 0;
     _zmax = 0;
 
-    setManual(_manual);
+    setManual(true);
 
     _m_status = 0;
     _m_doc = NULL;
@@ -134,6 +134,8 @@ void ONF_StepSlicePointCloud::createPostConfigurationDialog()
 
 void ONF_StepSlicePointCloud::compute()
 {
+    setManual(_manual);
+
     _m_status = 0;
 
     QList<CT_ResultGroup*> inResultList = getInputResults();

@@ -75,6 +75,7 @@ QString ONF_ActionModifyPositions2D::type() const
     return CT_AbstractAction::TYPE_MODIFICATION;
 }
 
+
 void ONF_ActionModifyPositions2D::init()
 {
     CT_AbstractActionForGraphicsView::init();
@@ -93,29 +94,34 @@ void ONF_ActionModifyPositions2D::init()
         // is managed automatically
         registerOption(option);
 
-        _min(0) = std::numeric_limits<double>::max();
-        _min(1) = std::numeric_limits<double>::max();
+        updatePlane();
 
-        _max(0) = -std::numeric_limits<double>::max();
-        _max(1) = -std::numeric_limits<double>::max();
-
-        for (int i = 0 ; i < _positions->size() ; i++)
-        {
-            CT_Point2D *point = _positions->at(i);
-            if (point->x() < _min(0)) {_min(0) = point->x();}
-            if (point->y() < _min(1)) {_min(1) = point->y();}
-
-            if (point->x() > _max(0)) {_max(0) = point->x();}
-            if (point->y() > _max(1)) {_max(1) = point->y();}
-
-            document()->addItemDrawable(*point);
-            document()->setColor(point, _normalColor);
-        }
+        setDrawing3DChanged();
+        document()->redrawGraphics(DocumentInterface::RO_WaitForConversionCompleted);
 
         dynamic_cast<GraphicsViewInterface*>(document()->views().first())->camera()->fitCameraToVisibleItems();
-        document()->redrawGraphics(DocumentInterface::RO_WaitForConversionCompleted);
     }
 }
+
+void ONF_ActionModifyPositions2D::updatePlane()
+{
+    _min(0) = std::numeric_limits<double>::max();
+    _min(1) = std::numeric_limits<double>::max();
+
+    _max(0) = -std::numeric_limits<double>::max();
+    _max(1) = -std::numeric_limits<double>::max();
+
+    for (int i = 0 ; i < _positions->size() ; i++)
+    {
+        CT_Point2D *point = _positions->at(i);
+        if (point->x() < _min(0)) {_min(0) = point->x();}
+        if (point->y() < _min(1)) {_min(1) = point->y();}
+
+        if (point->x() > _max(0)) {_max(0) = point->x();}
+        if (point->y() > _max(1)) {_max(1) = point->y();}
+    }
+}
+
 
 void ONF_ActionModifyPositions2D::zValChanged()
 {
@@ -127,7 +133,7 @@ void ONF_ActionModifyPositions2D::zValChanged()
     }
 
     setDrawing3DChanged();
-    document()->redrawGraphics();
+    //document()->redrawGraphics();
 }
 
 
@@ -152,14 +158,13 @@ bool ONF_ActionModifyPositions2D::mousePressEvent(QMouseEvent *e)
                 {
                     _selectedPoint = new CT_Point2D(_model, _outRes, new CT_Point2DData(x, y));
                     _positions->append(_selectedPoint);
-
-                    document()->addItemDrawable(*_selectedPoint);
                 }
 
                 if (_selectedPoint != NULL)
                 {
                     document()->setColor(_selectedPoint, _selectedColor);
-                    document()->redrawGraphics();
+                    setDrawing3DChanged();
+                    //document()->redrawGraphics();
                     return true;
                 }
             }
@@ -174,23 +179,24 @@ bool ONF_ActionModifyPositions2D::mouseMoveEvent(QMouseEvent *e)
 {
     ONF_ActionModifyPositions2DOptions *option = (ONF_ActionModifyPositions2DOptions*)optionAt(0);
 
-    if (_leftButton && (option->isMovePositionSelected() || option->isAddPositionSelected()))
-    {
-        if (_selectedPoint != NULL)
+        if (_leftButton && (option->isMovePositionSelected() || option->isAddPositionSelected()))
         {
-            double x, y;
-            if (getCoordsForMousePosition(e, x, y))
+            if (_selectedPoint != NULL)
             {
-                document()->lock();
-                _selectedPoint->setCenterX(x);
-                _selectedPoint->setCenterY(y);
-                document()->unlock();
+                double x, y;
+                if (getCoordsForMousePosition(e, x, y))
+                {
+                    document()->lock();
+                    _selectedPoint->setCenterX(x);
+                    _selectedPoint->setCenterY(y);
+                    document()->unlock();
 
-                document()->redrawGraphics();
-                return true;
+                    setDrawing3DChanged();
+                    //document()->redrawGraphics();
+                    return true;
+                }
             }
         }
-    }
 
     return false;
 }
@@ -217,7 +223,9 @@ bool ONF_ActionModifyPositions2D::mouseReleaseEvent(QMouseEvent *e)
                     if (option->isMovePositionSelected()) {option->selectFreeMove();}
 
                     document()->setColor(_selectedPoint, _normalColor);
-                    document()->redrawGraphics();
+                    updatePlane();
+                    setDrawing3DChanged();
+                    //document()->redrawGraphics();
                 }
                 return true;
             } else if (option->isRemovePositionSelected())
@@ -228,7 +236,8 @@ bool ONF_ActionModifyPositions2D::mouseReleaseEvent(QMouseEvent *e)
                 delete _selectedPoint;
                 _selectedPoint = NULL;
                 option->selectFreeMove();
-                document()->redrawGraphics();
+                setDrawing3DChanged();
+                //document()->redrawGraphics();
                 return true;
             }
             _selectedPoint = NULL;
@@ -304,17 +313,14 @@ void ONF_ActionModifyPositions2D::draw(GraphicsViewInterface &view, PainterInter
 
     painter.save();
 
-    painter.setColor(QColor(75, 75, 75, 125));
-    if (option->isDrawPlaneSelected()) {painter.fillRectXY(_min, _max, option->getZValue() - 0.10);}
-
     if (option->isDrawLinesSelected())
     {
+        const QList<CT_AbstractItemDrawable*>& itemList = document()->getItemDrawable();
+
         if (option->isUpdateLinesSelected())
         {
-            const QList<CT_AbstractItemDrawable*>& itemList = document()->getItemDrawable();
-
-            _zmin = std::numeric_limits<double>::max();
-            _zmax = -std::numeric_limits<double>::max();
+            _zmin = option->getZValue() - 1.0;
+            _zmax = option->getZValue() + 1.0;
 
             for (int i = 0 ; i < itemList.size() ; i++)
             {
@@ -337,10 +343,14 @@ void ONF_ActionModifyPositions2D::draw(GraphicsViewInterface &view, PainterInter
         painter.setColor(QColor(255, 0, 0));
         for (int i = 0 ; i < _positions->size() ; i++)
         {
-            const CT_Point2D *point = _positions->at(i);
+            const CT_Point2D *point = _positions->at(i);            
             painter.drawLine(point->getCenterX(), point->getCenterY(), _zmin, point->getCenterX(), point->getCenterY(), _zmax);
         }
     }
+
+    painter.setColor(QColor(75, 75, 75, 125));
+    if (option->isDrawPlaneSelected()) {painter.fillRectXY(_min, _max, option->getZValue() - 0.10);}
+
 
     painter.restore();
 }

@@ -33,6 +33,7 @@
 #include "ct_result/ct_resultgroup.h"
 
 #include <QRect>
+#include <QTime>
 
 class ONF_ActionModifyPositions2D : public CT_AbstractActionForGraphicsView
 {
@@ -64,6 +65,7 @@ public:
 
     CT_AbstractAction* copy() const;
 
+    void updatePlane();
 public slots:
     void zValChanged();
 private:
