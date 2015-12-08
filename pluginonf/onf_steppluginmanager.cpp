@@ -152,7 +152,6 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewLoadStep<ONF_StepLoadPositionsForMatching>(CT_StepsMenu::LP_Others);
     addNewLoadStep<ONF_StepLoadTreeMap>(CT_StepsMenu::LP_Others);
     addNewPointsStep<ONF_StepExtractLogBuffer>(CT_StepsMenu::LP_Extract);
-    addNewPointsStep<ONF_StepFilterPointsByBoolGrid>(CT_StepsMenu::LP_Filter);
     addNewPointsStep<ONF_StepReducePointsDensity>(CT_StepsMenu::LP_Filter);
     addNewPointsStep<ONF_StepSlicePointCloud>(CT_StepsMenu::LP_Extract);
     addNewPointsStep<ONF_StepTransformPointCloud>(CT_StepsMenu::LP_Transform);
@@ -160,6 +159,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewVoxelsStep<ONF_StepComputeHitGrid>(CT_StepsMenu::LP_Create);
     addNewVoxelsStep<ONF_StepSelectCellsInGrid3D>(CT_StepsMenu::LP_Filter);
     addNewVoxelsStep<ONF_StepSelectCellsInGrid3DByBinaryPattern>(CT_StepsMenu::LP_Filter);
+    addNewVoxelsStep<ONF_StepFilterPointsByBoolGrid>(CT_StepsMenu::LP_Filter);
     addNewWorkflowStep<ONF_StepAddAffiliationID>("");
     addNewWorkflowStep<ONF_StepCreatePlotManagerFromFile>("");
     addNewWorkflowStep<ONF_StepCreatePlotManagerGrid>("");
@@ -169,7 +169,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewWorkflowStep<ONF_StepLoadDataFromItemPosition>("");
 
 #ifdef USE_OPENCV
-    addNewGeometricalShapesStep<ONF_StepSetFootCoordinatesVertically>(QObject::tr("Détection tiges (ONF 2013)"));
+    addNewGeometricalShapesStep<ONF_StepSetFootCoordinatesVertically>(QObject::tr("Détéction tiges (ONF 2013)"));
     addNewGeometricalShapesStep<ONF_StepExtractPositionsFromDensity>("");
     addNewGeometricalShapesStep<ONF_StepSegmentCrownsFromStemClusters>(CT_StepsMenu::LP_Crowns);
 
