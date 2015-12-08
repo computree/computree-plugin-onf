@@ -2003,18 +2003,8 @@ Vous pouvez également spécifier quelles classifications conserver.</translatio
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputecrownprojection.cpp" line="100"/>
-        <source>Enveloppe Directionnelle au sol</source>
-        <translation></translation>
-    </message>
-    <message>
         <location filename="../step/onf_stepcomputecrownprojection.cpp" line="103"/>
         <source>Enveloppe Convexe d&apos;une tranche</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../step/onf_stepcomputecrownprojection.cpp" line="104"/>
-        <source>Enveloppe Directionnelle d&apos;une tranche</source>
         <translation></translation>
     </message>
     <message>
@@ -2030,16 +2020,6 @@ Vous pouvez également spécifier quelles classifications conserver.</translatio
     <message>
         <location filename="../step/onf_stepcomputecrownprojection.cpp" line="114"/>
         <source>Epaisseur des tranches</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../step/onf_stepcomputecrownprojection.cpp" line="115"/>
-        <source>Calculer les enveloppes directionnelles par tranches</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../step/onf_stepcomputecrownprojection.cpp" line="116"/>
-        <source>Nombre de directions</source>
         <translation></translation>
     </message>
 </context>
@@ -6020,17 +6000,8 @@ Veuillez sélectionner les paramètres pour réaliser les tranches.</source>
         <location filename="../onf_steppluginmanager.cpp" line="120"/>
         <location filename="../onf_steppluginmanager.cpp" line="121"/>
         <location filename="../onf_steppluginmanager.cpp" line="122"/>
-        <source>Détéction tiges (ONF 2013)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../onf_steppluginmanager.cpp" line="151"/>
-        <source>DataSources</source>
-        <translation></translation>
-    </message>
-    <message>
         <location filename="../onf_steppluginmanager.cpp" line="172"/>
-        <source>Détection tiges (ONF 2013)</source>
+        <source>Détéction tiges (ONF 2013)</source>
         <translation></translation>
     </message>
 </context>

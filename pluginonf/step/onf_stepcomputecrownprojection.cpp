@@ -97,11 +97,11 @@ void ONF_StepComputeCrownProjection::createOutResultModelListProtected()
     CT_OutResultModelGroupToCopyPossibilities *resCpy_rscene = createNewOutResultModelToCopy(DEFin_rscene);
 
     resCpy_rscene->addItemModel(DEFin_grpsc, _convexHull_ModelName, new CT_Polygon2D(), tr("Enveloppe Convexe au sol"));
-    resCpy_rscene->addItemModel(DEFin_grpsc, _directionalHull_ModelName, new CT_Polygon2D(), tr("Enveloppe Directionnelle au sol"));
+//    resCpy_rscene->addItemModel(DEFin_grpsc, _directionalHull_ModelName, new CT_Polygon2D(), tr("Enveloppe Directionnelle au sol"));
     resCpy_rscene->addGroupModel(DEFin_grpsc, _grpSlice_ModelName, new CT_StandardItemGroup(), tr("Groupe"));
 
     resCpy_rscene->addItemModel(_grpSlice_ModelName, _scliceCvx_ModelName, new CT_Polygon2D(), tr("Enveloppe Convexe d'une tranche"));
-    resCpy_rscene->addItemModel(_grpSlice_ModelName, _scliceDir_ModelName, new CT_Polygon2D(), tr("Enveloppe Directionnelle d'une tranche"));
+//    resCpy_rscene->addItemModel(_grpSlice_ModelName, _scliceDir_ModelName, new CT_Polygon2D(), tr("Enveloppe Directionnelle d'une tranche"));
 }
 
 // Semi-automatic creation of step parameters DialogBox
@@ -112,8 +112,8 @@ void ONF_StepComputeCrownProjection::createPostConfigurationDialog()
     configDialog->addBool(tr("Calculer les enveloppes convexes par tranches"), "", "", _computeSlices);
     configDialog->addDouble(tr("Espacement des tranches"), "m", 0, 1e+09, 2, _spacing, 1);
     configDialog->addDouble(tr("Epaisseur des tranches"), "m", 0, 1e+09, 2, _thickness, 1);
-    configDialog->addBool(tr("Calculer les enveloppes directionnelles par tranches"), "", "", _computeDirs);
-    configDialog->addInt(tr("Nombre de directions"), "", 3, 99999, _nbDir);
+//    configDialog->addBool(tr("Calculer les enveloppes directionnelles par tranches"), "", "", _computeDirs);
+//    configDialog->addInt(tr("Nombre de directions"), "", 3, 99999, _nbDir);
 }
 
 void ONF_StepComputeCrownProjection::compute()

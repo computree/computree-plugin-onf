@@ -2008,9 +2008,8 @@ You can also choose which classifications to keep.</source>
         <translation>Convex hull (on ground)</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputecrownprojection.cpp" line="100"/>
         <source>Enveloppe Directionnelle au sol</source>
-        <translation>Directionnal hull (on ground)</translation>
+        <translation type="vanished">Directionnal hull (on ground)</translation>
     </message>
     <message>
         <location filename="../step/onf_stepcomputecrownprojection.cpp" line="103"/>
@@ -2018,9 +2017,8 @@ You can also choose which classifications to keep.</source>
         <translation>Convex hull of slices</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputecrownprojection.cpp" line="104"/>
         <source>Enveloppe Directionnelle d&apos;une tranche</source>
-        <translation>Directionnal hull of slices</translation>
+        <translation type="vanished">Directionnal hull of slices</translation>
     </message>
     <message>
         <location filename="../step/onf_stepcomputecrownprojection.cpp" line="112"/>
@@ -2038,14 +2036,12 @@ You can also choose which classifications to keep.</source>
         <translation>Thickness of slices</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputecrownprojection.cpp" line="115"/>
         <source>Calculer les enveloppes directionnelles par tranches</source>
-        <translation>Compute directionnal hulls for slices</translation>
+        <translation type="vanished">Compute directionnal hulls for slices</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputecrownprojection.cpp" line="116"/>
         <source>Nombre de directions</source>
-        <translation>Number of directions</translation>
+        <translation type="vanished">Number of directions</translation>
     </message>
 </context>
 <context>
@@ -6552,18 +6548,13 @@ Please adjust parameters to define slices. </translation>
         <location filename="../onf_steppluginmanager.cpp" line="120"/>
         <location filename="../onf_steppluginmanager.cpp" line="121"/>
         <location filename="../onf_steppluginmanager.cpp" line="122"/>
+        <location filename="../onf_steppluginmanager.cpp" line="172"/>
         <source>Détéction tiges (ONF 2013)</source>
         <translation>Stem detection (ONF 2013)</translation>
     </message>
     <message>
-        <location filename="../onf_steppluginmanager.cpp" line="151"/>
-        <source>DataSources</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../onf_steppluginmanager.cpp" line="172"/>
         <source>Détection tiges (ONF 2013)</source>
-        <translation>Stem detection (ONF 2013)</translation>
+        <translation type="vanished">Stem detection (ONF 2013)</translation>
     </message>
 </context>
 </TS>
