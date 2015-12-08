@@ -102,6 +102,8 @@
 #include "metric/onf_metricquantiles.h"
 #include "metric/onf_metriccomputestats.h"
 
+#include "itemdrawable/onf_lai2000data.h"
+#include "itemdrawable/onf_lvoxsphere.h"
 
 ONF_StepPluginManager::ONF_StepPluginManager() : CT_AbstractStepPlugin()
 {
@@ -211,6 +213,13 @@ bool ONF_StepPluginManager::loadMetrics()
 {
     addNewMetric(new ONF_MetricComputeStats());
     addNewMetric(new ONF_MetricQuantiles());
+    return true;
+}
+
+bool ONF_StepPluginManager::loadItemDrawables()
+{
+    addNewItemDrawable<ONF_Lai2000Data>();
+    addNewItemDrawable<ONF_LvoxSphere>();
     return true;
 }
 

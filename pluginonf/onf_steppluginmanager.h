@@ -43,6 +43,7 @@ protected:
     bool loadCanBeAddedFirstStep();
     bool loadFilters();
     bool loadMetrics();
+    bool loadItemDrawables();
 
     bool loadActions();
     bool loadExporters();
