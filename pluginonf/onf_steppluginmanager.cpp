@@ -152,7 +152,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewBetaStep<ONF_StepImportSegmaFilesForMatching>(CT_StepsMenu::LP_Others);
     addNewLoadStep<ONF_StepLoadPlotAreas>(CT_StepsMenu::LP_Vector);
     addNewBetaStep<ONF_StepLoadPositionsForMatching>(CT_StepsMenu::LP_Others);
-    addNewLoadStep<ONF_StepLoadTreeMap>(CT_StepsMenu::LP_Others);
+    addNewLoadStep<ONF_StepLoadTreeMap>(CT_StepsMenu::LP_Items);
     addNewBetaStep<ONF_StepExtractLogBuffer>(CT_StepsMenu::LP_Extract);
     addNewPointsStep<ONF_StepReducePointsDensity>(CT_StepsMenu::LP_Filter);
     addNewPointsStep<ONF_StepSlicePointCloud>(CT_StepsMenu::LP_Extract);

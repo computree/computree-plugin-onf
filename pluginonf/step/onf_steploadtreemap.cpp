@@ -80,7 +80,7 @@ QString ONF_StepLoadTreeMap::getStepDetailledDescription() const
               "- Y      : Coordonnée Y de l'arbre<br>"
               "- DBH    : Diamètre à 1.30 m de l'arbre<br>"
               "<br>Une fois le format de fichier paramétré, l'utilisateur indique quelle placette doit être chargée.<br>"
-              "Seule les données de la placette choisie seront chargées.");
+              "Seules les données de la placette choisie seront chargées.");
 }
 
 // Step URL
