@@ -72,7 +72,15 @@ QString ONF_StepLoadTreeMap::getStepDescription() const
 // Step detailled description
 QString ONF_StepLoadTreeMap::getStepDetailledDescription() const
 {
-    return tr("No detailled description for this step");
+    return tr("Charge des données d'inventaire forestier depuis un fichier ASCII. <br>"
+              "L'import est configurable, le fichier devant contenir les champs suivants :<br>"
+              "- IDplot : Identifiant placette<br>"
+              "- IDtree : Identifiant arbre<br>"
+              "- X      : Coordonnée X de l'arbre<br>"
+              "- Y      : Coordonnée Y de l'arbre<br>"
+              "- DBH    : Diamètre à 1.30 m de l'arbre<br>"
+              "<br>Une fois le format de fichier paramétré, l'utilisateur indique quelle placette doit être chargée.<br>"
+              "Seule les données de la placette choisie seront chargées.");
 }
 
 // Step URL
