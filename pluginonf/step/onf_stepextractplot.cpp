@@ -107,14 +107,14 @@ void ONF_StepExtractPlot::createPostConfigurationDialog()
 {
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
 
-    configDialog->addDouble(tr("Coordonnée X du centre de la placette :"), "m", -1e+10, 1e+10, 2, _x);
-    configDialog->addDouble(tr("Coordonnée Y du centre de la placette :"), "m", -1e+10, 1e+10, 2, _y);
-    configDialog->addDouble(tr("Rayon de début de la placette :"), "m", 0, 1e+10, 2, _radiusmin);
-    configDialog->addDouble(tr("Rayon de la placette (maximum) :"), "m", 0.01, 1e+10, 2, _radius);
-    configDialog->addDouble(tr("Azimut début (Nord = axe Y) :"), tr("Grades"), 0, 400, 2, _azbegin);
-    configDialog->addDouble(tr("Azimut fin (Nord = axe Y) :"), tr("Grades"), 0, 400, 2, _azend);
-    configDialog->addDouble(tr("Niveau Z minimum :"), "m", -1e+10, 1e+10, 2, _zmin);
-    configDialog->addDouble(tr("Niveau Z maximum :"), "m", -1e+10, 1e+10, 2, _zmax);
+    configDialog->addDouble(tr("Coordonnée X du centre de la placette :"), "m", -1e+10, 1e+10, 4, _x);
+    configDialog->addDouble(tr("Coordonnée Y du centre de la placette :"), "m", -1e+10, 1e+10, 4, _y);
+    configDialog->addDouble(tr("Rayon de début de la placette :"), "m", 0, 1e+10, 4, _radiusmin);
+    configDialog->addDouble(tr("Rayon de la placette (maximum) :"), "m", 0.01, 1e+10, 4, _radius);
+    configDialog->addDouble(tr("Azimut début (Nord = axe Y) :"), tr("Grades"), 0, 400, 4, _azbegin);
+    configDialog->addDouble(tr("Azimut fin (Nord = axe Y) :"), tr("Grades"), 0, 400, 4, _azend);
+    configDialog->addDouble(tr("Niveau Z minimum :"), "m", -1e+10, 1e+10, 4, _zmin);
+    configDialog->addDouble(tr("Niveau Z maximum :"), "m", -1e+10, 1e+10, 4, _zmax);
 }
 
 void ONF_StepExtractPlot::compute()

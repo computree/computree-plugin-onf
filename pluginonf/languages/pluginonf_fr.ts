@@ -5994,13 +5994,13 @@ Veuillez sélectionner les paramètres pour réaliser les tranches.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../onf_steppluginmanager.cpp" line="117"/>
-        <location filename="../onf_steppluginmanager.cpp" line="118"/>
         <location filename="../onf_steppluginmanager.cpp" line="119"/>
         <location filename="../onf_steppluginmanager.cpp" line="120"/>
         <location filename="../onf_steppluginmanager.cpp" line="121"/>
         <location filename="../onf_steppluginmanager.cpp" line="122"/>
-        <location filename="../onf_steppluginmanager.cpp" line="172"/>
+        <location filename="../onf_steppluginmanager.cpp" line="123"/>
+        <location filename="../onf_steppluginmanager.cpp" line="124"/>
+        <location filename="../onf_steppluginmanager.cpp" line="174"/>
         <source>Détéction tiges (ONF 2013)</source>
         <translation></translation>
     </message>
