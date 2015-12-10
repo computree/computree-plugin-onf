@@ -4668,71 +4668,71 @@ The &lt;b&gt;maximum distance between two points within a group&lt;/b&gt; is spe
     </message>
     <message>
         <location filename="../step/onf_steploadtreemap.cpp" line="75"/>
-        <source>No detailled description for this step</source>
-        <translation></translation>
+        <source>Charge des données d&apos;inventaire forestier depuis un fichier ASCII. &lt;br&gt;L&apos;import est configurable, le fichier devant contenir les champs suivants :&lt;br&gt;- IDplot : Identifiant placette&lt;br&gt;- IDtree : Identifiant arbre&lt;br&gt;- X      : Coordonnée X de l&apos;arbre&lt;br&gt;- Y      : Coordonnée Y de l&apos;arbre&lt;br&gt;- DBH    : Diamètre à 1.30 m de l&apos;arbre&lt;br&gt;&lt;br&gt;Une fois le format de fichier paramétré, l&apos;utilisateur indique quelle placette doit être chargée.&lt;br&gt;Seules les données de la placette choisie seront chargées.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../step/onf_steploadtreemap.cpp" line="103"/>
+        <location filename="../step/onf_steploadtreemap.cpp" line="111"/>
         <source>Positions de référence</source>
         <translation>Reference positions</translation>
     </message>
     <message>
-        <location filename="../step/onf_steploadtreemap.cpp" line="104"/>
+        <location filename="../step/onf_steploadtreemap.cpp" line="112"/>
         <source>Groupe</source>
         <translation>Group</translation>
     </message>
     <message>
-        <location filename="../step/onf_steploadtreemap.cpp" line="105"/>
+        <location filename="../step/onf_steploadtreemap.cpp" line="113"/>
         <source>Position de référence</source>
         <translation>Reference position</translation>
     </message>
     <message>
-        <location filename="../step/onf_steploadtreemap.cpp" line="106"/>
+        <location filename="../step/onf_steploadtreemap.cpp" line="114"/>
         <source>DBH</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_steploadtreemap.cpp" line="107"/>
+        <location filename="../step/onf_steploadtreemap.cpp" line="115"/>
         <source>IDtree</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_steploadtreemap.cpp" line="108"/>
+        <location filename="../step/onf_steploadtreemap.cpp" line="116"/>
         <source>IDplot</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_steploadtreemap.cpp" line="117"/>
+        <location filename="../step/onf_steploadtreemap.cpp" line="125"/>
         <source>Choix de la placette</source>
         <translation>Plot choice</translation>
     </message>
     <message>
-        <location filename="../step/onf_steploadtreemap.cpp" line="169"/>
+        <location filename="../step/onf_steploadtreemap.cpp" line="177"/>
         <source>Placette en cours de traitement : %1</source>
         <translation>Processing plot: %1</translation>
     </message>
     <message>
-        <location filename="../step/onf_steploadtreemap.cpp" line="185"/>
+        <location filename="../step/onf_steploadtreemap.cpp" line="193"/>
         <source>Champ IDtree non défini</source>
         <translation>IDtree field not defined</translation>
     </message>
     <message>
-        <location filename="../step/onf_steploadtreemap.cpp" line="186"/>
+        <location filename="../step/onf_steploadtreemap.cpp" line="194"/>
         <source>Champ X non défini</source>
         <translation>X field not defined</translation>
     </message>
     <message>
-        <location filename="../step/onf_steploadtreemap.cpp" line="187"/>
+        <location filename="../step/onf_steploadtreemap.cpp" line="195"/>
         <source>Champ Y non défini</source>
         <translation>Y field not defined</translation>
     </message>
     <message>
-        <location filename="../step/onf_steploadtreemap.cpp" line="188"/>
+        <location filename="../step/onf_steploadtreemap.cpp" line="196"/>
         <source>Champ DBH non défini</source>
         <translation>DBH field not defined</translation>
     </message>
     <message>
-        <location filename="../step/onf_steploadtreemap.cpp" line="239"/>
+        <location filename="../step/onf_steploadtreemap.cpp" line="247"/>
         <source>Ligne %1 du fichier REF non valide</source>
         <translation>Line %1 of REF file not valid</translation>
     </message>
