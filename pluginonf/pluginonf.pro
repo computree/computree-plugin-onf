@@ -103,7 +103,8 @@ HEADERS += \
     tools/onf_computeverticalprofilethread.h \
     step/onf_stepcomputeverticalprofile.h \
     step/onf_stepdetectverticalalignments02.h \
-    step/onf_stepdetectverticalalignments03.h
+    step/onf_stepdetectverticalalignments03.h \
+    step/onf_stepextractpointsinverticalcylinders.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -201,7 +202,8 @@ SOURCES += \
     tools/onf_computeverticalprofilethread.cpp \
     step/onf_stepcomputeverticalprofile.cpp \
     step/onf_stepdetectverticalalignments02.cpp \
-    step/onf_stepdetectverticalalignments03.cpp
+    step/onf_stepdetectverticalalignments03.cpp \
+    step/onf_stepextractpointsinverticalcylinders.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts
