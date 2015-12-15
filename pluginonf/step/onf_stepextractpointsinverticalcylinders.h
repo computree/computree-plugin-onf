@@ -28,7 +28,8 @@
 #include "ct_step/abstract/ct_abstractstep.h"
 #include "ct_view/tools/ct_textfileconfigurationdialog.h"
 #include "ct_tools/model/ct_autorenamemodels.h"
-
+#include "ct_itemdrawable/ct_scene.h"
+#include "ct_itemdrawable/ct_standarditemgroup.h"
 
 class ONF_StepExtractPointsInVerticalCylinders: public CT_AbstractStep
 {
@@ -68,11 +69,6 @@ public:
      */
     CT_VirtualAbstractStep* createNewInstance(CT_StepInitializeData &dataInit);
 
-public slots:
-    void fileChanged();
-
-signals:
-    void updateComboBox(QStringList valuesList, QString value);
 
 protected:
 
@@ -95,24 +91,26 @@ protected:
 
 private:
 
+    CT_AutoRenameModels     _outSceneGroupModelName;
     CT_AutoRenameModels     _outSceneModelName;
     CT_AutoRenameModels     _outAttIDModelName;
 
 
     struct CylData {
-        CylData(QString id, double x, double y, double zmin, double zmax, double radius)
+        CylData(QString id, double x, double y, double z, double zmin, double zmax, double radius)
         {
             _id = id;
             _x = x;
             _y = y;
+            _z = z;
             _zmin = zmin;
             _zmax = zmax;
             _radius = radius;
         }
 
-        bool contains(double x, double y, double z)
+        bool contains(double x, double y, double z) const
         {
-            if (z >= _zmin && z <= _zmin)
+            if (z >= _zmin && z <= _zmax)
             {
                 double distance = sqrt(pow(x - _x, 2) + pow(y - _y, 2));
                 if (distance <= _radius)
@@ -126,6 +124,7 @@ private:
         QString _id;
         double _x;
         double _y;
+        double _z;
         double _zmin;
         double _zmax;
         double _radius;
@@ -135,23 +134,18 @@ private:
     QList<CT_TextFileConfigurationFields> _neededFields;
 
     QString _refFileName;
-    QString _plotID;
 
     bool _refHeader;
-
     QString _refSeparator;
-
     QString _refDecimal;
-
     QLocale _refLocale;
-
-
     int _refSkip;
-
     QMap<QString, int> _refColumns;
-
     QStringList _plotsIds;
+    bool _translate;
 
+    void extractCylindersWithoutTranslation(CT_StandardItemGroup* group, QMultiMap<QString, CylData*> cylinders, const CT_Scene *in_scene, CT_ResultGroup* res, QString plotName);
+    void extractCylindersWithTranslation   (CT_StandardItemGroup* group, QMultiMap<QString, CylData*> cylinders, const CT_Scene *in_scene, CT_ResultGroup* res, QString plotName);
 
 };
 

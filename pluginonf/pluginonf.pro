@@ -209,10 +209,6 @@ TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts
 
 INCLUDEPATH += .
-INCLUDEPATH += ./step
-INCLUDEPATH += ./itemdrawable
-
-OTHER_FILES +=
 
 FORMS += \
     views/actions/onf_actiondefineheightlayeroptions.ui \

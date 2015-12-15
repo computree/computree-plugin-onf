@@ -95,6 +95,7 @@
 #include "step/onf_stepslicepointcloud.h"
 #include "step/onf_steptransformpointcloud.h"
 #include "step/onf_stepvalidateinventory.h"
+#include "step/onf_stepextractpointsinverticalcylinders.h"
 
 #include "filter/onf_filterbyreturntype.h"
 #include "filter/onf_filterremoveupperoutliers.h"
@@ -135,6 +136,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewPointsStep<ONF_StepSmoothSkeleton>(CT_StepsMenu::LP_Clusters);
     addNewPointsStep<ONF_StepComputeVerticalProfile>(CT_StepsMenu::LP_Analyze);
     addNewPointsStep<ONF_StepCorrectALSProfile>(CT_StepsMenu::LP_Analyze);
+    addNewPointsStep<ONF_StepExtractPointsInVerticalCylinders>(CT_StepsMenu::LP_Extract);
 
     addNewGeometricalShapesStep<ONF_StepComputeCrownProjection>(CT_StepsMenu::LP_Crowns);
 //    addNewGeometricalShapesStep<ONF_StepDetectVerticalAlignments>(CT_StepsMenu::LP_Stems);
