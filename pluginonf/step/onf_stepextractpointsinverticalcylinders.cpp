@@ -79,7 +79,20 @@ QString ONF_StepExtractPointsInVerticalCylinders::getStepDescription() const
 // Step detailled description
 QString ONF_StepExtractPointsInVerticalCylinders::getStepDetailledDescription() const
 {
-    return tr("");
+    return tr("Cette étape permet d'extraire des sous-parties cylindriques de scènes de points.<br>"
+              "Un fichier ASCII passé en paramètre permet de définir les cylindres pour chaque placette (une ligne par cylindre).<br>"
+              "Ce fichier doit contenir les champs suivants :<br>"
+              "- ID_Plot : Identifiant placette<br>"
+              "- ID_Tree : Identifiant du cylindre à extraire<br>"
+              "- X : Coordonnée X du centre du cylindre<br>"
+              "- Y : Coordonnée Y du centre du cylindre<br>"
+              "- Z : Coordonnée Z du centre du cylindre<br>"
+              "- Zmin : Z minium de la tranche à conserver dans le cylindre<br>"
+              "- Zmax : Z maximum de la tranche à conserver dans le cylindre<br>"
+              "- Rayon : Rayon (XY) du cylindre à conserver<br>"
+              "Le champs ID_Plot est mis en correspondance avec le nom de la placette (cf. choix des résultats d'entrée).<br>"
+              "Si le champs ID_Plot est absent (NODATA), tous les cylindres sont conservés.<br>"
+              "Il est également possible pour chaque cylindre de réaliser une translation de son centre (X,Y,Z) aux coordonnées (0,0,0).");
 }
 
 // Step URL
@@ -135,10 +148,15 @@ void ONF_StepExtractPointsInVerticalCylinders::compute()
     QList<CT_ResultGroup*> outResultList = getOutResultList();
     CT_ResultGroup* res = outResultList.at(0);
 
+
+    int colIDplot_ref  = _refColumns.value("ID_Plot", -1);
+    bool plotColExist = (colIDplot_ref >= 0);
+
+
     // Listing available plots scenes
     QList<QString> plotIds;
     CT_ResultGroupIterator it(res, this, DEF_SearchInGroup);
-    while(!isStopped() && it.hasNext())
+    while(plotColExist && !isStopped() && it.hasNext())
     {
         CT_StandardItemGroup* group = (CT_StandardItemGroup*) it.next();
         const CT_AbstractSingularItemDrawable *in_item = (CT_AbstractSingularItemDrawable*) group->firstItemByINModelName(this, DEF_SearchInFileNameItem);
@@ -160,7 +178,6 @@ void ONF_StepExtractPointsInVerticalCylinders::compute()
         QTextStream stream(&fRef);
         stream.setLocale(_refLocale);
 
-        int colIDplot_ref  = _refColumns.value("ID_Plot", -1);
         int colID  = _refColumns.value("ID_Tree", -1);
         int colX   = _refColumns.value("X", -1);
         int colY   = _refColumns.value("Y", -1);
@@ -169,7 +186,8 @@ void ONF_StepExtractPointsInVerticalCylinders::compute()
         int colZmax = _refColumns.value("Zmax", -1);
         int colRadius = _refColumns.value(tr("Rayon"), -1);
 
-        if (colIDplot_ref < 0) {PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("Champ IDplot non défini (non bloquant)")));}
+
+        if (!plotColExist) {PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("Champ IDplot non défini (non bloquant)")));}
         if (colID < 0) {PS_LOG->addMessage(LogInterface::error, LogInterface::step, QString(tr("Champ IDtree non défini")));}
         if (colX < 0) {PS_LOG->addMessage(LogInterface::error, LogInterface::step, QString(tr("Champ X non défini")));}
         if (colY < 0) {PS_LOG->addMessage(LogInterface::error, LogInterface::step, QString(tr("Champ Y non défini")));}
@@ -204,12 +222,14 @@ void ONF_StepExtractPointsInVerticalCylinders::compute()
                     if (values.size() >= colMax)
                     {
                         QString plot = "";
-                        if (colIDplot_ref >= 0)
+                        if (plotColExist)
                         {
                             plot =  values.at(colIDplot_ref);
+                        } else {
+                            plot = "NOPLOT";
                         }
 
-                        if (plot == "" || plotIds.contains(plot))
+                        if (!plotColExist || plotIds.contains(plot))
                         {
                             bool okX, okY, okZ, okZmin, okZmax, okRadius;
                             double x = _refLocale.toDouble(values.at(colX), &okX);
@@ -248,6 +268,8 @@ void ONF_StepExtractPointsInVerticalCylinders::compute()
             QString attributeValue = in_item->firstItemAttributeByINModelName(res, this, DEF_SearchInFileName)->toString(in_item, NULL);
             QFileInfo fileInfo(attributeValue);
             QString plotName = fileInfo.baseName();
+
+            if (!plotColExist) {plotName = "NOPLOT";}
 
             if (_translate)
             {
