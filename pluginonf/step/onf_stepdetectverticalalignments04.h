@@ -250,6 +250,7 @@ private:
     // Step parameters
     double    _thresholdGPSTime;
     double    _thresholdDistXY;
+    double    _thresholdZenithalAngle;
 
     double    _maxPhiAngle;
     double    _pointDistThreshold;

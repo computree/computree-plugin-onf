@@ -45,9 +45,7 @@
 #include "ct_math/ct_mathpoint.h"
 #include "ct_accessor/ct_pointaccessor.h"
 
-
 #include <QtConcurrent>
-
 
 // Alias for indexing models
 #define DEFin_res "res"
@@ -64,6 +62,7 @@ ONF_StepDetectVerticalAlignments04::ONF_StepDetectVerticalAlignments04(CT_StepIn
 {
     _thresholdGPSTime = 1e-5;
     _thresholdDistXY = 0.25;
+    _thresholdZenithalAngle = 30.0;
 
 
 
@@ -165,8 +164,8 @@ void ONF_StepDetectVerticalAlignments04::createPostConfigurationDialog()
 
     configDialog->addTitle( tr("1- Détéction des lignes de scan :"));
     configDialog->addDouble(tr("Seuil de temps GPS pour changer de ligne"), "m", -1e+10, 1e+10, 10, _thresholdGPSTime);
-    configDialog->addDouble(tr("Seuil de distance XY"), "m", 0, 1e+4, 10, _thresholdDistXY);
-
+    configDialog->addDouble(tr("Seuil de distance XY"), "m", 0, 1e+4, 4, _thresholdDistXY);
+    configDialog->addDouble(tr("Seuil d'angle zénithal"), "°", 0, 360, 2, _thresholdZenithalAngle);
 
 //    configDialog->addTitle( tr("1- Paramètres de création des droites candidates :"));
 //    configDialog->addDouble(tr("Distance maximum entre deux points d'une droite candidate"), "m", 0, 1000, 2, _pointDistThreshold);
@@ -299,17 +298,53 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
         }
 
 
-        // Validate clusters
+        // Validate clusters (distance XY between points)
         QList<size_t> isolatedPointIndices;
-        QList<CT_PointCluster*> keptClusters;
+        QList<CT_PointCluster*> keptClustersScanLineOk;
         for (int i = 0 ; i < scanLineClusters.size() ; i++)
         {
-            validateScanLineCluster(scanLineClusters.at(i), keptClusters, isolatedPointIndices, pointAccessor);
+            validateScanLineCluster(scanLineClusters.at(i), keptClustersScanLineOk, isolatedPointIndices, pointAccessor);
         }
 
-        for (int i = 0 ; i < keptClusters.size() ; i++)
+
+        // Validate clusters (zenithal angle)
+        QList<CT_PointCluster*> keptClustersZenithalAngleOk;
+        double thresholdZenithalAngleRadians = M_PI*_step->_thresholdZenithalAngle/180.0;
+        for (int i = 0 ; i < keptClustersScanLineOk.size() ; i++)
         {
-            cluster = keptClusters.at(i);
+            CT_PointCluster* cluster  = keptClustersScanLineOk.at(i);
+            const CT_AbstractPointCloudIndex* pointCloudIndex = cluster->getPointCloudIndex();
+
+            const size_t index1 = pointCloudIndex->constIndexAt(0);
+            const size_t index2 = pointCloudIndex->constIndexAt(pointCloudIndex->size() - 1);
+
+            CT_Point p1 = pointAccessor.constPointAt(index1);
+            CT_Point p2 = pointAccessor.constPointAt(index2);
+
+            float phi, theta, length;
+            if (p1(2) < p2(2))
+            {
+                CT_SphericalLine3D::convertToSphericalCoordinates(&p1, &p2, phi, theta, length);
+            } else {
+                CT_SphericalLine3D::convertToSphericalCoordinates(&p2, &p1, phi, theta, length);
+            }
+
+            if (phi >= thresholdZenithalAngleRadians)
+            {
+                for (int j = 0 ; j < pointCloudIndex->size() ; j++)
+                {
+                    isolatedPointIndices.append(pointCloudIndex->constIndexAt(0));
+                }
+                delete cluster;
+            } else {
+                keptClustersZenithalAngleOk.append(cluster);
+            }
+        }
+
+
+        for (int i = 0 ; i < keptClustersZenithalAngleOk.size() ; i++)
+        {
+            cluster = keptClustersZenithalAngleOk.at(i);
 
             if (cluster->getPointCloudIndexSize() > 2)
             {
