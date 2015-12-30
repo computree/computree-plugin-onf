@@ -43,6 +43,8 @@
 #include "ct_math/ct_sphericalline3d.h"
 #include "ct_math/ct_mathstatistics.h"
 #include "ct_math/ct_mathpoint.h"
+#include "ct_accessor/ct_pointaccessor.h"
+
 
 #include <QtConcurrent>
 
@@ -60,6 +62,11 @@
 // Constructor : initialization of parameters
 ONF_StepDetectVerticalAlignments04::ONF_StepDetectVerticalAlignments04(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
+    _thresholdGPSTime = 1e-5;
+    _thresholdDistXY = 0.25;
+
+
+
     _pointDistThreshold = 4.0;
     _maxPhiAngle = 30.0;
 
@@ -85,7 +92,7 @@ ONF_StepDetectVerticalAlignments04::ONF_StepDetectVerticalAlignments04(CT_StepIn
 // Step description (tooltip of contextual menu)
 QString ONF_StepDetectVerticalAlignments04::getStepDescription() const
 {
-    return tr("Détecter des alignements verticaux de points (V3)");
+    return tr("Détecter des alignements verticaux de points (V4)");
 }
 
 // Step detailled description
@@ -156,36 +163,41 @@ void ONF_StepDetectVerticalAlignments04::createPostConfigurationDialog()
 {
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
 
-    configDialog->addTitle( tr("1- Paramètres de création des droites candidates :"));
-    configDialog->addDouble(tr("Distance maximum entre deux points d'une droite candidate"), "m", 0, 1000, 2, _pointDistThreshold);
-    configDialog->addDouble(tr("Angle zénithal maximal pour une droite candidate"), "°", 0, 180, 2, _maxPhiAngle);
-
-    configDialog->addEmpty();
-    configDialog->addTitle(tr("2- Paramètres de création des clusters (à partir des droites candidates) :"));
-    configDialog->addDouble(tr("Distance maximum XY entre deux droites candidates à agréger"), "m", 0, 1000, 2, _lineDistThreshold);
-    configDialog->addInt(tr("Nombre de points minimum dans un cluster"), "", 2, 1000, _minPtsNb);
-    configDialog->addDouble(tr("Pourcentage maximum de la longueur de segment sans points"), "%", 0, 100, 0, _lineLengthRatio, 100);
+    configDialog->addTitle( tr("1- Détéction des lignes de scan :"));
+    configDialog->addDouble(tr("Seuil de temps GPS pour changer de ligne"), "m", -1e+10, 1e+10, 10, _thresholdGPSTime);
+    configDialog->addDouble(tr("Seuil de distance XY"), "m", 0, 1e+4, 10, _thresholdDistXY);
 
 
-    configDialog->addEmpty();
-    configDialog->addTitle(tr("3- Paramètres de validation/fusion des clusters obtenus :"));
-    configDialog->addDouble(tr("Distance de recherche des clusters voisins"), "m", 0, 1000, 2, _clusterDistThreshold);
-    configDialog->addDouble(tr("Diamètre maximal possible pour un arbre"), "cm", 0, 1000, 2, _maxDiameter, 100);
-    configDialog->addDouble(tr("Divergence maximale entre clusters à fusionner"), "m", 0, 1000, 2, _maxDivergence);
-    configDialog->addDouble(tr("Angle zénithal maximal de la droite après fusion"), "°", 0, 180, 2, _maxPhiAngleAfterMerging);
-    configDialog->addDouble(tr("Rayon de recherche pour Hmax"), "m", 0, 1000, 2, _radiusHmax);
+//    configDialog->addTitle( tr("1- Paramètres de création des droites candidates :"));
+//    configDialog->addDouble(tr("Distance maximum entre deux points d'une droite candidate"), "m", 0, 1000, 2, _pointDistThreshold);
+//    configDialog->addDouble(tr("Angle zénithal maximal pour une droite candidate"), "°", 0, 180, 2, _maxPhiAngle);
 
-    configDialog->addDouble(tr("Supprimer les clusters dont la longueur est inférieure à"), "m", 0, 1000, 2, _lengthThreshold);
-    configDialog->addDouble(tr("Supprimer les clusters qui commence au dessus de "), "% de Hscene", 0, 100, 0, _heightThreshold, 100);
+//    configDialog->addEmpty();
+//    configDialog->addTitle(tr("2- Paramètres de création des clusters (à partir des droites candidates) :"));
+//    configDialog->addDouble(tr("Distance maximum XY entre deux droites candidates à agréger"), "m", 0, 1000, 2, _lineDistThreshold);
+//    configDialog->addInt(tr("Nombre de points minimum dans un cluster"), "", 2, 1000, _minPtsNb);
+//    configDialog->addDouble(tr("Pourcentage maximum de la longueur de segment sans points"), "%", 0, 100, 0, _lineLengthRatio, 100);
 
 
-    configDialog->addEmpty();
-    configDialog->addTitle(tr("4- Paramètres de validation des diamètres :"));
-    configDialog->addDouble(tr("Ecart max Dmax n et n-1"), "%", 0, 100, 0, _maxDiamRatio, 100);
-    configDialog->addDouble(tr("Epaisseur des cercles pour le scoring"), "cm", 0, 99999, 2, _circleDistThreshold, 100);
+//    configDialog->addEmpty();
+//    configDialog->addTitle(tr("3- Paramètres de validation/fusion des clusters obtenus :"));
+//    configDialog->addDouble(tr("Distance de recherche des clusters voisins"), "m", 0, 1000, 2, _clusterDistThreshold);
+//    configDialog->addDouble(tr("Diamètre maximal possible pour un arbre"), "cm", 0, 1000, 2, _maxDiameter, 100);
+//    configDialog->addDouble(tr("Divergence maximale entre clusters à fusionner"), "m", 0, 1000, 2, _maxDivergence);
+//    configDialog->addDouble(tr("Angle zénithal maximal de la droite après fusion"), "°", 0, 180, 2, _maxPhiAngleAfterMerging);
+//    configDialog->addDouble(tr("Rayon de recherche pour Hmax"), "m", 0, 1000, 2, _radiusHmax);
 
-    configDialog->addEmpty();
-    configDialog->addBool(tr("Mode Debug Clusters"), "", "", _clusterDebugMode);
+//    configDialog->addDouble(tr("Supprimer les clusters dont la longueur est inférieure à"), "m", 0, 1000, 2, _lengthThreshold);
+//    configDialog->addDouble(tr("Supprimer les clusters qui commence au dessus de "), "% de Hscene", 0, 100, 0, _heightThreshold, 100);
+
+
+//    configDialog->addEmpty();
+//    configDialog->addTitle(tr("4- Paramètres de validation des diamètres :"));
+//    configDialog->addDouble(tr("Ecart max Dmax n et n-1"), "%", 0, 100, 0, _maxDiamRatio, 100);
+//    configDialog->addDouble(tr("Epaisseur des cercles pour le scoring"), "cm", 0, 99999, 2, _circleDistThreshold, 100);
+
+//    configDialog->addEmpty();
+//    configDialog->addBool(tr("Mode Debug Clusters"), "", "", _clusterDebugMode);
 }
 
 
@@ -218,8 +230,185 @@ void ONF_StepDetectVerticalAlignments04::compute()
 
 void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlignmentsForScene(CT_StandardItemGroup* grp)
 {
+    CT_PointAccessor pointAccessor;
 
+    const CT_AbstractItemDrawableWithPointCloud* sceneStem = (CT_AbstractItemDrawableWithPointCloud*)grp->firstItemByINModelName(_step, DEFin_sceneStem);
+    const CT_AbstractPointAttributesScalar* attributeGPSTime = (CT_AbstractPointAttributesScalar*)grp->firstItemByINModelName(_step, DEFin_attGPSTime);
+
+
+    if (sceneStem != NULL && attributeGPSTime != NULL)
+    {
+        const CT_AbstractPointCloudIndex* pointCloudIndex = sceneStem->getPointCloudIndex();
+
+        // Tri des indices par temps gps
+        QMultiMap<double, size_t> sortedIndices;
+        CT_PointIterator itP(pointCloudIndex);
+        while(itP.hasNext() && (!_step->isStopped()))
+        {
+            size_t index = itP.next().currentGlobalIndex();
+
+            const CT_AbstractPointCloudIndex* pci_att = attributeGPSTime->getPointCloudIndex();
+            size_t localIndex = pci_att->indexOf(index);
+
+            double gpsTime = 0; // Récupération de la ligne de scan pour le point 1
+            if (localIndex < pci_att->size())
+            {
+                gpsTime = attributeGPSTime->dValueAt(localIndex);
+                sortedIndices.insert(gpsTime, index);
+            }
+        }
+
+        bool lastUpwards = false;
+        double lastGPSTime = -std::numeric_limits<double>::max();
+        double lastZ = -std::numeric_limits<double>::max();
+
+        CT_PointCluster* cluster = NULL;
+
+        QList<CT_PointCluster*> scanLineClusters;
+
+        // Creation des lignes de scan
+        QMapIterator<double, size_t> itMapSorted(sortedIndices);
+        while (itMapSorted.hasNext())
+        {
+            itMapSorted.next();
+            double gpsTime = itMapSorted.key();
+            size_t index = itMapSorted.value();
+
+            const CT_Point &point = pointAccessor.constPointAt(index);
+
+            double delta = gpsTime - lastGPSTime;
+            lastGPSTime = gpsTime;
+
+            //qDebug() << "gpsTime= " << QString::number(gpsTime, 'f', 20);
+
+            bool upwards = (point(2) > lastZ);
+            lastZ = point(2);
+
+            if (cluster != NULL && delta < _step->_thresholdGPSTime)// && upwards == lastUpwards)
+            {
+                // add to line of scan
+                cluster->addPoint(index);
+            } else {
+                // create new line of scan and add
+                cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);                                
+                scanLineClusters.append(cluster);
+
+                cluster->addPoint(index);
+            }
+            lastUpwards = upwards;
+        }
+
+
+        // Validate clusters
+        QList<size_t> isolatedPointIndices;
+        QList<CT_PointCluster*> keptClusters;
+        for (int i = 0 ; i < scanLineClusters.size() ; i++)
+        {
+            validateScanLineCluster(scanLineClusters.at(i), keptClusters, isolatedPointIndices, pointAccessor);
+        }
+
+        for (int i = 0 ; i < keptClusters.size() ; i++)
+        {
+            cluster = keptClusters.at(i);
+
+            if (cluster->getPointCloudIndexSize() > 2)
+            {
+                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
+                grp->addGroup(grpClKept);
+                grpClKept->addItemDrawable(cluster);
+            } else if (cluster->getPointCloudIndexSize() > 1) {
+                cluster->setModel(_step->_droppedCluster_ModelName.completeName());
+
+                CT_StandardItemGroup* grpClDropped = new CT_StandardItemGroup(_step->_grpDroppedCluster_ModelName.completeName(), _res);
+                grp->addGroup(grpClDropped);
+                grpClDropped->addItemDrawable(cluster);
+            }
+        }
+    }
 }
+
+void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::validateScanLineCluster(CT_PointCluster* cluster, QList<CT_PointCluster*> &keptClusters, QList<size_t> &isolatedPointIndices, CT_PointAccessor &pointAccessor)
+{
+    if (cluster == NULL) {return;}
+    const CT_AbstractPointCloudIndex* pointCloudIndex = cluster->getPointCloudIndex();
+
+    if (pointCloudIndex->size() == 1)
+    {
+        isolatedPointIndices.append(pointCloudIndex->indexAt(0));
+        delete cluster;
+    } else if (pointCloudIndex->size() == 2)
+    {
+        const size_t index1 = pointCloudIndex->constIndexAt(0);
+        const size_t index2 = pointCloudIndex->constIndexAt(1);
+
+        CT_Point point1 = pointAccessor.constPointAt(index1);
+        CT_Point point2 = pointAccessor.constPointAt(index2);
+
+        double distXY = sqrt(pow(point1(0) - point2(0), 2) + pow(point1(1) - point2(1), 2));
+
+        if (distXY < _step->_thresholdDistXY)
+        {
+            keptClusters.append(cluster);
+        } else {
+            isolatedPointIndices.append(index1);
+            isolatedPointIndices.append(index2);
+            delete cluster;
+        }
+    } else if (pointCloudIndex->size() > 2)
+    {
+        QList<size_t> currentList;
+        for (int i = 0 ; i < pointCloudIndex->size() ; i++)
+        {
+            const size_t index1 = pointCloudIndex->constIndexAt(i);
+            CT_Point point1 = pointAccessor.constPointAt(index1);
+            double distXY = std::numeric_limits<double>::max();
+
+            if (i < pointCloudIndex->size() - 1)
+            {
+                const size_t index2 = pointCloudIndex->constIndexAt(i+1);
+                CT_Point point2 = pointAccessor.constPointAt(index2);
+                distXY = sqrt(pow(point1(0) - point2(0), 2) + pow(point1(1) - point2(1), 2));
+            }
+
+            currentList.append(index1);
+
+            if (distXY >= _step->_thresholdDistXY)
+            {
+                processCurrentList(isolatedPointIndices, currentList, keptClusters);
+            }
+        }
+
+        processCurrentList(isolatedPointIndices, currentList, keptClusters);
+
+        delete cluster;
+    } else {
+        delete cluster;
+    }
+}
+
+void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::processCurrentList(QList<size_t> &isolatedPointIndices, QList<size_t> &currentList, QList<CT_PointCluster*> &keptClusters)
+{
+    if (currentList.size() == 1)
+    {
+        isolatedPointIndices.append(currentList.at(0));
+    } else if (currentList.size() > 1)
+    {
+        CT_PointCluster* newCluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
+        for (int j = 0 ; j < currentList.size() ; j++)
+        {
+            newCluster->addPoint(currentList.at(j));
+        }
+        keptClusters.append(newCluster);
+    }
+    currentList.clear();
+}
+
+
+
+
+
+
+
 
 void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlignmentsForScene_old(CT_StandardItemGroup* grp)
 {
@@ -250,7 +439,7 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
             if (attributeLineOfScan != NULL)
             {
                 size_t localIndex1 = attributeLineOfScan->getPointCloudIndex()->indexOf(index1);
-                if (localIndex1 < pointCloudIndex->size())
+                if (localIndex1 < attributeLineOfScan->getPointCloudIndex()->size())
                 {
                     lineOfScan1 = attributeLineOfScan->dValueAt(localIndex1);
                 }

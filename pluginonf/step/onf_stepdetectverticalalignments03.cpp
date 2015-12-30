@@ -243,8 +243,9 @@ void ONF_StepDetectVerticalAlignments03::AlignmentsDetectorForScene::detectAlign
             double lineOfScan1 = 0; // Récupération de la ligne de scan pour le point 1
             if (attributeLineOfScan != NULL)
             {
-                size_t localIndex1 = attributeLineOfScan->getPointCloudIndex()->indexOf(index1);
-                if (localIndex1 < pointCloudIndex->size())
+                const CT_AbstractPointCloudIndex* pci_att = attributeLineOfScan->getPointCloudIndex();
+                size_t localIndex1 = pci_att->indexOf(index1);
+                if (localIndex1 < pci_att->size())
                 {
                     lineOfScan1 = attributeLineOfScan->dValueAt(localIndex1);
                 }
@@ -260,8 +261,9 @@ void ONF_StepDetectVerticalAlignments03::AlignmentsDetectorForScene::detectAlign
                 double lineOfScan2 = 0; // Récupération de la ligne de scan pour le point 2
                 if (attributeLineOfScan != NULL)
                 {
-                    size_t localIndex2 = attributeLineOfScan->getPointCloudIndex()->indexOf(index2);
-                    if (localIndex2 < pointCloudIndex->size())
+                    const CT_AbstractPointCloudIndex* pci_att = attributeLineOfScan->getPointCloudIndex();
+                    size_t localIndex2 = pci_att->indexOf(index2);
+                    if (localIndex2 < pci_att->size())
                     {
                         lineOfScan2 = attributeLineOfScan->dValueAt(localIndex2);
                     }

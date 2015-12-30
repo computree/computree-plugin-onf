@@ -203,16 +203,22 @@ private:
         typedef void result_type;
         void operator()(CT_StandardItemGroup* grp)
         {
-            detectAlignmentsForScene_old(grp);
+            detectAlignmentsForScene(grp);
         }
 
         void detectAlignmentsForScene(CT_StandardItemGroup* grp);
+        void validateScanLineCluster(CT_PointCluster *cluster, QList<CT_PointCluster *> &keptClusters, QList<size_t> &isolatedPointIndices, CT_PointAccessor &pointAccessor);
+        void processCurrentList(QList<size_t> &isolatedPointIndices, QList<size_t> &currentList, QList<CT_PointCluster*> &keptClusters);
+
+
+
         void detectAlignmentsForScene_old(CT_StandardItemGroup* grp);
 
         ONF_StepDetectVerticalAlignments04::DistValues* computeDistVals(const CT_AbstractPointCloudIndex* cloudIndex, CT_LineData* lineData);
         void findNeighborLines(QList<ONF_StepDetectVerticalAlignments04::LineData*> candidateLines, double distThreshold);
         void sendToDroppedList(CT_StandardItemGroup* grp, CT_PointCluster* cluster, CT_LineData* lineData);
         void sendToConservedList(CT_StandardItemGroup* grp, CT_PointCluster* cluster, CT_LineData* mergedLineData, double hMaxScene);
+
     private:
         ONF_StepDetectVerticalAlignments04* _step;
         CT_ResultGroup* _res;
@@ -242,6 +248,9 @@ private:
 
 
     // Step parameters
+    double    _thresholdGPSTime;
+    double    _thresholdDistXY;
+
     double    _maxPhiAngle;
     double    _pointDistThreshold;
     double    _lineDistThreshold;
