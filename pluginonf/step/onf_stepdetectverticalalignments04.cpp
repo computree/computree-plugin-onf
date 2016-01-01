@@ -63,7 +63,8 @@ ONF_StepDetectVerticalAlignments04::ONF_StepDetectVerticalAlignments04(CT_StepIn
     _thresholdGPSTime = 1e-5;
     _thresholdDistXY = 0.25;
     _thresholdZenithalAngle = 30.0;
-
+    _thresholdNeighbourTesting = 3.0;
+    _minimalMaxDistXY = 0.25;
 
 
     _pointDistThreshold = 4.0;
@@ -163,9 +164,15 @@ void ONF_StepDetectVerticalAlignments04::createPostConfigurationDialog()
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
 
     configDialog->addTitle( tr("1- Détéction des lignes de scan :"));
-    configDialog->addDouble(tr("Seuil de temps GPS pour changer de ligne"), "m", -1e+10, 1e+10, 10, _thresholdGPSTime);
-    configDialog->addDouble(tr("Seuil de distance XY"), "m", 0, 1e+4, 4, _thresholdDistXY);
-    configDialog->addDouble(tr("Seuil d'angle zénithal"), "°", 0, 360, 2, _thresholdZenithalAngle);
+    configDialog->addDouble(tr("Seuil de temps GPS pour changer de ligne de scan"), "m", -1e+10, 1e+10, 10, _thresholdGPSTime);
+    configDialog->addDouble(tr("Distance XY maximum entre points successifs d'une ligne de scan"), "m", 0, 1e+4, 4, _thresholdDistXY);
+    configDialog->addDouble(tr("Angle zénithal maximal conserver une ligne de scan"), "°", 0, 360, 2, _thresholdZenithalAngle);
+
+    configDialog->addTitle( tr("2- Détéction des grosses tiges (fusion des lignes de scan adjacentes) :"));
+    configDialog->addDouble(tr("Distance maxi pour le test de voisinnage (paramètre d'optimisation)"), "m", 0, 1e+4, 2, _thresholdNeighbourTesting);
+    configDialog->addDouble(tr("Distance XY de fusion obligatoire"), "m", 0, 1e+4, 2, _minimalMaxDistXY);
+
+
 
 //    configDialog->addTitle( tr("1- Paramètres de création des droites candidates :"));
 //    configDialog->addDouble(tr("Distance maximum entre deux points d'une droite candidate"), "m", 0, 1000, 2, _pointDistThreshold);
@@ -257,7 +264,7 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
             }
         }
 
-        bool lastUpwards = false;
+        //bool lastUpwards = false;
         double lastGPSTime = -std::numeric_limits<double>::max();
         double lastZ = -std::numeric_limits<double>::max();
 
@@ -278,9 +285,7 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
             double delta = gpsTime - lastGPSTime;
             lastGPSTime = gpsTime;
 
-            //qDebug() << "gpsTime= " << QString::number(gpsTime, 'f', 20);
-
-            bool upwards = (point(2) > lastZ);
+            //bool upwards = (point(2) > lastZ);
             lastZ = point(2);
 
             if (cluster != NULL && delta < _step->_thresholdGPSTime)// && upwards == lastUpwards)
@@ -294,7 +299,7 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
 
                 cluster->addPoint(index);
             }
-            lastUpwards = upwards;
+            //lastUpwards = upwards;
         }
 
 
@@ -308,7 +313,8 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
 
 
         // Validate clusters (zenithal angle)
-        QList<CT_PointCluster*> keptClustersZenithalAngleOk;
+        // Also computes XY dist between extremities for each kept cluster
+        QMap<CT_PointCluster*, double> keptClustersZenithalAngleOk;
         double thresholdZenithalAngleRadians = M_PI*_step->_thresholdZenithalAngle/180.0;
         for (int i = 0 ; i < keptClustersScanLineOk.size() ; i++)
         {
@@ -337,14 +343,111 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
                 }
                 delete cluster;
             } else {
-                keptClustersZenithalAngleOk.append(cluster);
+                double distXY = sqrt(pow(p1(0) - p2(0), 2) + pow(p1(1) - p2(1), 2));
+                keptClustersZenithalAngleOk.insert(cluster, distXY);
             }
         }
 
 
-        for (int i = 0 ; i < keptClustersZenithalAngleOk.size() ; i++)
+        // find neighbors clusters
+        QList<CT_PointCluster*> clustersList = keptClustersZenithalAngleOk.keys();
+        QMultiMap<CT_PointCluster*, CT_PointCluster*> correspondances;
+        for (int i = 0 ; i < clustersList.size() ; i++)
         {
-            cluster = keptClustersZenithalAngleOk.at(i);
+            CT_PointCluster* cluster1 = clustersList.at(i);
+            const CT_PointClusterBarycenter& bary1 = cluster1->getBarycenter();
+            const CT_AbstractPointCloudIndex* pointCloudIndex1 = cluster1->getPointCloudIndex();
+            double maxDist1 = keptClustersZenithalAngleOk.value(cluster1);
+
+            for (int j = i + 1 ; j < clustersList.size() ; j++)
+            {
+                CT_PointCluster* cluster2 = clustersList.at(j);
+                const CT_PointClusterBarycenter& bary2 = cluster2->getBarycenter();
+
+                double distBary = sqrt(pow(bary1.x() - bary2.x(), 2) + pow(bary1.y() - bary2.y(), 2));
+
+                if (distBary < _step->_thresholdNeighbourTesting)
+                {
+                    const CT_AbstractPointCloudIndex* pointCloudIndex2 = cluster2->getPointCloudIndex();
+                    double maxDist2 = keptClustersZenithalAngleOk.value(cluster2);
+
+                    double maxDist = _step->_minimalMaxDistXY;
+                    if (maxDist1 > maxDist) {maxDist = maxDist1;}
+                    if (maxDist2 > maxDist) {maxDist = maxDist2;}
+
+                    bool found = false;
+
+                    CT_PointIterator itP1(pointCloudIndex1);
+                    CT_PointIterator itP2(pointCloudIndex2);
+                    while(!found && itP1.hasNext())
+                    {
+                        const CT_Point &p1 = itP1.next().currentPoint();
+
+                        itP2.toFront();
+                        while(!found && itP2.hasNext())
+                        {
+                            const CT_Point &p2 = itP2.next().currentPoint();
+
+                            double distXY = sqrt(pow(p1(0) - p2(0), 2) + pow(p1(1) - p2(1), 2));
+
+                            if (distXY < maxDist) {found = true;}
+                        }
+                    }
+
+                    if (found)
+                    {
+                        correspondances.insert(cluster1, cluster2);
+                        correspondances.insert(cluster2, cluster1);
+                    }
+                }
+            }
+        }
+
+        // merge neighbours clusters
+        QList<CT_PointCluster*> mergedClusters;
+        while (!clustersList.isEmpty())
+        {
+            QList<CT_PointCluster*> toMerge;
+            toMerge.append(clustersList.takeLast());
+            for (int i = 0 ; i < toMerge.size() ; i++)
+            {
+                QList<CT_PointCluster*> list = correspondances.values(toMerge.at(i));
+                for (int j = 0 ; j < list.size() ; j++)
+                {
+                    CT_PointCluster* currentClust = list.at(j);
+                    if (clustersList.contains(currentClust) && !toMerge.contains(currentClust)) {toMerge.append(currentClust);}
+                    clustersList.removeOne(currentClust);
+                }
+            }
+
+            if (toMerge.size() == 1)
+            {
+                mergedClusters.append(toMerge.first());
+            } else {
+                CT_PointCluster* newCluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
+
+                for (int i = 0 ; i < toMerge.size() ; i++)
+                {
+                    CT_PointCluster* cluster = toMerge.at(i);
+                    const CT_AbstractPointCloudIndex* pointCloudIndex = cluster->getPointCloudIndex();
+
+                    CT_PointIterator itP(pointCloudIndex);
+                    while(itP.hasNext())
+                    {
+                        size_t index = itP.next().currentGlobalIndex();
+                        newCluster->addPoint(index);
+                    }
+                    delete cluster;
+                }
+                mergedClusters.append(newCluster);
+            }
+        }
+
+
+        // Add items in result
+        for (int i = 0 ; i < mergedClusters.size() ; i++)
+        {
+            CT_PointCluster* cluster = mergedClusters.at(i);
 
             if (cluster->getPointCloudIndexSize() > 2)
             {

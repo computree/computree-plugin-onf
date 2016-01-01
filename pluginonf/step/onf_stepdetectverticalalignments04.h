@@ -251,6 +251,8 @@ private:
     double    _thresholdGPSTime;
     double    _thresholdDistXY;
     double    _thresholdZenithalAngle;
+    double    _thresholdNeighbourTesting;
+    double    _minimalMaxDistXY;
 
     double    _maxPhiAngle;
     double    _pointDistThreshold;
