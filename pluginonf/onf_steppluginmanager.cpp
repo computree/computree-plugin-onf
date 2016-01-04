@@ -97,6 +97,7 @@
 #include "step/onf_steptransformpointcloud.h"
 #include "step/onf_stepvalidateinventory.h"
 #include "step/onf_stepextractpointsinverticalcylinders.h"
+#include "step/onf_stepaddtilexyareas.h"
 
 #include "filter/onf_filterbyreturntype.h"
 #include "filter/onf_filterremoveupperoutliers.h"
@@ -152,6 +153,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewGeometricalShapesStep<ONF_StepSegmentGaps>(CT_StepsMenu::LP_Crowns);
     addNewGeometricalShapesStep<ONF_StepValidateInventory>(CT_StepsMenu::LP_Stems);
     addNewGeometricalShapesStep<ONF_StepAddAttributeValue>(CT_StepsMenu::LP_Analyze);
+    addNewGeometricalShapesStep<ONF_StepAddTileXYAreas>(CT_StepsMenu::LP_Vector);
     addNewBetaStep<ONF_StepComputeLAI2000Data>(CT_StepsMenu::LP_Analyze);
     addNewBetaStep<ONF_StepImportSegmaFilesForMatching>(CT_StepsMenu::LP_Others);
     addNewLoadStep<ONF_StepLoadPlotAreas>(CT_StepsMenu::LP_Vector);
