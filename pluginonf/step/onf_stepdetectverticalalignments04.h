@@ -209,6 +209,7 @@ private:
         void detectAlignmentsForScene(CT_StandardItemGroup* grp);
         void validateScanLineCluster(CT_PointCluster *cluster, QList<CT_PointCluster *> &keptClusters, QList<size_t> &isolatedPointIndices, CT_PointAccessor &pointAccessor);
         void processCurrentList(QList<size_t> &isolatedPointIndices, QList<size_t> &currentList, QList<CT_PointCluster*> &keptClusters);
+        void computeDBH(CT_PointCluster* cluster, Eigen::Vector3d &center, double &maxDist);
 
 
 
@@ -218,6 +219,7 @@ private:
         void findNeighborLines(QList<ONF_StepDetectVerticalAlignments04::LineData*> candidateLines, double distThreshold);
         void sendToDroppedList(CT_StandardItemGroup* grp, CT_PointCluster* cluster, CT_LineData* lineData);
         void sendToConservedList(CT_StandardItemGroup* grp, CT_PointCluster* cluster, CT_LineData* mergedLineData, double hMaxScene);
+
 
     private:
         ONF_StepDetectVerticalAlignments04* _step;
@@ -230,6 +232,9 @@ private:
     CT_AutoRenameModels    _grpCluster_ModelName;
     CT_AutoRenameModels    _cluster_ModelName;
     CT_AutoRenameModels    _line_ModelName;
+    CT_AutoRenameModels    _attMaxDistXY_ModelName;
+
+
     CT_AutoRenameModels    _convexProj_ModelName;
     CT_AutoRenameModels    _circle_ModelName;
     CT_AutoRenameModels    _attMin_ModelName;
@@ -242,17 +247,23 @@ private:
     CT_AutoRenameModels    _attDiamEq_ModelName;
     CT_AutoRenameModels    _attHmax_ModelName;
 
-    CT_AutoRenameModels    _grpDroppedCluster_ModelName;
-    CT_AutoRenameModels    _droppedCluster_ModelName;
-    CT_AutoRenameModels    _droppedLine_ModelName;
+    CT_AutoRenameModels    _grpClusterDebug_ModelName;
+    CT_AutoRenameModels    _clusterDebug_ModelName;
 
 
     // Step parameters
-    double    _thresholdGPSTime;
-    double    _thresholdDistXY;
-    double    _thresholdZenithalAngle;
-    double    _thresholdNeighbourTesting;
-    double    _minimalMaxDistXY;
+    double      _thresholdGPSTime;
+    double      _thresholdDistXY;
+    double      _thresholdZenithalAngle;
+    double      _thresholdNeighbourTesting;
+    double      _minimalMaxDistXY;
+    double      _DBH_azimRes;
+    double      _DBH_zeniRes;
+    double      _DBH_zeniMax;
+
+    bool      _clusterDebugMode;
+
+
 
     double    _maxPhiAngle;
     double    _pointDistThreshold;
@@ -268,7 +279,6 @@ private:
     double    _heightThreshold;
     double    _maxDiamRatio;
     double    _circleDistThreshold;
-    bool      _clusterDebugMode;
 
 };
 

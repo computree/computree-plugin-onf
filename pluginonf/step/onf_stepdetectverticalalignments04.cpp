@@ -64,7 +64,14 @@ ONF_StepDetectVerticalAlignments04::ONF_StepDetectVerticalAlignments04(CT_StepIn
     _thresholdDistXY = 0.25;
     _thresholdZenithalAngle = 30.0;
     _thresholdNeighbourTesting = 3.0;
-    _minimalMaxDistXY = 0.25;
+    _minimalMaxDistXY = 0.50;
+
+    _DBH_azimRes = 0.5;
+    _DBH_zeniRes = 0.5;
+    _DBH_zeniMax = 30;
+
+    _clusterDebugMode = false;
+
 
 
     _pointDistThreshold = 4.0;
@@ -86,7 +93,6 @@ ONF_StepDetectVerticalAlignments04::ONF_StepDetectVerticalAlignments04(CT_StepIn
     _maxDiamRatio = 0.10;
     _circleDistThreshold = 0.05;
 
-    _clusterDebugMode = false;
 }
 
 // Step description (tooltip of contextual menu)
@@ -139,22 +145,15 @@ void ONF_StepDetectVerticalAlignments04::createOutResultModelListProtected()
 
     resCpy->addGroupModel(DEFin_grp, _grpCluster_ModelName, new CT_StandardItemGroup(), tr("Clusters conservés"));
     resCpy->addItemModel(_grpCluster_ModelName, _cluster_ModelName, new CT_PointCluster(), tr("Cluster conservé"));
-    resCpy->addItemModel(_grpCluster_ModelName, _line_ModelName, new CT_Line(), tr("Ligne conservée"));
-    resCpy->addItemModel(_grpCluster_ModelName, _convexProj_ModelName, new CT_Polygon2D(), tr("Enveloppe convexe projetée"));
+    resCpy->addItemAttributeModel(_cluster_ModelName, _attMaxDistXY_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("MaxDistXY"));
     resCpy->addItemModel(_grpCluster_ModelName, _circle_ModelName, new CT_Circle2D(), tr("Diamètre Estimé"));
-    resCpy->addItemAttributeModel(_line_ModelName, _attMin_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("DistMin"));
-    resCpy->addItemAttributeModel(_line_ModelName, _attQ25_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("DistQ25"));
-    resCpy->addItemAttributeModel(_line_ModelName, _attQ50_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("DistMed"));
-    resCpy->addItemAttributeModel(_line_ModelName, _attQ75_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("DistQ75"));
-    resCpy->addItemAttributeModel(_line_ModelName, _attMax_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("DistMax"));
-    resCpy->addItemAttributeModel(_line_ModelName, _attMean_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("DistMean"));
-    resCpy->addItemAttributeModel(_line_ModelName, _attMaxDist_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("MaxDistBetweenPoints"));
-    resCpy->addItemAttributeModel(_line_ModelName, _attDiamEq_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("DiamEq"));
-    resCpy->addItemAttributeModel(_line_ModelName, _attHmax_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Hmax"));
 
-    resCpy->addGroupModel(DEFin_grp, _grpDroppedCluster_ModelName, new CT_StandardItemGroup(), tr("Clusters éliminés"));
-    resCpy->addItemModel(_grpDroppedCluster_ModelName, _droppedCluster_ModelName, new CT_PointCluster(), tr("Cluster éliminé"));
-    resCpy->addItemModel(_grpDroppedCluster_ModelName, _droppedLine_ModelName, new CT_Line(), tr("Ligne éliminée"));
+    if (_clusterDebugMode)
+    {
+        resCpy->addGroupModel(DEFin_grp, _grpClusterDebug_ModelName, new CT_StandardItemGroup(), tr("Debug"));
+        resCpy->addItemModel(_grpClusterDebug_ModelName, _clusterDebug_ModelName, new CT_PointCluster(), tr("Lignes de scan"));
+
+    }
 
 }
 
@@ -171,6 +170,11 @@ void ONF_StepDetectVerticalAlignments04::createPostConfigurationDialog()
     configDialog->addTitle( tr("2- Détéction des grosses tiges (fusion des lignes de scan adjacentes) :"));
     configDialog->addDouble(tr("Distance maxi pour le test de voisinnage (paramètre d'optimisation)"), "m", 0, 1e+4, 2, _thresholdNeighbourTesting);
     configDialog->addDouble(tr("Distance XY de fusion obligatoire"), "m", 0, 1e+4, 2, _minimalMaxDistXY);
+
+    configDialog->addTitle( tr("3- Estimation du diamètre à 1.30 m :"));
+    configDialog->addDouble(tr("Résolution en azimuth"), "°", 0, 90, 4, _DBH_azimRes);
+    configDialog->addDouble(tr("Résolution en angle zénithal"), "°", 0, 90, 4, _DBH_zeniRes);
+    configDialog->addDouble(tr("Angle zénithal maximal"), "°", 0, 90, 2, _DBH_zeniMax);
 
 
 
@@ -202,8 +206,8 @@ void ONF_StepDetectVerticalAlignments04::createPostConfigurationDialog()
 //    configDialog->addDouble(tr("Ecart max Dmax n et n-1"), "%", 0, 100, 0, _maxDiamRatio, 100);
 //    configDialog->addDouble(tr("Epaisseur des cercles pour le scoring"), "cm", 0, 99999, 2, _circleDistThreshold, 100);
 
-//    configDialog->addEmpty();
-//    configDialog->addBool(tr("Mode Debug Clusters"), "", "", _clusterDebugMode);
+    configDialog->addEmpty();
+    configDialog->addBool(tr("Mode Debug Clusters"), "", "", _clusterDebugMode);
 }
 
 
@@ -348,9 +352,32 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
             }
         }
 
+        QList<CT_PointCluster*> clustersList = keptClustersZenithalAngleOk.keys();
+
+        // Archive detection of lines of scan
+        if (_step->_clusterDebugMode)
+        {
+            for (int i = 0 ; i < clustersList.size() ; i++)
+            {
+                CT_PointCluster* cluster = clustersList.at(i);
+                CT_PointCluster* cpy = new CT_PointCluster(_step->_clusterDebug_ModelName.completeName(), _res);
+
+                const CT_AbstractPointCloudIndex* pointCloudIndex = cluster->getPointCloudIndex();
+                CT_PointIterator itP(pointCloudIndex);
+                while(itP.hasNext())
+                {
+                    size_t index = itP.next().currentGlobalIndex();
+                    cpy->addPoint(index);
+                }
+
+                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpClusterDebug_ModelName.completeName(), _res);
+                grp->addGroup(grpClKept);
+                grpClKept->addItemDrawable(cpy);
+            }
+        }
+
 
         // find neighbors clusters
-        QList<CT_PointCluster*> clustersList = keptClustersZenithalAngleOk.keys();
         QMultiMap<CT_PointCluster*, CT_PointCluster*> correspondances;
         for (int i = 0 ; i < clustersList.size() ; i++)
         {
@@ -444,23 +471,33 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
         }
 
 
-        // Add items in result
+        // Compute diameters and add items in result
         for (int i = 0 ; i < mergedClusters.size() ; i++)
         {
             CT_PointCluster* cluster = mergedClusters.at(i);
 
-            if (cluster->getPointCloudIndexSize() > 2)
-            {
-                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
-                grp->addGroup(grpClKept);
-                grpClKept->addItemDrawable(cluster);
-            } else if (cluster->getPointCloudIndexSize() > 1) {
-                cluster->setModel(_step->_droppedCluster_ModelName.completeName());
+            CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
+            grp->addGroup(grpClKept);
+            grpClKept->addItemDrawable(cluster);
 
-                CT_StandardItemGroup* grpClDropped = new CT_StandardItemGroup(_step->_grpDroppedCluster_ModelName.completeName(), _res);
-                grp->addGroup(grpClDropped);
-                grpClDropped->addItemDrawable(cluster);
-            }
+            // Compute max dist between points in clusters (in the direction where it is smallest)
+            double maxDist = 0;
+            Eigen::Vector3d center;
+            center(0) = cluster->getBarycenter().x();
+            center(1) = cluster->getBarycenter().y();
+            center(2) = cluster->getBarycenter().z();
+
+            Eigen::Vector2d center2D;
+            center2D(0) = center(0);
+            center2D(1) = center(1);
+
+            computeDBH(cluster, center, maxDist);
+
+            cluster->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMaxDistXY_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, maxDist));
+
+            CT_Circle2D *circle = new CT_Circle2D(_step->_circle_ModelName.completeName(), _res, new CT_Circle2DData(center2D, maxDist/2.0));
+            grpClKept->addItemDrawable(circle);
+
         }
     }
 }
@@ -541,6 +578,61 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::processCurr
     currentList.clear();
 }
 
+void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::computeDBH(CT_PointCluster* cluster, Eigen::Vector3d &center, double &maxDist)
+{
+    maxDist = std::numeric_limits<double>::max();
+
+    const CT_AbstractPointCloudIndex* pointCloudIndex = cluster->getPointCloudIndex();
+    CT_PointIterator itP(pointCloudIndex);
+
+    for (float zenithal = 0 ; zenithal <= _step->_DBH_zeniMax ; zenithal += _step->_DBH_zeniRes)
+    {
+        float zeniRad = M_PI * zenithal / 180.0;
+        for (float azimut = 0 ; azimut <= 360 ; azimut += _step->_DBH_azimRes)
+        {
+            float azimRad = M_PI * azimut / 180.0;
+
+            // Compute projected points
+            float dx, dy, dz;
+            CT_SphericalLine3D::convertToCartesianCoordinates(zeniRad, azimRad, 1, dx, dy, dz);
+            Eigen::Vector3d direction(dx, dy, dz);
+
+            QList<Eigen::Vector2d*> projPts;
+            Eigen::Hyperplane<double, 3> plane(direction, center);
+            itP.toFront();
+            while(itP.hasNext())
+            {
+                itP.next();
+                const CT_Point &pt = itP.currentPoint();
+
+                Eigen::Vector3d projectedPt = plane.projection(pt);
+                projPts.append(new Eigen::Vector2d(projectedPt(0), projectedPt(1)));
+            }
+
+            double maxDistIteration = 0;
+            // Compute maxDist
+            for (int i = 0 ; i < projPts.size() ; i++)
+            {
+                Eigen::Vector2d* pt1 = projPts.at(i);
+                for (int j = i+1 ; j < projPts.size() ; j++)
+                {
+                    Eigen::Vector2d* pt2 = projPts.at(j);
+
+                    double dist = sqrt(pow((*pt1)(0) - (*pt2)(0), 2) + pow((*pt1)(1) - (*pt2)(1), 2));
+                    if (dist > maxDistIteration) {maxDistIteration = dist;}
+                }
+            }
+
+            qDeleteAll(projPts);
+
+            if (maxDistIteration < maxDist)
+            {
+                maxDist = maxDistIteration;
+            }
+        }
+    }
+
+}
 
 
 
@@ -961,19 +1053,19 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::findNeighbo
 
 void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::sendToDroppedList(CT_StandardItemGroup* grp, CT_PointCluster* cluster, CT_LineData* lineData)
 {
-    CT_StandardItemGroup* grpClDropped = new CT_StandardItemGroup(_step->_grpDroppedCluster_ModelName.completeName(), _res);
+    CT_StandardItemGroup* grpClDropped = new CT_StandardItemGroup(_step->_grpClusterDebug_ModelName.completeName(), _res);
     grp->addGroup(grpClDropped);
 
     if (cluster != NULL)
     {
-        cluster->setModel(_step->_droppedCluster_ModelName.completeName());
+        cluster->setModel(_step->_clusterDebug_ModelName.completeName());
         grpClDropped->addItemDrawable(cluster);
     }
 
     if (lineData != NULL)
     {
-        CT_Line* line = new CT_Line(_step->_droppedLine_ModelName.completeName(), _res, lineData);
-        grpClDropped->addItemDrawable(line);
+//        CT_Line* line = new CT_Line(_step->_droppedLine_ModelName.completeName(), _res, lineData);
+//        grpClDropped->addItemDrawable(line);
     }
 }
 
