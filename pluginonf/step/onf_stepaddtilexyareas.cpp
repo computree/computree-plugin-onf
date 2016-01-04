@@ -44,8 +44,9 @@ ONF_StepAddTileXYAreas::ONF_StepAddTileXYAreas(CT_StepInitializeData &dataInit) 
 {
     _xRefCoord = 0.0;
     _yRefCoord = 0.0;
-    _tileSize  = 1000.0;
+    _tileSize  = 500.0;
     _bufferSize  = 20.0;
+    _bufferIncluded = false;
 }
 
 QString ONF_StepAddTileXYAreas::getStepDescription() const
@@ -82,6 +83,7 @@ void ONF_StepAddTileXYAreas::createPostConfigurationDialog()
     configDialog->addDouble(tr("Coordonnée Y de référence"), "m"  , -1e+10, 1e+10, 4, _yRefCoord);
     configDialog->addDouble(tr("Taille de la dalle unitaire"), "m", -1e+10, 1e+10, 4, _tileSize);
     configDialog->addDouble(tr("Taille de la zone tampon"), "m", -1e+10, 1e+10, 4, _bufferSize);
+    configDialog->addBool(tr("Les fichiers d'entrée contiennent les buffers"), "", "", _bufferIncluded);
 }
 
 void ONF_StepAddTileXYAreas::createOutResultModelListProtected()
@@ -109,8 +111,15 @@ void ONF_StepAddTileXYAreas::compute()
                 Eigen::Vector3d min, max;
                 header->getBoundingBox(min, max);
 
-                Eigen::Vector2d minBB, maxBB;
+                if (_bufferIncluded)
+                {
+                    min(0) += _bufferSize;
+                    min(1) += _bufferSize;
+                    max(0) -= _bufferSize;
+                    max(1) -= _bufferSize;
+                }
 
+                Eigen::Vector2d minBB, maxBB;
 
                 minBB(0) = std::floor((min(0) - _xRefCoord) / _tileSize) * _tileSize + _xRefCoord;
                 minBB(1) = std::floor((min(1) - _yRefCoord) / _tileSize) * _tileSize + _yRefCoord;

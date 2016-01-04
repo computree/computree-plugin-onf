@@ -98,6 +98,7 @@ private:
     double                  _yRefCoord;
     double                  _tileSize;
     double                  _bufferSize;
+    bool                    _bufferIncluded;
 
 };
 
