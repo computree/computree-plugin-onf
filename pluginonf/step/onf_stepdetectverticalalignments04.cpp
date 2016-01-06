@@ -65,6 +65,7 @@ ONF_StepDetectVerticalAlignments04::ONF_StepDetectVerticalAlignments04(CT_StepIn
     _thresholdZenithalAngle = 30.0;
     _thresholdNeighbourTesting = 3.0;
     _minimalMaxDistXY = 0.50;
+    _minPts = 3;
 
     _DBH_azimRes = 0.5;
     _DBH_zeniRes = 0.5;
@@ -129,10 +130,7 @@ void ONF_StepDetectVerticalAlignments04::createInResultModelListProtected()
     resIn_res->setZeroOrMoreRootGroup();
     resIn_res->addGroupModel("", DEFin_grp, CT_AbstractItemGroup::staticGetType(), tr("Scènes (grp)"));
     resIn_res->addItemModel(DEFin_grp, DEFin_sceneStem, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène (tiges)"));
-    resIn_res->addItemModel(DEFin_grp, DEFin_attLineOfScan, CT_AbstractPointAttributesScalar::staticGetType(), tr("Ligne de Scan"),
-                            tr("Attribut codant la ligne de scan"), CT_InAbstractModel::C_ChooseOneIfMultiple, CT_InAbstractModel::F_IsOptional);
-    resIn_res->addItemModel(DEFin_grp, DEFin_attGPSTime, CT_AbstractPointAttributesScalar::staticGetType(), tr("Temps GPS"),
-                            tr("Attribut codant le temps GPS"), CT_InAbstractModel::C_ChooseOneIfMultiple, CT_InAbstractModel::F_IsOptional);
+    resIn_res->addItemModel(DEFin_grp, DEFin_attGPSTime, CT_AbstractPointAttributesScalar::staticGetType(), tr("Temps GPS"), tr("Attribut codant le temps GPS"));
 
     resIn_res->addItemModel(DEFin_grp, DEFin_sceneAll, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène (complète)"), "",
                             CT_InAbstractModel::C_ChooseOneIfMultiple, CT_InAbstractModel::F_IsOptional);
@@ -151,7 +149,9 @@ void ONF_StepDetectVerticalAlignments04::createOutResultModelListProtected()
     if (_clusterDebugMode)
     {
         resCpy->addGroupModel(DEFin_grp, _grpClusterDebug_ModelName, new CT_StandardItemGroup(), tr("Debug"));
-        resCpy->addItemModel(_grpClusterDebug_ModelName, _clusterDebug_ModelName, new CT_PointCluster(), tr("Lignes de scan"));
+        resCpy->addItemModel(_grpClusterDebug_ModelName, _clusterDebug_ModelName, new CT_PointCluster(), tr("Lignes de scan (toutes)"));
+        resCpy->addGroupModel(DEFin_grp, _grpClusterDebug2_ModelName, new CT_StandardItemGroup(), tr("Debug"));
+        resCpy->addItemModel(_grpClusterDebug2_ModelName, _clusterDebug2_ModelName, new CT_PointCluster(), tr("Lignes de scan (conservées)"));
 
     }
 
@@ -163,14 +163,17 @@ void ONF_StepDetectVerticalAlignments04::createPostConfigurationDialog()
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
 
     configDialog->addTitle( tr("1- Détéction des lignes de scan :"));
-    configDialog->addDouble(tr("Seuil de temps GPS pour changer de ligne de scan"), "m", -1e+10, 1e+10, 10, _thresholdGPSTime);
+    configDialog->addDouble(tr("Seuil de temps GPS pour changer de ligne de scan"), "s", -1e+10, 1e+10, 10, _thresholdGPSTime);
     configDialog->addDouble(tr("Distance XY maximum entre points successifs d'une ligne de scan"), "m", 0, 1e+4, 4, _thresholdDistXY);
     configDialog->addDouble(tr("Angle zénithal maximal conserver une ligne de scan"), "°", 0, 360, 2, _thresholdZenithalAngle);
+    configDialog->addInt(tr("Ne conserver que les lignes de scan avec au moins"), "points", 0, 1000, _minPts);
 
+    configDialog->addEmpty();
     configDialog->addTitle( tr("2- Détéction des grosses tiges (fusion des lignes de scan adjacentes) :"));
     configDialog->addDouble(tr("Distance maxi pour le test de voisinnage (paramètre d'optimisation)"), "m", 0, 1e+4, 2, _thresholdNeighbourTesting);
     configDialog->addDouble(tr("Distance XY de fusion obligatoire"), "m", 0, 1e+4, 2, _minimalMaxDistXY);
 
+    configDialog->addEmpty();
     configDialog->addTitle( tr("3- Estimation du diamètre à 1.30 m :"));
     configDialog->addDouble(tr("Résolution en azimuth"), "°", 0, 90, 4, _DBH_azimRes);
     configDialog->addDouble(tr("Résolution en angle zénithal"), "°", 0, 90, 4, _DBH_zeniRes);
@@ -315,6 +318,28 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
             validateScanLineCluster(scanLineClusters.at(i), keptClustersScanLineOk, isolatedPointIndices, pointAccessor);
         }
 
+        // Archive detection of lines of scan (all)
+        if (_step->_clusterDebugMode)
+        {
+            for (int i = 0 ; i < keptClustersScanLineOk.size() ; i++)
+            {
+                CT_PointCluster* cluster = keptClustersScanLineOk.at(i);
+                CT_PointCluster* cpy = new CT_PointCluster(_step->_clusterDebug_ModelName.completeName(), _res);
+
+                const CT_AbstractPointCloudIndex* pointCloudIndex = cluster->getPointCloudIndex();
+                CT_PointIterator itP(pointCloudIndex);
+                while(itP.hasNext())
+                {
+                    size_t index = itP.next().currentGlobalIndex();
+                    cpy->addPoint(index);
+                }
+
+                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpClusterDebug_ModelName.completeName(), _res);
+                grp->addGroup(grpClKept);
+                grpClKept->addItemDrawable(cpy);
+            }
+        }
+
 
         // Validate clusters (zenithal angle)
         // Also computes XY dist between extremities for each kept cluster
@@ -339,7 +364,7 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
                 CT_SphericalLine3D::convertToSphericalCoordinates(&p2, &p1, phi, theta, length);
             }
 
-            if (phi >= thresholdZenithalAngleRadians)
+            if (phi >= thresholdZenithalAngleRadians || cluster->getPointCloudIndexSize() < _step->_minPts)
             {
                 for (int j = 0 ; j < pointCloudIndex->size() ; j++)
                 {
@@ -354,13 +379,13 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
 
         QList<CT_PointCluster*> clustersList = keptClustersZenithalAngleOk.keys();
 
-        // Archive detection of lines of scan
+        // Archive detection of lines of scan (conserved)
         if (_step->_clusterDebugMode)
         {
             for (int i = 0 ; i < clustersList.size() ; i++)
             {
                 CT_PointCluster* cluster = clustersList.at(i);
-                CT_PointCluster* cpy = new CT_PointCluster(_step->_clusterDebug_ModelName.completeName(), _res);
+                CT_PointCluster* cpy = new CT_PointCluster(_step->_clusterDebug2_ModelName.completeName(), _res);
 
                 const CT_AbstractPointCloudIndex* pointCloudIndex = cluster->getPointCloudIndex();
                 CT_PointIterator itP(pointCloudIndex);
@@ -370,7 +395,7 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
                     cpy->addPoint(index);
                 }
 
-                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpClusterDebug_ModelName.completeName(), _res);
+                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpClusterDebug2_ModelName.completeName(), _res);
                 grp->addGroup(grpClKept);
                 grpClKept->addItemDrawable(cpy);
             }
@@ -431,20 +456,21 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
         }
 
         // merge neighbours clusters
+        qSort(clustersList.begin(), clustersList.end(), ONF_StepDetectVerticalAlignments04::orderByAscendingNumberOfPoints);
+
         QList<CT_PointCluster*> mergedClusters;
         while (!clustersList.isEmpty())
         {
             QList<CT_PointCluster*> toMerge;
-            toMerge.append(clustersList.takeLast());
-            for (int i = 0 ; i < toMerge.size() ; i++)
+            CT_PointCluster* first = clustersList.takeLast();
+            toMerge.append(first);
+
+            QList<CT_PointCluster*> list = correspondances.values(first);
+            for (int j = 0 ; j < list.size() ; j++)
             {
-                QList<CT_PointCluster*> list = correspondances.values(toMerge.at(i));
-                for (int j = 0 ; j < list.size() ; j++)
-                {
-                    CT_PointCluster* currentClust = list.at(j);
-                    if (clustersList.contains(currentClust) && !toMerge.contains(currentClust)) {toMerge.append(currentClust);}
-                    clustersList.removeOne(currentClust);
-                }
+                CT_PointCluster* currentClust = list.at(j);
+                if (clustersList.contains(currentClust) && !toMerge.contains(currentClust)) {toMerge.append(currentClust);}
+                clustersList.removeOne(currentClust);
             }
 
             if (toMerge.size() == 1)
@@ -497,7 +523,6 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
 
             CT_Circle2D *circle = new CT_Circle2D(_step->_circle_ModelName.completeName(), _res, new CT_Circle2DData(center2D, maxDist/2.0));
             grpClKept->addItemDrawable(circle);
-
         }
     }
 }
@@ -585,6 +610,15 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::computeDBH(
     const CT_AbstractPointCloudIndex* pointCloudIndex = cluster->getPointCloudIndex();
     CT_PointIterator itP(pointCloudIndex);
 
+    QVector<Eigen::Vector3d> points(pointCloudIndex->size());
+    int cpt = 0;
+    while(itP.hasNext())
+    {
+        itP.next();
+        const CT_Point &pt = itP.currentPoint();
+        points[cpt++] = pt;
+    }
+
     for (float zenithal = 0 ; zenithal <= _step->_DBH_zeniMax ; zenithal += _step->_DBH_zeniRes)
     {
         float zeniRad = M_PI * zenithal / 180.0;
@@ -599,13 +633,10 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::computeDBH(
 
             QList<Eigen::Vector2d*> projPts;
             Eigen::Hyperplane<double, 3> plane(direction, center);
-            itP.toFront();
-            while(itP.hasNext())
-            {
-                itP.next();
-                const CT_Point &pt = itP.currentPoint();
 
-                Eigen::Vector3d projectedPt = plane.projection(pt);
+            for (int i = 0 ; i < points.size() ; i++)
+            {
+                Eigen::Vector3d projectedPt = plane.projection(points[i]);
                 projPts.append(new Eigen::Vector2d(projectedPt(0), projectedPt(1)));
             }
 

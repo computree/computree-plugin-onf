@@ -34,10 +34,10 @@
 // Inclusion of auto-indexation system
 #include "ct_tools/model/ct_autorenamemodels.h"
 #include "ct_point.h"
+#include "ct_itemdrawable/ct_pointcluster.h"
 
 #include "eigen/Eigen/Core"
 
-class CT_PointCluster;
 class CT_StandardItemGroup;
 
 
@@ -189,6 +189,10 @@ private:
         return s1->neighborsCount() > s2->neighborsCount();
     }
 
+    static bool orderByAscendingNumberOfPoints(CT_PointCluster *cl1, CT_PointCluster *cl2)
+    {
+        return cl1->getPointCloudIndexSize() < cl2->getPointCloudIndexSize();
+    }
 
     class AlignmentsDetectorForScene
     {
@@ -248,7 +252,9 @@ private:
     CT_AutoRenameModels    _attHmax_ModelName;
 
     CT_AutoRenameModels    _grpClusterDebug_ModelName;
+    CT_AutoRenameModels    _grpClusterDebug2_ModelName;
     CT_AutoRenameModels    _clusterDebug_ModelName;
+    CT_AutoRenameModels    _clusterDebug2_ModelName;
 
 
     // Step parameters
@@ -257,6 +263,7 @@ private:
     double      _thresholdZenithalAngle;
     double      _thresholdNeighbourTesting;
     double      _minimalMaxDistXY;
+    int         _minPts;
     double      _DBH_azimRes;
     double      _DBH_zeniRes;
     double      _DBH_zeniMax;
