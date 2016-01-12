@@ -63,37 +63,24 @@ ONF_StepDetectVerticalAlignments04::ONF_StepDetectVerticalAlignments04(CT_StepIn
     _thresholdGPSTime = 1e-5;
     _thresholdDistXY = 0.25;
     _thresholdZenithalAngle = 30.0;
-    _thresholdNeighbourTesting = 3.0;
-    _minimalMaxDistXY = 0.50;
     _minPts = 3;
+
+    _curvatureMultiplier = 5.0;
+    _nbPointDistStep = 0.20;
+    _maxMergingDist = 1.5;
 
     _DBH_azimRes = 0.5;
     _DBH_zeniRes = 0.5;
     _DBH_zeniMax = 30;
 
+    _lineDistThresholdSmall = 0.5;
+    _minPtsSmall = 3;
+    _lineLengthRatioSmall = 0.8;
+    _pointDistThresholdSmall = 4.0;
+    _maxPhiAngleSmall = 15.0;
+    _exclusionRadiusSmall = 0.8;
+
     _clusterDebugMode = false;
-
-
-
-    _pointDistThreshold = 4.0;
-    _maxPhiAngle = 30.0;
-
-    _lineDistThreshold = 0.5;
-    _minPtsNb = 3;
-    _lineLengthRatio = 0.8;
-
-    _clusterDistThreshold = 3.0;
-    _maxDiameter = 1.2;
-    _maxDivergence = 0.1;
-    _maxPhiAngleAfterMerging = 15.0;
-    _radiusHmax = 1.5;
-
-    _lengthThreshold = 2.0;
-    _heightThreshold = 0.6;
-
-    _maxDiamRatio = 0.10;
-    _circleDistThreshold = 0.05;
-
 }
 
 // Step description (tooltip of contextual menu)
@@ -141,10 +128,14 @@ void ONF_StepDetectVerticalAlignments04::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resCpy = createNewOutResultModelToCopy(DEFin_res);
 
-    resCpy->addGroupModel(DEFin_grp, _grpCluster_ModelName, new CT_StandardItemGroup(), tr("Clusters conservés"));
+    resCpy->addGroupModel(DEFin_grp, _grpCluster_ModelName, new CT_StandardItemGroup(), tr("Grosses tiges"));
     resCpy->addItemModel(_grpCluster_ModelName, _cluster_ModelName, new CT_PointCluster(), tr("Cluster conservé"));
     resCpy->addItemAttributeModel(_cluster_ModelName, _attMaxDistXY_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("MaxDistXY"));
     resCpy->addItemModel(_grpCluster_ModelName, _circle_ModelName, new CT_Circle2D(), tr("Diamètre Estimé"));
+
+    resCpy->addGroupModel(DEFin_grp, _grpClusterSmall_ModelName, new CT_StandardItemGroup(), tr("Petites tiges"));
+    resCpy->addItemModel(_grpClusterSmall_ModelName, _clusterSmall_ModelName, new CT_PointCluster(), tr("Cluster conservé"));
+    resCpy->addItemModel(_grpClusterSmall_ModelName, _lineSmall_ModelName, new CT_PointCluster(), tr("Droite ajustée"));
 
     if (_clusterDebugMode)
     {
@@ -170,44 +161,24 @@ void ONF_StepDetectVerticalAlignments04::createPostConfigurationDialog()
 
     configDialog->addEmpty();
     configDialog->addTitle( tr("2- Détéction des grosses tiges (fusion des lignes de scan adjacentes) :"));
-    configDialog->addDouble(tr("Distance maxi pour le test de voisinnage (paramètre d'optimisation)"), "m", 0, 1e+4, 2, _thresholdNeighbourTesting);
-    configDialog->addDouble(tr("Distance XY de fusion obligatoire"), "m", 0, 1e+4, 2, _minimalMaxDistXY);
+    configDialog->addDouble(tr("Multiplicateur pour la courbure"), "fois", 0, 100, 2, _curvatureMultiplier);
+    configDialog->addDouble(tr("Increment en distance par point au delà du second"), "m", 0, 1e+4, 2, _nbPointDistStep);
+    configDialog->addDouble(tr("Distance de recherche maximum"), "m", 0, 1e+4, 2, _maxMergingDist);
 
     configDialog->addEmpty();
-    configDialog->addTitle( tr("3- Estimation du diamètre à 1.30 m :"));
+    configDialog->addTitle( tr("3- Estimation du diamètre à 1.30 m des grosses tiges:"));
     configDialog->addDouble(tr("Résolution en azimuth"), "°", 0, 90, 4, _DBH_azimRes);
     configDialog->addDouble(tr("Résolution en angle zénithal"), "°", 0, 90, 4, _DBH_zeniRes);
     configDialog->addDouble(tr("Angle zénithal maximal"), "°", 0, 90, 2, _DBH_zeniMax);
 
-
-
-//    configDialog->addTitle( tr("1- Paramètres de création des droites candidates :"));
-//    configDialog->addDouble(tr("Distance maximum entre deux points d'une droite candidate"), "m", 0, 1000, 2, _pointDistThreshold);
-//    configDialog->addDouble(tr("Angle zénithal maximal pour une droite candidate"), "°", 0, 180, 2, _maxPhiAngle);
-
-//    configDialog->addEmpty();
-//    configDialog->addTitle(tr("2- Paramètres de création des clusters (à partir des droites candidates) :"));
-//    configDialog->addDouble(tr("Distance maximum XY entre deux droites candidates à agréger"), "m", 0, 1000, 2, _lineDistThreshold);
-//    configDialog->addInt(tr("Nombre de points minimum dans un cluster"), "", 2, 1000, _minPtsNb);
-//    configDialog->addDouble(tr("Pourcentage maximum de la longueur de segment sans points"), "%", 0, 100, 0, _lineLengthRatio, 100);
-
-
-//    configDialog->addEmpty();
-//    configDialog->addTitle(tr("3- Paramètres de validation/fusion des clusters obtenus :"));
-//    configDialog->addDouble(tr("Distance de recherche des clusters voisins"), "m", 0, 1000, 2, _clusterDistThreshold);
-//    configDialog->addDouble(tr("Diamètre maximal possible pour un arbre"), "cm", 0, 1000, 2, _maxDiameter, 100);
-//    configDialog->addDouble(tr("Divergence maximale entre clusters à fusionner"), "m", 0, 1000, 2, _maxDivergence);
-//    configDialog->addDouble(tr("Angle zénithal maximal de la droite après fusion"), "°", 0, 180, 2, _maxPhiAngleAfterMerging);
-//    configDialog->addDouble(tr("Rayon de recherche pour Hmax"), "m", 0, 1000, 2, _radiusHmax);
-
-//    configDialog->addDouble(tr("Supprimer les clusters dont la longueur est inférieure à"), "m", 0, 1000, 2, _lengthThreshold);
-//    configDialog->addDouble(tr("Supprimer les clusters qui commence au dessus de "), "% de Hscene", 0, 100, 0, _heightThreshold, 100);
-
-
-//    configDialog->addEmpty();
-//    configDialog->addTitle(tr("4- Paramètres de validation des diamètres :"));
-//    configDialog->addDouble(tr("Ecart max Dmax n et n-1"), "%", 0, 100, 0, _maxDiamRatio, 100);
-//    configDialog->addDouble(tr("Epaisseur des cercles pour le scoring"), "cm", 0, 99999, 2, _circleDistThreshold, 100);
+    configDialog->addEmpty();
+    configDialog->addTitle( tr("4- Détéction des petites tiges (alignements) :"));
+    configDialog->addDouble(tr("Distance maximum entre deux points d'une droite candidate"), "m", 0, 1000, 2, _pointDistThresholdSmall);
+    configDialog->addDouble(tr("Angle zénithal maximal pour une droite candidate"), "°", 0, 180, 2, _maxPhiAngleSmall);
+    configDialog->addDouble(tr("Distance maximum XY entre deux droites candidates à agréger"), "m", 0, 1000, 2, _lineDistThresholdSmall);
+    configDialog->addInt(tr("Nombre de points minimum dans un cluster"), "", 2, 1000, _minPtsSmall);
+    configDialog->addDouble(tr("Pourcentage maximum de la longueur de segment sans points"), "%", 0, 100, 0, _lineLengthRatioSmall, 100);
+    configDialog->addDouble(tr("Rayon d'exclusion autour des grosses tiges"), "m", 0, 1e+4, 2, _exclusionRadiusSmall);
 
     configDialog->addEmpty();
     configDialog->addBool(tr("Mode Debug Clusters"), "", "", _clusterDebugMode);
@@ -252,6 +223,12 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
     if (sceneStem != NULL && attributeGPSTime != NULL)
     {
         const CT_AbstractPointCloudIndex* pointCloudIndex = sceneStem->getPointCloudIndex();
+
+
+        ////////////////////////////////////////////////////
+        /// Detection of big stems: lines of scan        ///
+        ////////////////////////////////////////////////////
+
 
         // Tri des indices par temps gps
         QMultiMap<double, size_t> sortedIndices;
@@ -326,8 +303,8 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
                 CT_PointCluster* cluster = keptClustersScanLineOk.at(i);
                 CT_PointCluster* cpy = new CT_PointCluster(_step->_clusterDebug_ModelName.completeName(), _res);
 
-                const CT_AbstractPointCloudIndex* pointCloudIndex = cluster->getPointCloudIndex();
-                CT_PointIterator itP(pointCloudIndex);
+                const CT_AbstractPointCloudIndex* pointCloudIndexCl = cluster->getPointCloudIndex();
+                CT_PointIterator itP(pointCloudIndexCl);
                 while(itP.hasNext())
                 {
                     size_t index = itP.next().currentGlobalIndex();
@@ -348,10 +325,10 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
         for (int i = 0 ; i < keptClustersScanLineOk.size() ; i++)
         {
             CT_PointCluster* cluster  = keptClustersScanLineOk.at(i);
-            const CT_AbstractPointCloudIndex* pointCloudIndex = cluster->getPointCloudIndex();
+            const CT_AbstractPointCloudIndex* pointCloudIndexCl = cluster->getPointCloudIndex();
 
-            const size_t index1 = pointCloudIndex->constIndexAt(0);
-            const size_t index2 = pointCloudIndex->constIndexAt(pointCloudIndex->size() - 1);
+            const size_t index1 = pointCloudIndexCl->constIndexAt(0);
+            const size_t index2 = pointCloudIndexCl->constIndexAt(pointCloudIndexCl->size() - 1);
 
             CT_Point p1 = pointAccessor.constPointAt(index1);
             CT_Point p2 = pointAccessor.constPointAt(index2);
@@ -366,9 +343,9 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
 
             if (phi >= thresholdZenithalAngleRadians || cluster->getPointCloudIndexSize() < _step->_minPts)
             {
-                for (int j = 0 ; j < pointCloudIndex->size() ; j++)
+                for (int j = 0 ; j < pointCloudIndexCl->size() ; j++)
                 {
-                    isolatedPointIndices.append(pointCloudIndex->constIndexAt(0));
+                    isolatedPointIndices.append(pointCloudIndexCl->constIndexAt(j));
                 }
                 delete cluster;
             } else {
@@ -387,8 +364,8 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
                 CT_PointCluster* cluster = clustersList.at(i);
                 CT_PointCluster* cpy = new CT_PointCluster(_step->_clusterDebug2_ModelName.completeName(), _res);
 
-                const CT_AbstractPointCloudIndex* pointCloudIndex = cluster->getPointCloudIndex();
-                CT_PointIterator itP(pointCloudIndex);
+                const CT_AbstractPointCloudIndex* pointCloudIndexCl = cluster->getPointCloudIndex();
+                CT_PointIterator itP(pointCloudIndexCl);
                 while(itP.hasNext())
                 {
                     size_t index = itP.next().currentGlobalIndex();
@@ -402,62 +379,70 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
         }
 
 
+        //Compute lowest points and curvatures
+        QMap<CT_PointCluster*, Eigen::Vector3d> lowestPoints;
+        QMap<CT_PointCluster*, double> curvatures;
+        for (int i = 0 ; i < clustersList.size() ; i++)
+        {
+            CT_PointCluster* cluster = clustersList.at(i);
+            const CT_AbstractPointCloudIndex* pointCloudIndexCl = cluster->getPointCloudIndex();
+
+            const size_t index1 = pointCloudIndexCl->constIndexAt(0);
+            const size_t index2 = pointCloudIndexCl->constIndexAt(pointCloudIndexCl->size() - 1);
+
+            CT_Point p1 = pointAccessor.constPointAt(index1);
+            CT_Point p2 = pointAccessor.constPointAt(index2);
+            Eigen::Vector3d direction = p2 - p1;
+            direction.normalize();
+
+            Eigen::Vector3d  lowestPoint(0, 0, std::numeric_limits<double>::max());
+            double curvature = 0;
+            CT_PointIterator itP(pointCloudIndexCl);
+            while(itP.hasNext())
+            {
+                const CT_Point &p = itP.next().currentPoint();
+                if (p(2) < lowestPoint(2)) {lowestPoint = p;}
+                double curv = CT_MathPoint::distancePointLine(p, direction, p1);
+                if (curv > curvature) {curvature = curv;}
+            }
+            lowestPoints.insert(cluster, lowestPoint);
+            curvatures.insert(cluster, curvature);
+        }
+
+
         // find neighbors clusters
         QMultiMap<CT_PointCluster*, CT_PointCluster*> correspondances;
         for (int i = 0 ; i < clustersList.size() ; i++)
         {
             CT_PointCluster* cluster1 = clustersList.at(i);
-            const CT_PointClusterBarycenter& bary1 = cluster1->getBarycenter();
-            const CT_AbstractPointCloudIndex* pointCloudIndex1 = cluster1->getPointCloudIndex();
-            double maxDist1 = keptClustersZenithalAngleOk.value(cluster1);
+            const Eigen::Vector3d& cluster1LowestPoint = lowestPoints.value(cluster1);
+            double curvature1 = curvatures.value(cluster1);
 
             for (int j = i + 1 ; j < clustersList.size() ; j++)
             {
                 CT_PointCluster* cluster2 = clustersList.at(j);
-                const CT_PointClusterBarycenter& bary2 = cluster2->getBarycenter();
+                const Eigen::Vector3d& cluster2LowestPoint = lowestPoints.value(cluster2);
+                double curvature2 = curvatures.value(cluster2);
 
-                double distBary = sqrt(pow(bary1.x() - bary2.x(), 2) + pow(bary1.y() - bary2.y(), 2));
+                double maxDist = std::max(curvature1, curvature2) * _step->_curvatureMultiplier;
+                double md2 = (std::max(cluster1->getPointCloudIndexSize(), cluster2->getPointCloudIndexSize()) - 2) * _step->_nbPointDistStep;
+                if (md2 > maxDist) {maxDist = md2;}
+                if (maxDist > _step->_maxMergingDist) {maxDist = _step->_maxMergingDist;}
 
-                if (distBary < _step->_thresholdNeighbourTesting)
+                double dist = sqrt(pow(cluster1LowestPoint(0) - cluster2LowestPoint(0), 2) + pow(cluster1LowestPoint(1) - cluster2LowestPoint(1), 2));
+                if (dist < maxDist)
                 {
-                    const CT_AbstractPointCloudIndex* pointCloudIndex2 = cluster2->getPointCloudIndex();
-                    double maxDist2 = keptClustersZenithalAngleOk.value(cluster2);
-
-                    double maxDist = _step->_minimalMaxDistXY;
-                    if (maxDist1 > maxDist) {maxDist = maxDist1;}
-                    if (maxDist2 > maxDist) {maxDist = maxDist2;}
-
-                    bool found = false;
-
-                    CT_PointIterator itP1(pointCloudIndex1);
-                    CT_PointIterator itP2(pointCloudIndex2);
-                    while(!found && itP1.hasNext())
-                    {
-                        const CT_Point &p1 = itP1.next().currentPoint();
-
-                        itP2.toFront();
-                        while(!found && itP2.hasNext())
-                        {
-                            const CT_Point &p2 = itP2.next().currentPoint();
-
-                            double distXY = sqrt(pow(p1(0) - p2(0), 2) + pow(p1(1) - p2(1), 2));
-
-                            if (distXY < maxDist) {found = true;}
-                        }
-                    }
-
-                    if (found)
-                    {
-                        correspondances.insert(cluster1, cluster2);
-                        correspondances.insert(cluster2, cluster1);
-                    }
+                    correspondances.insert(cluster1, cluster2);
+                    correspondances.insert(cluster2, cluster1);
                 }
             }
         }
 
+
         // merge neighbours clusters
         qSort(clustersList.begin(), clustersList.end(), ONF_StepDetectVerticalAlignments04::orderByAscendingNumberOfPoints);
 
+        QList<CT_Circle2D*> circles;
         QList<CT_PointCluster*> mergedClusters;
         while (!clustersList.isEmpty())
         {
@@ -482,9 +467,9 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
                 for (int i = 0 ; i < toMerge.size() ; i++)
                 {
                     CT_PointCluster* cluster = toMerge.at(i);
-                    const CT_AbstractPointCloudIndex* pointCloudIndex = cluster->getPointCloudIndex();
+                    const CT_AbstractPointCloudIndex* pointCloudIndexCl = cluster->getPointCloudIndex();
 
-                    CT_PointIterator itP(pointCloudIndex);
+                    CT_PointIterator itP(pointCloudIndexCl);
                     while(itP.hasNext())
                     {
                         size_t index = itP.next().currentGlobalIndex();
@@ -523,7 +508,192 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
 
             CT_Circle2D *circle = new CT_Circle2D(_step->_circle_ModelName.completeName(), _res, new CT_Circle2DData(center2D, maxDist/2.0));
             grpClKept->addItemDrawable(circle);
+
+            circles.append(circle);
         }
+
+        ////////////////////////////////////////////////////
+        /// Detection of small stems: points alignements ///
+        ////////////////////////////////////////////////////
+
+        double maxPhiRadians = M_PI*_step->_maxPhiAngleSmall/180.0;
+
+        QList<ONF_StepDetectVerticalAlignments04::LineData*> candidateLines;
+        // Parcours tous les couples de points 2 à deux
+        for (int iso1 = 0 ; iso1 < isolatedPointIndices.size() && (!_step->isStopped()); iso1++)
+        {
+            size_t index1 = isolatedPointIndices.at(iso1);
+            CT_Point point1 = pointAccessor.constPointAt(index1);
+
+            for (int iso2 = iso1 + 1 ; iso2 < isolatedPointIndices.size() && (!_step->isStopped()); iso2++)
+            {
+                size_t index2 = isolatedPointIndices.at(iso2);
+                CT_Point point2 = pointAccessor.constPointAt(index2);
+
+                // Les deux points doivent être disctinct dans l'espace
+                if ((point1(0) != point2(0) || point1(1) != point2(1) || point1(2) != point2(2)))
+                {
+                    // Les deux points doivent être à moins de _distThreshold
+                    double dist = sqrt(pow(point1(0) - point2(0), 2) + pow(point1(1) - point2(1), 2) + pow(point1(2) - point2(2), 2));
+                    if (dist < _step->_pointDistThresholdSmall)
+                    {
+                        Eigen::Vector3d pointLow  = point1;
+                        Eigen::Vector3d pointHigh = point2;
+
+                        if (point2(2) < point1(2))
+                        {
+                            pointLow  = point2;
+                            pointHigh = point1;
+                        }
+
+                        float phi, theta, length;
+                        CT_SphericalLine3D::convertToSphericalCoordinates(&pointLow, &pointHigh, phi, theta, length);
+
+                        if (phi < maxPhiRadians)
+                        {
+                            candidateLines.append(new ONF_StepDetectVerticalAlignments04::LineData(pointLow, pointHigh, index1, index2, phi, sceneStem->minZ(), sceneStem->maxZ()));
+                        }
+                    }
+                }
+            }
+        }
+
+        // Affiliation des lignes proches
+        findNeighborLines(candidateLines, _step->_lineDistThresholdSmall);
+
+        // Tri par NeighborCount descendant
+        qSort(candidateLines.begin(), candidateLines.end(), ONF_StepDetectVerticalAlignments04::orderByDescendingNeighborCount);
+
+        // Constitution des clusters de points alignés
+        QList<size_t> insertedPoints;
+
+        for (int i = 0 ; i < candidateLines.size() ; i++)
+        {
+            ONF_StepDetectVerticalAlignments04::LineData* candidateLine = candidateLines.at(i);
+            CT_PointCluster* cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
+
+            if (!candidateLine->_processed)
+            {
+                if (!insertedPoints.contains(candidateLine->_index1))
+                {
+                    cluster->addPoint(candidateLine->_index1);
+                    insertedPoints.append(candidateLine->_index1);
+                }
+                if (!insertedPoints.contains(candidateLine->_index2))
+                {
+                    cluster->addPoint(candidateLine->_index2);
+                    insertedPoints.append(candidateLine->_index2);
+                }
+                candidateLine->_processed = true;
+
+                QList<ONF_StepDetectVerticalAlignments04::LineData*> &neighborLines = candidateLine->_neighbors;
+                for (int j = 0 ; j < neighborLines.size() ; j++)
+                {
+                    ONF_StepDetectVerticalAlignments04::LineData* neighborLine = neighborLines.at(j);
+                    if (!neighborLine->_processed)
+                    {
+                        if (!insertedPoints.contains(neighborLine->_index1))
+                        {
+                            cluster->addPoint(neighborLine->_index1);
+                            insertedPoints.append(neighborLine->_index1);
+                        }
+                        if (!insertedPoints.contains(neighborLine->_index2))
+                        {
+                            cluster->addPoint(neighborLine->_index2);
+                            insertedPoints.append(neighborLine->_index2);
+                        }
+                        neighborLine->_processed = true;
+                    }
+                }
+
+                const CT_AbstractPointCloudIndex* cloudIndex = cluster->getPointCloudIndex();
+                size_t nbPts = cloudIndex->size();
+
+                if (nbPts >= _step->_minPtsSmall)
+                {
+                    CT_LineData* fittedLineData = CT_LineData::staticCreateLineDataFromPointCloud(*cloudIndex);
+
+                    Eigen::Vector3d pointLow  = fittedLineData->getP1();
+                    Eigen::Vector3d pointHigh = fittedLineData->getP2();
+
+                    if (pointHigh(2) < pointLow(2))
+                    {
+                        pointLow  = fittedLineData->getP2();
+                        pointHigh = fittedLineData->getP1();
+                    }
+
+                    float phi, theta, length;
+                    CT_SphericalLine3D::convertToSphericalCoordinates(&pointLow, &pointHigh, phi, theta, length);
+
+                    if (phi > maxPhiRadians)
+                    {
+                        delete cluster;
+                        delete fittedLineData;
+
+                    } else {
+
+                        QList<double> dists;
+
+                        CT_PointIterator itP(cloudIndex);
+                        while(itP.hasNext())
+                        {
+                            const CT_Point &point = itP.next().currentPoint();
+
+                            Eigen::Vector3d projPoint;
+                            dists.append(CT_MathPoint::distanceOnLineForPointProjection(fittedLineData->getP1(), fittedLineData->getDirection(), point, projPoint));
+                        }
+
+                        qSort(dists);
+
+                        bool okLength = true;
+                        double maxLength = _step->_lineLengthRatioSmall * fittedLineData->length();
+                        for (int dd = 1 ; dd < dists.size() && okLength; dd++)
+                        {
+                            double currentDist = dists.at(dd) - dists.at(dd - 1);
+                            if (currentDist > maxLength) {okLength = false;}
+                        }
+                        dists.clear();
+
+                        if (okLength)
+                        {
+                            const CT_PointClusterBarycenter& bary = cluster->getBarycenter();
+
+                            bool toClose = false;
+                            for (int cc = 0 ; cc < circles.size() && !toClose ; cc++)
+                            {
+                                const CT_Circle2D& circle = *(circles.at(cc));
+                                double dist = sqrt(pow(circle.getCenterX() - bary.x(), 2) + pow(circle.getCenterY() - bary.y(), 2));
+                                if (dist < _step->_exclusionRadiusSmall) {toClose = true;}
+                            }
+
+                            if (toClose)
+                            {
+                                delete cluster;
+                                delete fittedLineData;
+                            } else {
+                                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpClusterSmall_ModelName.completeName(), _res);
+                                grp->addGroup(grpClKept);
+
+                                cluster->setModel(_step->_clusterSmall_ModelName.completeName());
+                                grpClKept->addItemDrawable(cluster);
+
+                                CT_Line* line = new CT_Line(_step->_lineSmall_ModelName.completeName(), _res, fittedLineData);
+                                grpClKept->addItemDrawable(line);
+                            }
+                        } else {
+                            delete cluster;
+                            delete fittedLineData;
+                        }
+                    }
+                } else {
+                    delete cluster;
+                }
+            }
+        }
+
+        qDeleteAll(candidateLines);
+        candidateLines.clear();
+        insertedPoints.clear();
     }
 }
 
@@ -665,388 +835,6 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::computeDBH(
 
 }
 
-
-
-
-
-
-
-void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlignmentsForScene_old(CT_StandardItemGroup* grp)
-{
-
-    const CT_AbstractItemDrawableWithPointCloud* sceneStem = (CT_AbstractItemDrawableWithPointCloud*)grp->firstItemByINModelName(_step, DEFin_sceneStem);
-    const CT_AbstractItemDrawableWithPointCloud* sceneAll = (CT_AbstractItemDrawableWithPointCloud*)grp->firstItemByINModelName(_step, DEFin_sceneAll);
-    const CT_AbstractPointAttributesScalar* attributeLineOfScan = (CT_AbstractPointAttributesScalar*)grp->firstItemByINModelName(_step, DEFin_attLineOfScan);
-
-    if (sceneStem != NULL)
-    {
-        double maxPhiRadians = M_PI*_step->_maxPhiAngle/180.0;
-        double maxPhiRadiansAfterMerging = M_PI*_step->_maxPhiAngleAfterMerging/180.0;
-
-        QList<ONF_StepDetectVerticalAlignments04::LineData*> candidateLines;
-        const CT_AbstractPointCloudIndex* pointCloudIndex = sceneStem->getPointCloudIndex();
-
-        //double deltaZ = scene->maxZ() - scene->minZ();
-        double hMax = (sceneStem->maxZ() - sceneStem->minZ())*_step->_heightThreshold + sceneStem->minZ();
-
-        // Parcours tous les couples de points 2 à deux
-        CT_PointIterator itP1(pointCloudIndex);
-        while(itP1.hasNext() && (!_step->isStopped()))
-        {
-            const CT_Point &point1 = itP1.next().currentPoint();
-            size_t index1 = itP1.currentGlobalIndex();
-
-            double lineOfScan1 = 0; // Récupération de la ligne de scan pour le point 1
-            if (attributeLineOfScan != NULL)
-            {
-                size_t localIndex1 = attributeLineOfScan->getPointCloudIndex()->indexOf(index1);
-                if (localIndex1 < attributeLineOfScan->getPointCloudIndex()->size())
-                {
-                    lineOfScan1 = attributeLineOfScan->dValueAt(localIndex1);
-                }
-            }
-
-            bool before = true;
-            CT_PointIterator itP2(pointCloudIndex);
-            while(itP2.hasNext() && (!_step->isStopped()))
-            {
-                const CT_Point &point2 = itP2.next().currentPoint();
-                size_t index2 = itP2.currentGlobalIndex();
-
-                double lineOfScan2 = 0; // Récupération de la ligne de scan pour le point 2
-                if (attributeLineOfScan != NULL)
-                {
-                    size_t localIndex2 = attributeLineOfScan->getPointCloudIndex()->indexOf(index2);
-                    if (localIndex2 < pointCloudIndex->size())
-                    {
-                        lineOfScan2 = attributeLineOfScan->dValueAt(localIndex2);
-                    }
-                }
-
-
-
-                // Les deux points doivent être disctinct dans l'espace
-                if (!before &&
-                    ((point1(0) != point2(0) || point1(1) != point2(1) || point1(2) != point2(2))) &&
-                    lineOfScan1 == lineOfScan2) // Les deux points doivent avoir la même ligne de vol
-                {
-                    // Les deux points doivent être à moins de _distThreshold
-                    double dist = sqrt(pow(point1(0) - point2(0), 2) + pow(point1(1) - point2(1), 2) + pow(point1(2) - point2(2), 2));
-                    if (dist < _step->_pointDistThreshold)
-                    {
-                        Eigen::Vector3d pointLow  = point1;
-                        Eigen::Vector3d pointHigh = point2;
-
-                        if (point2(2) < point1(2))
-                        {
-                            pointLow  = point2;
-                            pointHigh = point1;
-                        }
-
-                        float phi, theta, length;
-                        CT_SphericalLine3D::convertToSphericalCoordinates(&pointLow, &pointHigh, phi, theta, length);
-
-                        if (phi < maxPhiRadians)
-                        {
-                            candidateLines.append(new ONF_StepDetectVerticalAlignments04::LineData(pointLow, pointHigh, index1, index2, phi, sceneStem->minZ(), sceneStem->maxZ(), lineOfScan1));
-                        }
-                    }
-                }
-
-                if (index1 == index2) {before = false;}
-            }
-        }
-
-        // Tri par Phi croissant... inutile
-        //qSort(candidateLines.begin(), candidateLines.end(), ONF_StepDetectVerticalAlignments04::orderByAscendingPhi);
-
-        // Affiliation des lignes proches
-        findNeighborLines(candidateLines, _step->_lineDistThreshold);
-
-        // Tri par NeighborCount descendant
-        qSort(candidateLines.begin(), candidateLines.end(), ONF_StepDetectVerticalAlignments04::orderByDescendingNeighborCount);
-
-        // Constitution des clusters de points alignés
-        QMap<ONF_StepDetectVerticalAlignments04::LineData*, CT_PointCluster*> pointsClusters;
-        QList<size_t> insertedPoints;
-
-        for (int i = 0 ; i < candidateLines.size() ; i++)
-        {
-            ONF_StepDetectVerticalAlignments04::LineData* candidateLine = candidateLines.at(i);
-            CT_PointCluster* cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
-
-            if (!candidateLine->_processed)
-            {
-                if (!insertedPoints.contains(candidateLine->_index1))
-                {
-                    cluster->addPoint(candidateLine->_index1);
-                    insertedPoints.append(candidateLine->_index1);
-                }
-                if (!insertedPoints.contains(candidateLine->_index2))
-                {
-                    cluster->addPoint(candidateLine->_index2);
-                    insertedPoints.append(candidateLine->_index2);
-                }
-                candidateLine->_processed = true;
-
-                QList<ONF_StepDetectVerticalAlignments04::LineData*> &neighborLines = candidateLine->_neighbors;
-                for (int j = 0 ; j < neighborLines.size() ; j++)
-                {
-                    ONF_StepDetectVerticalAlignments04::LineData* neighborLine = neighborLines.at(j);
-                    if (!neighborLine->_processed)
-                    {
-                        if (!insertedPoints.contains(neighborLine->_index1))
-                        {
-                            cluster->addPoint(neighborLine->_index1);
-                            insertedPoints.append(neighborLine->_index1);
-                        }
-                        if (!insertedPoints.contains(neighborLine->_index2))
-                        {
-                            cluster->addPoint(neighborLine->_index2);
-                            insertedPoints.append(neighborLine->_index2);
-                        }
-                        neighborLine->_processed = true;
-                    }
-                }
-
-                const CT_AbstractPointCloudIndex* cloudIndex = cluster->getPointCloudIndex();
-                size_t nbPts = cloudIndex->size();
-
-                if (nbPts >= _step->_minPtsNb)
-                {
-                    CT_LineData* fittedLineData = CT_LineData::staticCreateLineDataFromPointCloud(*cloudIndex);
-
-                    Eigen::Vector3d pointLow  = fittedLineData->getP1();
-                    Eigen::Vector3d pointHigh = fittedLineData->getP2();
-
-                    if (pointHigh(2) < pointLow(2))
-                    {
-                        pointLow  = fittedLineData->getP2();
-                        pointHigh = fittedLineData->getP1();
-                    }
-
-                    float phi, theta, length;
-                    CT_SphericalLine3D::convertToSphericalCoordinates(&pointLow, &pointHigh, phi, theta, length);
-
-                    if (phi > maxPhiRadians)
-                    {
-                        sendToDroppedList(grp, cluster, fittedLineData);
-                    } else {
-
-                        QList<double> dists;
-
-                        CT_PointIterator itP(cloudIndex);
-                        while(itP.hasNext())
-                        {
-                            const CT_Point &point = itP.next().currentPoint();
-
-                            Eigen::Vector3d projPoint;
-                            dists.append(CT_MathPoint::distanceOnLineForPointProjection(fittedLineData->getP1(), fittedLineData->getDirection(), point, projPoint));
-                        }
-
-                        qSort(dists);
-
-                        bool okLength = true;
-                        double maxLength = _step->_lineLengthRatio * fittedLineData->length();
-                        for (int dd = 1 ; dd < dists.size() && okLength; dd++)
-                        {
-                            double currentDist = dists.at(dd) - dists.at(dd - 1);
-                            if (currentDist > maxLength) {okLength = false;}
-                        }
-                        dists.clear();
-
-                        if (okLength)
-                        {
-                            ONF_StepDetectVerticalAlignments04::LineData *lineData = new ONF_StepDetectVerticalAlignments04::LineData(pointLow, pointHigh, 0, 0, phi, sceneStem->minZ(), sceneStem->maxZ(), candidateLine->_lineOfScan);
-
-                            pointsClusters.insert(lineData, cluster);
-
-                            if (_step->_clusterDebugMode) // mode Debug Cluster
-                            {
-                                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
-                                grp->addGroup(grpClKept);
-
-                                cluster->setModel(_step->_cluster_ModelName.completeName());
-                                grpClKept->addItemDrawable(cluster);
-
-                                CT_Line* line = new CT_Line(_step->_line_ModelName.completeName(), _res, fittedLineData);
-                                grpClKept->addItemDrawable(line);
-                            } else {
-                                delete fittedLineData;
-                            }
-                        } else {
-                            sendToDroppedList(grp, cluster, fittedLineData);
-                        }
-                    }
-                } else {                    
-                    sendToDroppedList(grp, cluster, NULL);
-                }
-            }
-        }
-
-        qDeleteAll(candidateLines);
-        candidateLines.clear();
-        insertedPoints.clear();
-
-        if (_step->_clusterDebugMode) {return;}
-
-
-        // Regroupement des clusters voisins
-        // Affiliation des clusters proches
-        QList<ONF_StepDetectVerticalAlignments04::LineData*> candidateClustersLines = pointsClusters.keys();
-        findNeighborLines(candidateClustersLines, _step->_clusterDistThreshold);
-
-        // Tri par NeighborCount descendant
-        qSort(candidateClustersLines.begin(), candidateClustersLines.end(), ONF_StepDetectVerticalAlignments04::orderByDescendingNeighborCount);
-
-
-        QList<ClusterHeightData*> clustersHeightsData;
-
-        // Création des clusters fusionnés
-        for (int i = 0  ; i < candidateClustersLines.size() ; i++)
-        {
-            ONF_StepDetectVerticalAlignments04::LineData* lineData = candidateClustersLines.at(i);
-
-            if (!lineData->_processed)
-            {
-                lineData->_processed = true;
-
-                QList<ONF_StepDetectVerticalAlignments04::LineData*> toMerge;
-                toMerge.append(lineData);                               
-
-                for (int j = 0 ; j < lineData->_neighbors.size() ; j++)
-                {
-                    ONF_StepDetectVerticalAlignments04::LineData* neighborLineData  = lineData->_neighbors.at(j);
-
-                    if (!neighborLineData->_processed)
-                    {
-                        double distLow  = sqrt(pow(lineData->_lowCoord(0)  - neighborLineData->_lowCoord(0), 2)  + pow(lineData->_lowCoord(1)  - neighborLineData->_lowCoord(1), 2));
-                        double distHigh = sqrt(pow(lineData->_highCoord(0) - neighborLineData->_highCoord(0), 2) + pow(lineData->_highCoord(1) - neighborLineData->_highCoord(1), 2));
-
-                        double distLow1ToHigh2  = sqrt(pow(lineData->_lowCoord(0)  - neighborLineData->_highCoord(0), 2)  + pow(lineData->_lowCoord(1)  - neighborLineData->_highCoord(1), 2));
-                        double distLow2ToHigh2  = sqrt(pow(neighborLineData->_lowCoord(0)  - neighborLineData->_highCoord(0), 2)  + pow(neighborLineData->_lowCoord(1)  - neighborLineData->_highCoord(1), 2));
-
-                        double deltaDist = distHigh - distLow;
-
-                        if (distLow <= _step->_maxDiameter)
-                        {
-                            if (distHigh <= _step->_maxDiameter)
-                            {
-                                if (deltaDist <= _step->_maxDivergence)
-                                {
-                                    toMerge.append(neighborLineData);
-                                    neighborLineData->_processed = true;
-                                }
-                            } else if (distLow1ToHigh2 < distLow2ToHigh2){
-
-                                sendToDroppedList(grp, pointsClusters.take(neighborLineData), new CT_LineData(neighborLineData->_pLow, neighborLineData->_pHigh));
-                                neighborLineData->_processed = true;
-                            }
-
-                        } else if (distHigh <= _step->_maxDiameter) {
-                            sendToDroppedList(grp, pointsClusters.take(neighborLineData), new CT_LineData(neighborLineData->_pLow, neighborLineData->_pHigh));
-                            neighborLineData->_processed = true;
-                        }
-                    }
-                }
-
-                CT_PointCluster* cluster = NULL;
-                CT_LineData* mergedLineData = NULL;
-
-                // merge clusters and fit line
-                if (toMerge.size() > 1)
-                {
-                    cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
-
-                    for (int j = 0 ; j < toMerge.size() ; j++)
-                    {
-                        ONF_StepDetectVerticalAlignments04::LineData* toMergeLineData = toMerge.at(j);
-                        CT_PointCluster* toMergeCluster = pointsClusters.take(toMergeLineData);
-
-                        const CT_AbstractPointCloudIndex *toMergeCloudIndex = toMergeCluster->getPointCloudIndex();
-
-                        CT_PointIterator itP(toMergeCloudIndex);
-                        while(itP.hasNext())
-                        {
-                            size_t index = itP.next().currentGlobalIndex();
-                            cluster->addPoint(index);
-                        }
-
-                        delete toMergeCluster;
-                    }
-
-
-                    CT_LineData* fittedLineData = CT_LineData::staticCreateLineDataFromPointCloud(*(cluster->getPointCloudIndex()));
-
-                    Eigen::Vector3d pointLow  = fittedLineData->getP1();
-                    Eigen::Vector3d pointHigh = fittedLineData->getP2();
-
-                    if (pointHigh(2) < pointLow(2))
-                    {
-                        pointLow  = fittedLineData->getP2();
-                        pointHigh = fittedLineData->getP1();
-                    }
-
-                    mergedLineData = new CT_LineData(pointLow, pointHigh);
-
-                    delete fittedLineData;
-
-                } else {
-                    cluster = pointsClusters.take(lineData);
-                    mergedLineData = new CT_LineData(lineData->_pLow, lineData->_pHigh);
-                }
-
-                float phi, theta, length;
-                CT_SphericalLine3D::convertToSphericalCoordinates(&(mergedLineData->getP1()), &(mergedLineData->getP2()), phi, theta, length);
-
-                if (mergedLineData->length() < _step->_lengthThreshold || (mergedLineData->getP1())(2) > hMax || phi > maxPhiRadiansAfterMerging)
-                {
-                    sendToDroppedList(grp, cluster, mergedLineData);
-                } else {
-
-                    clustersHeightsData.append(new ONF_StepDetectVerticalAlignments04::ClusterHeightData(cluster, mergedLineData));
-                }
-            }
-        }
-
-        // Computes Hmax for each cluster
-        if (sceneAll != NULL)
-        {
-            const CT_AbstractPointCloudIndex* pointCloudIndexAll = sceneAll->getPointCloudIndex();
-
-            CT_PointIterator itAll(pointCloudIndexAll);
-            while(itAll.hasNext() && (!_step->isStopped()))
-            {
-                const CT_Point &point = itAll.next().currentPoint();
-
-                for (int i = 0 ; i < clustersHeightsData.size() ; i++)
-                {
-                    ONF_StepDetectVerticalAlignments04::ClusterHeightData *clHD = clustersHeightsData.at(i);
-                    const CT_PointClusterBarycenter &bary = clHD->_cluster->getBarycenter();
-
-                    double distance = sqrt(pow(bary.x() - point(0), 2) + pow(bary.y() - point(1), 2));
-
-                    if (distance < _step->_radiusHmax)
-                    {
-                        if (point(2) > clHD->_hMaxScene) {clHD->_hMaxScene = point(2);}
-                    }
-                }
-            }
-        }
-
-        // Creates kepts items
-        for (int i = 0 ; i < clustersHeightsData.size() ; i++)
-        {
-            ONF_StepDetectVerticalAlignments04::ClusterHeightData *clHD = clustersHeightsData.at(i);
-            sendToConservedList(grp, clHD->_cluster, clHD->_mergedLineData, clHD->_hMaxScene);
-
-            delete clHD;
-        }
-
-        qDeleteAll(candidateClustersLines);
-    }
-}
-
 void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::findNeighborLines(QList<ONF_StepDetectVerticalAlignments04::LineData*> candidateLines, double distThreshold)
 {
     for (int i1 = 0 ; i1 < candidateLines.size() ; i1++)
@@ -1057,254 +845,23 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::findNeighbo
         {
             ONF_StepDetectVerticalAlignments04::LineData* line2 = candidateLines.at(i2);
 
-            // Les lignes doivent être dans la même ligne de scan
-            if (line2->_lineOfScan == line1->_lineOfScan)
+            double distLow = sqrt(pow(line1->_lowCoord(0) - line2->_lowCoord(0), 2) + pow(line1->_lowCoord(1) - line2->_lowCoord(1), 2));
+
+            if (distLow < distThreshold)
             {
-                double distLow = sqrt(pow(line1->_lowCoord(0) - line2->_lowCoord(0), 2) + pow(line1->_lowCoord(1) - line2->_lowCoord(1), 2));
+                double distHigh = sqrt(pow(line1->_highCoord(0) - line2->_highCoord(0), 2) + pow(line1->_highCoord(1) - line2->_highCoord(1), 2));
+                //double spacing = fabs(distHigh - distLow);
 
-                if (distLow < distThreshold)
+                if (distHigh < distThreshold)
                 {
-                    double distHigh = sqrt(pow(line1->_highCoord(0) - line2->_highCoord(0), 2) + pow(line1->_highCoord(1) - line2->_highCoord(1), 2));
-                    //double spacing = fabs(distHigh - distLow);
+                    double maxDist = std::max(distHigh, distLow);
+                    line1->_neighbors.append(line2);
+                    line1->_distSum += maxDist;
 
-                    if (distHigh < distThreshold)
-                    {
-                        double maxDist = std::max(distHigh, distLow);
-                        line1->_neighbors.append(line2);
-                        line1->_distSum += maxDist;
-
-                        line2->_neighbors.append(line1);
-                        line2->_distSum += maxDist;
-                    }
+                    line2->_neighbors.append(line1);
+                    line2->_distSum += maxDist;
                 }
             }
         }
     }
-}
-
-void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::sendToDroppedList(CT_StandardItemGroup* grp, CT_PointCluster* cluster, CT_LineData* lineData)
-{
-    CT_StandardItemGroup* grpClDropped = new CT_StandardItemGroup(_step->_grpClusterDebug_ModelName.completeName(), _res);
-    grp->addGroup(grpClDropped);
-
-    if (cluster != NULL)
-    {
-        cluster->setModel(_step->_clusterDebug_ModelName.completeName());
-        grpClDropped->addItemDrawable(cluster);
-    }
-
-    if (lineData != NULL)
-    {
-//        CT_Line* line = new CT_Line(_step->_droppedLine_ModelName.completeName(), _res, lineData);
-//        grpClDropped->addItemDrawable(line);
-    }
-}
-
-void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::sendToConservedList(CT_StandardItemGroup* grp, CT_PointCluster* cluster, CT_LineData* mergedLineData, double hMaxScene)
-{
-    CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
-    grp->addGroup(grpClKept);
-
-    cluster->setModel(_step->_cluster_ModelName.completeName());
-    grpClKept->addItemDrawable(cluster);
-
-    CT_Line* line = new CT_Line(_step->_line_ModelName.completeName(), _res, mergedLineData);
-    grpClKept->addItemDrawable(line);
-
-    // Enveloppe convexe des points projetés perpendiculairement à la ligne
-    QList<Eigen::Vector2d*> projPts;
-    Eigen::Hyperplane<double, 3> plane(mergedLineData->getDirection(), mergedLineData->getP1());
-
-    const CT_AbstractPointCloudIndex* clusterPointCloudIndex = cluster->getPointCloudIndex();
-    CT_PointIterator itCI(clusterPointCloudIndex);
-    while(itCI.hasNext())
-    {
-        itCI.next();
-        const CT_Point &pt = itCI.currentPoint();
-
-        Eigen::Vector3d projectedPt = plane.projection(pt);
-        projPts.append(new Eigen::Vector2d(projectedPt(0), projectedPt(1)));
-    }
-
-    CT_Polygon2DData::orderPointsByXY(projPts);
-    CT_Polygon2DData* polyData = CT_Polygon2DData::createConvexHull(projPts);
-    CT_Polygon2D* poly = NULL;
-    if (polyData != NULL)
-    {
-        poly = new CT_Polygon2D(_step->_convexProj_ModelName.completeName(), _res, polyData);
-        poly->setZValue(mergedLineData->getP1()(2));
-        grpClKept->addItemDrawable(poly);
-    }
-
-
-    // Compute diameter of the stem (using max distance between two projected points)
-    QList<float> diamsMax;
-    for (int ii = 0 ; ii < projPts.size() ; ii++)
-    {
-        const Eigen::Vector2d *pt1 = projPts.at(ii);
-        for (int jj = ii + 1 ; jj < projPts.size() ; jj++)
-        {
-            const Eigen::Vector2d *pt2 = projPts.at(jj);
-            float dist = sqrt(pow((*pt1)(0) - (*pt2)(0), 2) + pow((*pt1)(1) - (*pt2)(1), 2));
-            diamsMax.append(dist);
-        }
-    }
-    qSort(diamsMax);
-
-    double maxDistForDiameter = 0;
-    if (diamsMax.size() > 0)
-    {
-        maxDistForDiameter = diamsMax.last();
-        bool stop = false;
-        int index = diamsMax.size() - 2;
-        while (index >= 0 && !stop)
-        {
-            double previousDiam = diamsMax.at(index);
-            double ratio = (maxDistForDiameter - previousDiam) / previousDiam;
-            if (ratio > _step->_maxDiamRatio)
-            {
-                maxDistForDiameter = previousDiam;
-                index--;
-            } else {
-                stop = true;
-            }
-        }
-        diamsMax.clear();
-    }
-
-
-
-    QMultiMap<int, float> diamEqs;
-    for (int ii = 0 ; ii < projPts.size() ; ii++)
-    {
-        const Eigen::Vector2d *pt1 = projPts.at(ii);
-        for (int jj = ii + 1 ; jj < projPts.size() ; jj++)
-        {
-            const Eigen::Vector2d *pt2 = projPts.at(jj);
-
-            float dist = sqrt(pow((*pt1)(0) - (*pt2)(0), 2) + pow((*pt1)(1) - (*pt2)(1), 2));
-
-            Eigen::Vector2d center;
-            center(0) = ((*pt1)(0) + (*pt2)(0)) / 2.0;
-            center(1) = ((*pt1)(1) + (*pt2)(1)) / 2.0;
-
-            float nb = 0;
-            for (int kk = 0 ; kk < projPts.size(); kk++)
-            {
-                if (kk != ii && kk != jj)
-                {
-                    const Eigen::Vector2d *pt3 = projPts.at(kk);
-                    float distCircle = sqrt(pow(center(0) - (*pt3)(0), 2) + pow(center(1) - (*pt3)(1), 2)) - (dist / 2.0);
-                    float absDistCircle = fabs(distCircle);
-
-                    if (absDistCircle > _step->_circleDistThreshold && distCircle < 0)
-                    {
-                        nb -= 1;
-                    } else {
-                        float ratio = _step->_circleDistThreshold / absDistCircle;
-                        if (ratio > 1) {ratio = 1;}
-                        nb += ratio;
-                    }
-                }
-            }
-            diamEqs.insert(nb, dist);
-        }
-    }
-
-    double diamEq = 0;
-    if (diamEqs.size() > 0)
-    {
-        diamEq = diamEqs.last();
-        diamEqs.clear();
-    }
-
-    if (diamEq > 0)
-    {
-        Eigen::Vector2d center;
-        center(0) = line->getP1_X();
-        center(1) = line->getP1_Y();
-
-        CT_Circle2D *circle = new CT_Circle2D(_step->_circle_ModelName.completeName(), _res, new CT_Circle2DData(center, diamEq/2.0));
-        grpClKept->addItemDrawable(circle);
-    }
-
-    ONF_StepDetectVerticalAlignments04::DistValues* distVal = computeDistVals(clusterPointCloudIndex, mergedLineData);
-
-    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMin_ModelName.completeName(),
-                                                            CT_AbstractCategory::DATA_VALUE,
-                                                            _res,
-                                                            distVal->_min));
-    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attQ25_ModelName.completeName(),
-                                                            CT_AbstractCategory::DATA_VALUE,
-                                                            _res,
-                                                            distVal->_q25));
-    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attQ50_ModelName.completeName(),
-                                                            CT_AbstractCategory::DATA_VALUE,
-                                                            _res,
-                                                            distVal->_q50));
-    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attQ75_ModelName.completeName(),
-                                                            CT_AbstractCategory::DATA_VALUE,
-                                                            _res,
-                                                            distVal->_q75));
-    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMax_ModelName.completeName(),
-                                                            CT_AbstractCategory::DATA_VALUE,
-                                                            _res,
-                                                            distVal->_max));
-    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMean_ModelName.completeName(),
-                                                            CT_AbstractCategory::DATA_VALUE,
-                                                            _res,
-                                                            distVal->_mean));
-
-    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMaxDist_ModelName.completeName(),
-                                                            CT_AbstractCategory::DATA_VALUE,
-                                                            _res,
-                                                            maxDistForDiameter));
-
-    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attDiamEq_ModelName.completeName(),
-                                                            CT_AbstractCategory::DATA_VALUE,
-                                                            _res,
-                                                            diamEq));
-
-    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attHmax_ModelName.completeName(),
-                                                            CT_AbstractCategory::DATA_VALUE,
-                                                            _res,
-                                                            hMaxScene));
-}
-
-
-
-ONF_StepDetectVerticalAlignments04::DistValues* ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::computeDistVals(const CT_AbstractPointCloudIndex* cloudIndex, CT_LineData* lineData)
-{
-    ONF_StepDetectVerticalAlignments04::DistValues* distVal = new ONF_StepDetectVerticalAlignments04::DistValues();
-
-    size_t nbPts = cloudIndex->size();
-
-    distVal->_min  = std::numeric_limits<double>::max();
-    distVal->_max  = 0;
-    distVal->_mean = 0;
-
-    QList<double> distances;
-
-    const Eigen::Vector3d &dir = lineData->getDirection();
-
-    CT_PointIterator it(cloudIndex);
-    while(it.hasNext())
-    {
-        it.next();
-        const CT_Point &p = it.currentPoint();
-        double distToLine = CT_MathPoint::distancePointLine(p, dir, lineData->getP1());
-        distances.append(distToLine);
-
-        distVal->_mean += distToLine;
-        if (distToLine < distVal->_min) {distVal->_min = distToLine;}
-        if (distToLine > distVal->_max) {distVal->_max = distToLine;}
-    }
-
-    distVal->_mean /= nbPts;
-
-    distVal->_q25 = CT_MathStatistics::computeQuantile(distances, 0.25, true);
-    distVal->_q50 = CT_MathStatistics::computeQuantile(distances, 0.50, true);
-    distVal->_q75 = CT_MathStatistics::computeQuantile(distances, 0.75, true);
-
-    return distVal;
 }

@@ -107,31 +107,9 @@ protected:
 
 private:
 
-    struct DistValues {
-        double _min;
-        double _max;
-        double _mean;
-        double _q25;
-        double _q50;
-        double _q75;
-    };
-
-
-    struct ClusterHeightData {
-        ClusterHeightData(CT_PointCluster* cluster, CT_LineData* mergedLineData)
-        {
-            _cluster = cluster;
-            _mergedLineData = mergedLineData;
-            _hMaxScene = 0;
-        }
-
-        CT_PointCluster* _cluster;
-        CT_LineData* _mergedLineData;
-        double _hMaxScene;
-    };
 
     struct LineData {
-        LineData(const CT_Point &pLow, const CT_Point &pHigh, size_t index1, size_t index2, float phi, double bottomLevel, double topLevel, double lineOfScan)
+        LineData(const CT_Point &pLow, const CT_Point &pHigh, size_t index1, size_t index2, float phi, double bottomLevel, double topLevel)
         {
             _processed = false;
             _distSum = 0;
@@ -156,8 +134,6 @@ private:
             _highCoord(0) = pLow(0) + t*dir(0);
             _highCoord(1) = pLow(1) + t*dir(1);
             _highCoord(2) = topLevel;
-
-            _lineOfScan = lineOfScan;
         }
 
         float _phi;
@@ -167,7 +143,6 @@ private:
         Eigen::Vector3d _pHigh;
         Eigen::Vector3d _lowCoord;
         Eigen::Vector3d _highCoord;
-        double          _lineOfScan;
 
 
         QList<ONF_StepDetectVerticalAlignments04::LineData*> _neighbors;
@@ -214,16 +189,7 @@ private:
         void validateScanLineCluster(CT_PointCluster *cluster, QList<CT_PointCluster *> &keptClusters, QList<size_t> &isolatedPointIndices, CT_PointAccessor &pointAccessor);
         void processCurrentList(QList<size_t> &isolatedPointIndices, QList<size_t> &currentList, QList<CT_PointCluster*> &keptClusters);
         void computeDBH(CT_PointCluster* cluster, Eigen::Vector3d &center, double &maxDist);
-
-
-
-        void detectAlignmentsForScene_old(CT_StandardItemGroup* grp);
-
-        ONF_StepDetectVerticalAlignments04::DistValues* computeDistVals(const CT_AbstractPointCloudIndex* cloudIndex, CT_LineData* lineData);
         void findNeighborLines(QList<ONF_StepDetectVerticalAlignments04::LineData*> candidateLines, double distThreshold);
-        void sendToDroppedList(CT_StandardItemGroup* grp, CT_PointCluster* cluster, CT_LineData* lineData);
-        void sendToConservedList(CT_StandardItemGroup* grp, CT_PointCluster* cluster, CT_LineData* mergedLineData, double hMaxScene);
-
 
     private:
         ONF_StepDetectVerticalAlignments04* _step;
@@ -237,19 +203,11 @@ private:
     CT_AutoRenameModels    _cluster_ModelName;
     CT_AutoRenameModels    _line_ModelName;
     CT_AutoRenameModels    _attMaxDistXY_ModelName;
-
-
-    CT_AutoRenameModels    _convexProj_ModelName;
     CT_AutoRenameModels    _circle_ModelName;
-    CT_AutoRenameModels    _attMin_ModelName;
-    CT_AutoRenameModels    _attQ25_ModelName;
-    CT_AutoRenameModels    _attQ50_ModelName;
-    CT_AutoRenameModels    _attQ75_ModelName;
-    CT_AutoRenameModels    _attMax_ModelName;
-    CT_AutoRenameModels    _attMean_ModelName;
-    CT_AutoRenameModels    _attMaxDist_ModelName;
-    CT_AutoRenameModels    _attDiamEq_ModelName;
-    CT_AutoRenameModels    _attHmax_ModelName;
+
+    CT_AutoRenameModels    _grpClusterSmall_ModelName;
+    CT_AutoRenameModels    _clusterSmall_ModelName;
+    CT_AutoRenameModels    _lineSmall_ModelName;
 
     CT_AutoRenameModels    _grpClusterDebug_ModelName;
     CT_AutoRenameModels    _grpClusterDebug2_ModelName;
@@ -261,31 +219,23 @@ private:
     double      _thresholdGPSTime;
     double      _thresholdDistXY;
     double      _thresholdZenithalAngle;
-    double      _thresholdNeighbourTesting;
-    double      _minimalMaxDistXY;
     int         _minPts;
+
+    double      _curvatureMultiplier;
+    double      _nbPointDistStep;
+    double      _maxMergingDist;
+
     double      _DBH_azimRes;
     double      _DBH_zeniRes;
     double      _DBH_zeniMax;
+    double      _maxPhiAngleSmall;
+    double      _pointDistThresholdSmall;
+    double      _lineDistThresholdSmall;
+    int         _minPtsSmall;
+    double      _lineLengthRatioSmall;
+    double      _exclusionRadiusSmall;
 
     bool      _clusterDebugMode;
-
-
-
-    double    _maxPhiAngle;
-    double    _pointDistThreshold;
-    double    _lineDistThreshold;
-    double    _clusterDistThreshold;
-    double    _maxDivergence;
-    double    _maxPhiAngleAfterMerging;
-    double    _radiusHmax;
-    double    _maxDiameter;
-    int       _minPtsNb;
-    double    _lineLengthRatio;
-    double    _lengthThreshold;
-    double    _heightThreshold;
-    double    _maxDiamRatio;
-    double    _circleDistThreshold;
 
 };
 
