@@ -225,8 +225,7 @@ private:
     double      _nbPointDistStep;
     double      _maxMergingDist;
 
-    double      _DBH_azimRes;
-    double      _DBH_zeniRes;
+    double      _DBH_resAzimZeni;
     double      _DBH_zeniMax;
     double      _maxPhiAngleSmall;
     double      _pointDistThresholdSmall;

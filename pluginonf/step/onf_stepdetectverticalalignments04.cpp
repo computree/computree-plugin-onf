@@ -69,16 +69,15 @@ ONF_StepDetectVerticalAlignments04::ONF_StepDetectVerticalAlignments04(CT_StepIn
     _nbPointDistStep = 0.20;
     _maxMergingDist = 1.5;
 
-    _DBH_azimRes = 0.5;
-    _DBH_zeniRes = 0.5;
-    _DBH_zeniMax = 30;
+    _DBH_resAzimZeni = 1;
+    _DBH_zeniMax = 20;
 
-    _lineDistThresholdSmall = 0.5;
+    _pointDistThresholdSmall = 3.0;
+    _maxPhiAngleSmall = 15.0;
+    _lineDistThresholdSmall = 0.4;
     _minPtsSmall = 3;
     _lineLengthRatioSmall = 0.8;
-    _pointDistThresholdSmall = 4.0;
-    _maxPhiAngleSmall = 15.0;
-    _exclusionRadiusSmall = 0.8;
+    _exclusionRadiusSmall = 1.5;
 
     _clusterDebugMode = false;
 }
@@ -167,8 +166,7 @@ void ONF_StepDetectVerticalAlignments04::createPostConfigurationDialog()
 
     configDialog->addEmpty();
     configDialog->addTitle( tr("3- Estimation du diamètre à 1.30 m des grosses tiges:"));
-    configDialog->addDouble(tr("Résolution en azimuth"), "°", 0, 90, 4, _DBH_azimRes);
-    configDialog->addDouble(tr("Résolution en angle zénithal"), "°", 0, 90, 4, _DBH_zeniRes);
+    configDialog->addDouble(tr("Résolution en azimuth / angle zénithal"), "°", 0, 90, 4, _DBH_resAzimZeni);
     configDialog->addDouble(tr("Angle zénithal maximal"), "°", 0, 90, 2, _DBH_zeniMax);
 
     configDialog->addEmpty();
@@ -379,8 +377,7 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
         }
 
 
-        //Compute lowest points and curvatures
-        QMap<CT_PointCluster*, Eigen::Vector3d> lowestPoints;
+        //Compute curvatures
         QMap<CT_PointCluster*, double> curvatures;
         for (int i = 0 ; i < clustersList.size() ; i++)
         {
@@ -395,17 +392,14 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
             Eigen::Vector3d direction = p2 - p1;
             direction.normalize();
 
-            Eigen::Vector3d  lowestPoint(0, 0, std::numeric_limits<double>::max());
             double curvature = 0;
             CT_PointIterator itP(pointCloudIndexCl);
             while(itP.hasNext())
             {
                 const CT_Point &p = itP.next().currentPoint();
-                if (p(2) < lowestPoint(2)) {lowestPoint = p;}
                 double curv = CT_MathPoint::distancePointLine(p, direction, p1);
                 if (curv > curvature) {curvature = curv;}
             }
-            lowestPoints.insert(cluster, lowestPoint);
             curvatures.insert(cluster, curvature);
         }
 
@@ -415,13 +409,13 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
         for (int i = 0 ; i < clustersList.size() ; i++)
         {
             CT_PointCluster* cluster1 = clustersList.at(i);
-            const Eigen::Vector3d& cluster1LowestPoint = lowestPoints.value(cluster1);
+            const CT_PointClusterBarycenter& bary1 = cluster1->getBarycenter();
             double curvature1 = curvatures.value(cluster1);
 
             for (int j = i + 1 ; j < clustersList.size() ; j++)
             {
                 CT_PointCluster* cluster2 = clustersList.at(j);
-                const Eigen::Vector3d& cluster2LowestPoint = lowestPoints.value(cluster2);
+                const CT_PointClusterBarycenter& bary2 = cluster2->getBarycenter();
                 double curvature2 = curvatures.value(cluster2);
 
                 double maxDist = std::max(curvature1, curvature2) * _step->_curvatureMultiplier;
@@ -429,7 +423,7 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
                 if (md2 > maxDist) {maxDist = md2;}
                 if (maxDist > _step->_maxMergingDist) {maxDist = _step->_maxMergingDist;}
 
-                double dist = sqrt(pow(cluster1LowestPoint(0) - cluster2LowestPoint(0), 2) + pow(cluster1LowestPoint(1) - cluster2LowestPoint(1), 2));
+                double dist = sqrt(pow(bary1.x() - bary2.x(), 2) + pow(bary1.y() - bary2.y(), 2));
                 if (dist < maxDist)
                 {
                     correspondances.insert(cluster1, cluster2);
@@ -442,7 +436,6 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
         // merge neighbours clusters
         qSort(clustersList.begin(), clustersList.end(), ONF_StepDetectVerticalAlignments04::orderByAscendingNumberOfPoints);
 
-        QList<CT_Circle2D*> circles;
         QList<CT_PointCluster*> mergedClusters;
         while (!clustersList.isEmpty())
         {
@@ -482,14 +475,11 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
         }
 
 
-        // Compute diameters and add items in result
+        // Compute diameters
+        QMap<CT_PointCluster*, double> clustersDiameters;
         for (int i = 0 ; i < mergedClusters.size() ; i++)
         {
             CT_PointCluster* cluster = mergedClusters.at(i);
-
-            CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
-            grp->addGroup(grpClKept);
-            grpClKept->addItemDrawable(cluster);
 
             // Compute max dist between points in clusters (in the direction where it is smallest)
             double maxDist = 0;
@@ -504,13 +494,129 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
 
             computeDBH(cluster, center, maxDist);
 
+            clustersDiameters.insert(cluster, maxDist);
+        }
+
+
+        // Check for intersecting circles
+        bool intersectionsExist = true;
+        while (intersectionsExist)
+        {
+            // Find intersections
+            correspondances.clear();
+            for (int i = 0 ; i < mergedClusters.size() ; i++)
+            {
+                CT_PointCluster* cluster1 = mergedClusters.at(i);
+                double maxDist1 = clustersDiameters.value(cluster1);
+                const CT_PointClusterBarycenter& bary1 = cluster1->getBarycenter();
+
+                for (int j = i + 1 ; j < mergedClusters.size() ; j++)
+                {
+                    CT_PointCluster* cluster2 = mergedClusters.at(j);
+                    double maxDist2 = clustersDiameters.value(cluster2);
+                    const CT_PointClusterBarycenter& bary2 = cluster2->getBarycenter();
+
+                    double distance = sqrt(pow(bary1.x() - bary2.x(), 2) + pow(bary1.y() - bary2.y(), 2));
+
+                    if (distance < (maxDist2 + maxDist1))
+                    {
+                        correspondances.insert(cluster1, cluster2);
+                        correspondances.insert(cluster2, cluster1);
+                    }
+                }
+            }
+
+            if (correspondances.isEmpty())
+            {
+                intersectionsExist = false;
+            } else {
+                // Merge intersecting circles, and compute new diameters
+                clustersList.clear();
+                clustersList.append(mergedClusters);
+                mergedClusters.clear();
+
+                while (!clustersList.isEmpty())
+                {
+                    QList<CT_PointCluster*> toMerge;
+                    CT_PointCluster* first = clustersList.takeLast();
+                    toMerge.append(first);
+
+                    QList<CT_PointCluster*> list = correspondances.values(first);
+                    for (int j = 0 ; j < list.size() ; j++)
+                    {
+                        CT_PointCluster* currentClust = list.at(j);
+                        if (clustersList.contains(currentClust) && !toMerge.contains(currentClust)) {toMerge.append(currentClust);}
+                        clustersList.removeOne(currentClust);
+                    }
+
+                    if (toMerge.size() == 1)
+                    {
+                        mergedClusters.append(toMerge.first());
+                    } else {
+                        CT_PointCluster* newCluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
+
+                        for (int i = 0 ; i < toMerge.size() ; i++)
+                        {
+                            CT_PointCluster* cluster = toMerge.at(i);
+                            const CT_AbstractPointCloudIndex* pointCloudIndexCl = cluster->getPointCloudIndex();
+
+                            CT_PointIterator itP(pointCloudIndexCl);
+                            while(itP.hasNext())
+                            {
+                                size_t index = itP.next().currentGlobalIndex();
+                                newCluster->addPoint(index);
+                            }
+                            delete cluster;
+                            clustersDiameters.remove(cluster);
+                        }
+                        mergedClusters.append(newCluster);
+
+                        double maxDist = 0;
+                        Eigen::Vector3d center;
+                        center(0) = newCluster->getBarycenter().x();
+                        center(1) = newCluster->getBarycenter().y();
+                        center(2) = newCluster->getBarycenter().z();
+
+                        Eigen::Vector2d center2D;
+                        center2D(0) = center(0);
+                        center2D(1) = center(1);
+
+                        computeDBH(newCluster, center, maxDist);
+
+                        clustersDiameters.insert(cluster, maxDist);
+                    }
+                }
+            }
+        }
+
+        // Add items
+        QList<CT_Circle2D*> circles;
+        for (int i = 0 ; i < mergedClusters.size() ; i++)
+        {
+            CT_PointCluster* cluster = mergedClusters.at(i);
+            double maxDist = clustersDiameters.value(cluster);
+
+            CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
+            grp->addGroup(grpClKept);
+            grpClKept->addItemDrawable(cluster);
+
             cluster->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMaxDistXY_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, maxDist));
+
+            Eigen::Vector3d center;
+            center(0) = cluster->getBarycenter().x();
+            center(1) = cluster->getBarycenter().y();
+            center(2) = cluster->getBarycenter().z();
+
+            Eigen::Vector2d center2D;
+            center2D(0) = center(0);
+            center2D(1) = center(1);
 
             CT_Circle2D *circle = new CT_Circle2D(_step->_circle_ModelName.completeName(), _res, new CT_Circle2DData(center2D, maxDist/2.0));
             grpClKept->addItemDrawable(circle);
 
             circles.append(circle);
         }
+
 
         ////////////////////////////////////////////////////
         /// Detection of small stems: points alignements ///
@@ -789,10 +895,10 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::computeDBH(
         points[cpt++] = pt;
     }
 
-    for (float zenithal = 0 ; zenithal <= _step->_DBH_zeniMax ; zenithal += _step->_DBH_zeniRes)
+    for (float zenithal = 0 ; zenithal <= _step->_DBH_zeniMax ; zenithal += _step->_DBH_resAzimZeni)
     {
         float zeniRad = M_PI * zenithal / 180.0;
-        for (float azimut = 0 ; azimut <= 360 ; azimut += _step->_DBH_azimRes)
+        for (float azimut = 0 ; azimut <= 360 ; azimut += _step->_DBH_resAzimZeni)
         {
             float azimRad = M_PI * azimut / 180.0;
 
