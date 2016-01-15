@@ -63,7 +63,7 @@ ONF_StepDetectVerticalAlignments04::ONF_StepDetectVerticalAlignments04(CT_StepIn
     _thresholdGPSTime = 1e-5;
     _thresholdDistXY = 0.25;
     _thresholdZenithalAngle = 30.0;
-    _minPts = 3;
+    _minPts = 2;
 
     _curvatureMultiplier = 5.0;
     _nbPointDistStep = 0.20;
@@ -161,7 +161,7 @@ void ONF_StepDetectVerticalAlignments04::createPostConfigurationDialog()
     configDialog->addEmpty();
     configDialog->addTitle( tr("2- Détéction des grosses tiges (fusion des lignes de scan adjacentes) :"));
     configDialog->addDouble(tr("Multiplicateur pour la courbure"), "fois", 0, 100, 2, _curvatureMultiplier);
-    configDialog->addDouble(tr("Increment en distance par point au delà du second"), "m", 0, 1e+4, 2, _nbPointDistStep);
+    configDialog->addDouble(tr("Increment en distance par point"), "m", 0, 1e+4, 2, _nbPointDistStep);
     configDialog->addDouble(tr("Distance de recherche maximum"), "m", 0, 1e+4, 2, _maxMergingDist);
 
     configDialog->addEmpty();
@@ -419,7 +419,7 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
                 double curvature2 = curvatures.value(cluster2);
 
                 double maxDist = std::max(curvature1, curvature2) * _step->_curvatureMultiplier;
-                double md2 = (std::max(cluster1->getPointCloudIndexSize(), cluster2->getPointCloudIndexSize()) - 2) * _step->_nbPointDistStep;
+                double md2 = (std::max(cluster1->getPointCloudIndexSize(), cluster2->getPointCloudIndexSize())) * _step->_nbPointDistStep;
                 if (md2 > maxDist) {maxDist = md2;}
                 if (maxDist > _step->_maxMergingDist) {maxDist = _step->_maxMergingDist;}
 
@@ -493,7 +493,6 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
             center2D(1) = center(1);
 
             computeDBH(cluster, center, maxDist);
-
             clustersDiameters.insert(cluster, maxDist);
         }
 
@@ -582,39 +581,49 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
                         center2D(1) = center(1);
 
                         computeDBH(newCluster, center, maxDist);
-
-                        clustersDiameters.insert(cluster, maxDist);
+                        clustersDiameters.insert(newCluster, maxDist);
                     }
                 }
             }
         }
 
-        // Add items
+        // Remove clusters with 2 points or less and add others to result
         QList<CT_Circle2D*> circles;
         for (int i = 0 ; i < mergedClusters.size() ; i++)
         {
             CT_PointCluster* cluster = mergedClusters.at(i);
-            double maxDist = clustersDiameters.value(cluster);
 
-            CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
-            grp->addGroup(grpClKept);
-            grpClKept->addItemDrawable(cluster);
+            if (cluster->getPointCloudIndexSize() <= 2)
+            {
+                const CT_AbstractPointCloudIndex* pointCloudIndexCl = cluster->getPointCloudIndex();
+                for (int j = 0 ; j < pointCloudIndexCl->size() ; j++)
+                {
+                    isolatedPointIndices.append(pointCloudIndexCl->constIndexAt(j));
+                }
+                delete cluster;
+            } else {
+                double maxDist = clustersDiameters.value(cluster);
 
-            cluster->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMaxDistXY_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, maxDist));
+                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
+                grp->addGroup(grpClKept);
+                grpClKept->addItemDrawable(cluster);
 
-            Eigen::Vector3d center;
-            center(0) = cluster->getBarycenter().x();
-            center(1) = cluster->getBarycenter().y();
-            center(2) = cluster->getBarycenter().z();
+                cluster->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMaxDistXY_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, maxDist));
 
-            Eigen::Vector2d center2D;
-            center2D(0) = center(0);
-            center2D(1) = center(1);
+                Eigen::Vector3d center;
+                center(0) = cluster->getBarycenter().x();
+                center(1) = cluster->getBarycenter().y();
+                center(2) = cluster->getBarycenter().z();
 
-            CT_Circle2D *circle = new CT_Circle2D(_step->_circle_ModelName.completeName(), _res, new CT_Circle2DData(center2D, maxDist/2.0));
-            grpClKept->addItemDrawable(circle);
+                Eigen::Vector2d center2D;
+                center2D(0) = center(0);
+                center2D(1) = center(1);
 
-            circles.append(circle);
+                CT_Circle2D *circle = new CT_Circle2D(_step->_circle_ModelName.completeName(), _res, new CT_Circle2DData(center2D, maxDist/2.0));
+                grpClKept->addItemDrawable(circle);
+
+                circles.append(circle);
+            }
         }
 
 

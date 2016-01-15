@@ -34,6 +34,9 @@
 #include "ct_result/model/outModel/tools/ct_outresultmodelgrouptocopypossibilities.h"
 #include "ct_view/ct_stepconfigurabledialog.h"
 
+#include <QDebug>
+
+
 // Alias for indexing models
 #define DEFin_rscene "rscene"
 #define DEFin_grpsc "grpsc"
@@ -193,101 +196,104 @@ void ONF_StepComputeCrownProjection::computeConvexHullForOneSceneGroup(CT_Standa
             }
         }
 
-        CT_Polygon2DData *data = CT_Polygon2DData::createConvexHull(allPoints);
-        CT_Polygon2D* convexHull = new CT_Polygon2D(_convexHull_ModelName.completeName(), _rscene, data);
-        group->addItemDrawable(convexHull);
-
-        // Calcul des angles limites
-        QMap<QPair<double, double>, double> dirMax;
-
-        double angle = 2*M_PI / (double)_nbDir;
-        dirMax.insert   (QPair<double, double>(0, angle / 2.0), 0);
-        double lastAngle = angle / 2.0;
-        for (int i = 1 ; i < _nbDir ; i++)
+        CT_Polygon2DData *data = CT_Polygon2DData::createConvexHull(allPoints);        
+        if (data != NULL)
         {
-            double newAngle = lastAngle + angle;
-            dirMax.insert   (QPair<double, double>(lastAngle, newAngle), 0);
-            lastAngle = newAngle;
-        }
-        dirMax.insert   (QPair<double, double>(lastAngle, 2.0 * M_PI + 0.1), 0);
+            CT_Polygon2D* convexHull = new CT_Polygon2D(_convexHull_ModelName.completeName(), _rscene, data);
+            group->addItemDrawable(convexHull);
 
+            // Calcul des angles limites
+            QMap<QPair<double, double>, double> dirMax;
 
-        if (_computeSlices)
-        {
-            QListIterator<ONF_StepComputeCrownProjection::level> itPtBLev(pointsByLevel);
-            while (itPtBLev.hasNext())
+            double angle = 2*M_PI / (double)_nbDir;
+            dirMax.insert   (QPair<double, double>(0, angle / 2.0), 0);
+            double lastAngle = angle / 2.0;
+            for (int i = 1 ; i < _nbDir ; i++)
             {
-                ONF_StepComputeCrownProjection::level &currentLevel = (ONF_StepComputeCrownProjection::level&) itPtBLev.next();
-                CT_Polygon2DData *dataSlice = CT_Polygon2DData::createConvexHull(currentLevel._pointList);
+                double newAngle = lastAngle + angle;
+                dirMax.insert   (QPair<double, double>(lastAngle, newAngle), 0);
+                lastAngle = newAngle;
+            }
+            dirMax.insert   (QPair<double, double>(lastAngle, 2.0 * M_PI + 0.1), 0);
 
-                if (dataSlice != NULL)
+
+            if (_computeSlices)
+            {
+                QListIterator<ONF_StepComputeCrownProjection::level> itPtBLev(pointsByLevel);
+                while (itPtBLev.hasNext())
                 {
-                    CT_StandardItemGroup* grpSlice= new CT_StandardItemGroup(_grpSlice_ModelName.completeName(), _rscene);
-                    group->addGroup(grpSlice);
+                    ONF_StepComputeCrownProjection::level &currentLevel = (ONF_StepComputeCrownProjection::level&) itPtBLev.next();
+                    CT_Polygon2DData *dataSlice = CT_Polygon2DData::createConvexHull(currentLevel._pointList);
 
-                    CT_Polygon2D* slice = new CT_Polygon2D(_scliceCvx_ModelName.completeName(), _rscene, dataSlice);
-                    slice->setZValue(currentLevel._zlevel);
-
-                    grpSlice->addItemDrawable(slice);
-
-                    if (_computeDirs)
+                    if (dataSlice != NULL)
                     {
-                        // init Distances
-                        QMutableMapIterator<QPair<double, double>, double> itAng(dirMax);
-                        while (itAng.hasNext())
+                        CT_StandardItemGroup* grpSlice= new CT_StandardItemGroup(_grpSlice_ModelName.completeName(), _rscene);
+                        group->addGroup(grpSlice);
+
+                        CT_Polygon2D* slice = new CT_Polygon2D(_scliceCvx_ModelName.completeName(), _rscene, dataSlice);
+                        slice->setZValue(currentLevel._zlevel);
+
+                        grpSlice->addItemDrawable(slice);
+
+                        if (_computeDirs)
                         {
-                            itAng.next();
-                            itAng.setValue(0);
-                        }
-
-                        // Calcul de l'enveloppe directionnelle
-                        const Eigen::Vector2d &massCenter = dataSlice->getCenter();
-
-                        QListIterator<Eigen::Vector2d*> itPts(currentLevel._pointList);
-                        while (itPts.hasNext())
-                        {
-                            Eigen::Vector2d* pt = itPts.next();
-                            Eigen::Vector2d dir = (*pt) - massCenter;
-
-                            double distance = dir.norm();
-                            double asinx = asin(dir(0) / distance);
-                            double acosy = acos(dir(1) / distance);
-                            double azimut;
-                            if (asinx >= 0) {
-                                azimut = acosy;
-                            } else {
-                                azimut = 2*M_PI - acosy;
-                            }
-
-                            itAng.toFront();
+                            // init Distances
+                            QMutableMapIterator<QPair<double, double>, double> itAng(dirMax);
                             while (itAng.hasNext())
                             {
                                 itAng.next();
-                                const QPair<double, double> &pair = itAng.key();
-
-                                if ((azimut >= pair.first) && (azimut < pair.second) && (distance > itAng.value())) {itAng.setValue(distance);}
+                                itAng.setValue(0);
                             }
+
+                            // Calcul de l'enveloppe directionnelle
+                            const Eigen::Vector2d &massCenter = dataSlice->getCenter();
+
+                            QListIterator<Eigen::Vector2d*> itPts(currentLevel._pointList);
+                            while (itPts.hasNext())
+                            {
+                                Eigen::Vector2d* pt = itPts.next();
+                                Eigen::Vector2d dir = (*pt) - massCenter;
+
+                                double distance = dir.norm();
+                                double asinx = asin(dir(0) / distance);
+                                double acosy = acos(dir(1) / distance);
+                                double azimut;
+                                if (asinx >= 0) {
+                                    azimut = acosy;
+                                } else {
+                                    azimut = 2*M_PI - acosy;
+                                }
+
+                                itAng.toFront();
+                                while (itAng.hasNext())
+                                {
+                                    itAng.next();
+                                    const QPair<double, double> &pair = itAng.key();
+
+                                    if ((azimut >= pair.first) && (azimut < pair.second) && (distance > itAng.value())) {itAng.setValue(distance);}
+                                }
+                            }
+
+                            double lastDistance = itAng.value();
+                            itAng.remove();
+                            itAng.toFront();
+                            if (itAng.value() < lastDistance) {itAng.setValue(lastDistance);}
+
+                            QVector<Eigen::Vector2d*> vertices;
+                            itAng.toFront();
+                            double lastDir = 0;
+                            while (itAng.hasNext())
+                            {
+                                itAng.next();
+
+                            }
+
                         }
-
-                        double lastDistance = itAng.value();
-                        itAng.remove();
-                        itAng.toFront();
-                        if (itAng.value() < lastDistance) {itAng.setValue(lastDistance);}
-
-                        QVector<Eigen::Vector2d*> vertices;
-                        itAng.toFront();
-                        double lastDir = 0;
-                        while (itAng.hasNext())
-                        {
-                            itAng.next();
-
-                        }
-
                     }
                 }
             }
-        }
 
+        }
 
         qDeleteAll(allPoints);
     }
