@@ -26,6 +26,7 @@
 #define ONF_STEPCREATEPLOTMANAGERGRID_H
 
 #include "ct_step/abstract/ct_abstractstep.h"
+#include "ct_tools/model/ct_autorenamemodels.h"
 
 
 class ONF_StepCreatePlotManagerGrid: public CT_AbstractStep
@@ -93,9 +94,15 @@ protected:
     void compute();
 
 private:
+    CT_AutoRenameModels     _outPlotManagerGrid;
 
     // Step parameters
-    // No parameter for this step
+    QString _plotType;
+    double  _plotSize;
+    double  _plotSpacing;
+    double  _xref;
+    double  _yref;
+
 };
 
 #endif // ONF_STEPCREATEPLOTMANAGERGRID_H

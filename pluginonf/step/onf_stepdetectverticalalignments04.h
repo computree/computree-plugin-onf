@@ -203,11 +203,8 @@ private:
     CT_AutoRenameModels    _cluster_ModelName;
     CT_AutoRenameModels    _line_ModelName;
     CT_AutoRenameModels    _attMaxDistXY_ModelName;
+    CT_AutoRenameModels    _attStemType_ModelName;
     CT_AutoRenameModels    _circle_ModelName;
-
-    CT_AutoRenameModels    _grpClusterSmall_ModelName;
-    CT_AutoRenameModels    _clusterSmall_ModelName;
-    CT_AutoRenameModels    _lineSmall_ModelName;
 
     CT_AutoRenameModels    _grpClusterDebug_ModelName;
     CT_AutoRenameModels    _grpClusterDebug2_ModelName;

@@ -72,8 +72,8 @@ ONF_StepDetectVerticalAlignments04::ONF_StepDetectVerticalAlignments04(CT_StepIn
     _DBH_resAzimZeni = 1;
     _DBH_zeniMax = 20;
 
-    _pointDistThresholdSmall = 3.0;
-    _maxPhiAngleSmall = 15.0;
+    _pointDistThresholdSmall = 4.0;
+    _maxPhiAngleSmall = 20.0;
     _lineDistThresholdSmall = 0.4;
     _minPtsSmall = 3;
     _lineLengthRatioSmall = 0.8;
@@ -127,14 +127,12 @@ void ONF_StepDetectVerticalAlignments04::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resCpy = createNewOutResultModelToCopy(DEFin_res);
 
-    resCpy->addGroupModel(DEFin_grp, _grpCluster_ModelName, new CT_StandardItemGroup(), tr("Grosses tiges"));
-    resCpy->addItemModel(_grpCluster_ModelName, _cluster_ModelName, new CT_PointCluster(), tr("Cluster conservé"));
-    resCpy->addItemAttributeModel(_cluster_ModelName, _attMaxDistXY_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("MaxDistXY"));
-    resCpy->addItemModel(_grpCluster_ModelName, _circle_ModelName, new CT_Circle2D(), tr("Diamètre Estimé"));
-
-    resCpy->addGroupModel(DEFin_grp, _grpClusterSmall_ModelName, new CT_StandardItemGroup(), tr("Petites tiges"));
-    resCpy->addItemModel(_grpClusterSmall_ModelName, _clusterSmall_ModelName, new CT_PointCluster(), tr("Cluster conservé"));
-    resCpy->addItemModel(_grpClusterSmall_ModelName, _lineSmall_ModelName, new CT_PointCluster(), tr("Droite ajustée"));
+    resCpy->addGroupModel(DEFin_grp, _grpCluster_ModelName, new CT_StandardItemGroup(), tr("Tiges"));
+    resCpy->addItemModel(_grpCluster_ModelName, _cluster_ModelName, new CT_PointCluster(), tr("Cluster"));
+    resCpy->addItemAttributeModel(_cluster_ModelName, _attMaxDistXY_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Diamètre"));
+    resCpy->addItemAttributeModel(_cluster_ModelName, _attStemType_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_VALUE), tr("Type"), tr("0 = petite tige ; 1 = grosse tige"));
+    resCpy->addItemModel(_grpCluster_ModelName, _circle_ModelName, new CT_Circle2D(), tr("Diamètre"));
+    resCpy->addItemModel(_grpCluster_ModelName, _line_ModelName, new CT_PointCluster(), tr("Droite ajustée"));
 
     if (_clusterDebugMode)
     {
@@ -142,9 +140,7 @@ void ONF_StepDetectVerticalAlignments04::createOutResultModelListProtected()
         resCpy->addItemModel(_grpClusterDebug_ModelName, _clusterDebug_ModelName, new CT_PointCluster(), tr("Lignes de scan (toutes)"));
         resCpy->addGroupModel(DEFin_grp, _grpClusterDebug2_ModelName, new CT_StandardItemGroup(), tr("Debug"));
         resCpy->addItemModel(_grpClusterDebug2_ModelName, _clusterDebug2_ModelName, new CT_PointCluster(), tr("Lignes de scan (conservées)"));
-
     }
-
 }
 
 // Semi-automatic creation of step parameters DialogBox
@@ -609,6 +605,7 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
                 grpClKept->addItemDrawable(cluster);
 
                 cluster->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMaxDistXY_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, maxDist));
+                cluster->addItemAttribute(new CT_StdItemAttributeT<int>(_step->_attStemType_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, 1));
 
                 Eigen::Vector3d center;
                 center(0) = cluster->getBarycenter().x();
@@ -786,14 +783,58 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
                                 delete cluster;
                                 delete fittedLineData;
                             } else {
-                                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpClusterSmall_ModelName.completeName(), _res);
+
+                                // compute diameter
+                                double diameter = 0;
+                                const Eigen::Vector3d &direction = fittedLineData->getDirection();
+
+                                Eigen::Vector3d center;
+                                center(0) = cluster->getBarycenter().x();
+                                center(1) = cluster->getBarycenter().y();
+                                center(2) = cluster->getBarycenter().z();
+
+                                QList<Eigen::Vector2d*> projPts;
+                                Eigen::Hyperplane<double, 3> plane(direction, center);
+
+                                CT_PointIterator itP(cloudIndex);
+                                while(itP.hasNext())
+                                {
+                                    const CT_Point &point = itP.next().currentPoint();
+                                    Eigen::Vector3d projectedPt = plane.projection(point);
+                                    projPts.append(new Eigen::Vector2d(projectedPt(0), projectedPt(1)));
+                                }
+
+                                for (int i = 0 ; i < projPts.size() ; i++)
+                                {
+                                    Eigen::Vector2d* pt1 = projPts.at(i);
+                                    for (int j = i+1 ; j < projPts.size() ; j++)
+                                    {
+                                        Eigen::Vector2d* pt2 = projPts.at(j);
+
+                                        double dist = sqrt(pow((*pt1)(0) - (*pt2)(0), 2) + pow((*pt1)(1) - (*pt2)(1), 2));
+                                        if (dist > diameter) {diameter = dist;}
+                                    }
+                                }
+
+                                // add items to result
+                                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
                                 grp->addGroup(grpClKept);
 
-                                cluster->setModel(_step->_clusterSmall_ModelName.completeName());
                                 grpClKept->addItemDrawable(cluster);
 
-                                CT_Line* line = new CT_Line(_step->_lineSmall_ModelName.completeName(), _res, fittedLineData);
+                                cluster->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMaxDistXY_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, diameter));
+                                cluster->addItemAttribute(new CT_StdItemAttributeT<int>(_step->_attStemType_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, 0));
+
+
+                                CT_Line* line = new CT_Line(_step->_line_ModelName.completeName(), _res, fittedLineData);
                                 grpClKept->addItemDrawable(line);
+
+                                Eigen::Vector2d center2D;
+                                center2D(0) = center(0);
+                                center2D(1) = center(1);
+
+                                CT_Circle2D *circle = new CT_Circle2D(_step->_circle_ModelName.completeName(), _res, new CT_Circle2DData(center2D, diameter/2.0));
+                                grpClKept->addItemDrawable(circle);
                             }
                         } else {
                             delete cluster;
