@@ -33,8 +33,7 @@
 
 #include "ct_itemdrawable/abstract/ct_abstractareashape2d.h"
 
-#include "ct_itemdrawable/ct_plotmanageritem.h"
-#include "ct_plotmanager/ct_plotmanager_grid.h"
+#include "ct_itemdrawable/ct_plotgridmanager.h"
 
 // Alias for indexing models
 #define DEFin_result "resultDataSource"
@@ -96,7 +95,7 @@ void ONF_StepCreatePlotManagerGrid::createInResultModelListProtected()
 void ONF_StepCreatePlotManagerGrid::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEFin_result);
-    res->addItemModel(DEFin_grpShape2D, _outPlotManagerGrid, new CT_PlotManagerItem(), tr("Gestionnaire de placettes (grille)"));
+    res->addItemModel(DEFin_grpShape2D, _outPlotManagerGrid, new CT_PlotGridManager(), tr("Gestionnaire de placettes (grille)"));
 }
 
 // Semi-automatic creation of step parameters DialogBox
@@ -132,8 +131,8 @@ void ONF_StepCreatePlotManagerGrid::compute()
         if (shape != NULL)
         {
             // select type of plot
-            CT_PlotManager_grid::Type type = CT_PlotManager_grid::T_Circle;
-            if (_plotType == DEF_typeSquare) {type = CT_PlotManager_grid::T_Square;}
+            //CT_PlotManager_grid::Type type = CT_PlotManager_grid::T_Circle;
+            //if (_plotType == DEF_typeSquare) {type = CT_PlotManager_grid::T_Square;}
 
             // compute min (x,y) value and the number of row/col
             Eigen::Vector3d min, max;
@@ -158,8 +157,8 @@ void ONF_StepCreatePlotManagerGrid::compute()
 
 
             // create and add manager
-            CT_PlotManagerItem* plotmanager = new CT_PlotManagerItem(_outPlotManagerGrid.completeName(), resOut, new CT_PlotManager_grid(0, 0, 0, 0, type));
-            group->addItemDrawable(plotmanager);
+            //CT_PlotManager* plotmanager = new CT_PlotManager(_outPlotManagerGrid.completeName(), resOut, new CT_PlotManager_grid(0, 0, 0, 0, type));
+            //group->addItemDrawable(plotmanager);
         }
     }
     

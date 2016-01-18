@@ -24,12 +24,10 @@
 
 #include "onf_stepcreateplotmanagerfromfile.h"
 
-#include "ct_itemdrawable/ct_plotmanageritem.h"
+#include "ct_itemdrawable/ct_plotgridmanager.h"
 #include "ct_result/ct_resultgroup.h"
 #include "ct_result/model/outModel/ct_outresultmodelgroup.h"
 #include "ct_view/ct_stepconfigurabledialog.h"
-
-#include "ct_plotmanager/ct_plotmanager_plotslist.h"
 
 // Alias for indexing models
 #define DEFout_result "result"
@@ -81,7 +79,7 @@ void ONF_StepCreatePlotManagerFromFile::createOutResultModelListProtected()
 {
     CT_OutResultModelGroup *res_result = createNewOutResultModel(DEFout_result, tr("Gestionnaire de placette (Plot List)"));
     res_result->setRootGroup(DEFout_grp, new CT_StandardItemGroup(), tr("Groupe"));
-    res_result->addItemModel(DEFout_grp, DEFout_plotmanageritem, new CT_PlotManagerItem(), tr("Gestionnaire de placettes (Plot List)"));
+    //res_result->addItemModel(DEFout_grp, DEFout_plotmanageritem, new CT_PlotManagerItem(), tr("Gestionnaire de placettes (Plot List)"));
 
 }
 
@@ -101,7 +99,7 @@ void ONF_StepCreatePlotManagerFromFile::compute()
     CT_StandardItemGroup* grp_grp= new CT_StandardItemGroup(DEFout_grp, res_result);
     res_result->addGroup(grp_grp);
     
-    CT_PlotManagerItem* item_plotmanageritem = new CT_PlotManagerItem(DEFout_plotmanageritem, res_result, new CT_PlotManager_plotsList());
-    grp_grp->addItemDrawable(item_plotmanageritem);
+    //CT_PlotManagerItem* item_plotmanageritem = new CT_PlotManagerItem(DEFout_plotmanageritem, res_result, new CT_PlotManager_plotsList());
+    //grp_grp->addItemDrawable(item_plotmanageritem);
 
 }

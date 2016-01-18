@@ -411,23 +411,27 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
             for (int j = i + 1 ; j < clustersList.size() ; j++)
             {
                 CT_PointCluster* cluster2 = clustersList.at(j);
-                const CT_PointClusterBarycenter& bary2 = cluster2->getBarycenter();
-                double curvature2 = curvatures.value(cluster2);
 
-                double maxDist = std::max(curvature1, curvature2) * _step->_curvatureMultiplier;
-                double md2 = (std::max(cluster1->getPointCloudIndexSize(), cluster2->getPointCloudIndexSize())) * _step->_nbPointDistStep;
-                if (md2 > maxDist) {maxDist = md2;}
-                if (maxDist > _step->_maxMergingDist) {maxDist = _step->_maxMergingDist;}
-
-                double dist = sqrt(pow(bary1.x() - bary2.x(), 2) + pow(bary1.y() - bary2.y(), 2));
-                if (dist < maxDist)
+                if (cluster1->getPointCloudIndexSize() > 2 || cluster2->getPointCloudIndexSize() > 2)
                 {
-                    correspondances.insert(cluster1, cluster2);
-                    correspondances.insert(cluster2, cluster1);
+                    const CT_PointClusterBarycenter& bary2 = cluster2->getBarycenter();
+                    double curvature2 = curvatures.value(cluster2);
+
+                    double maxDist = std::max(curvature1, curvature2) * _step->_curvatureMultiplier;
+                    double md2 = (std::max(cluster1->getPointCloudIndexSize(), cluster2->getPointCloudIndexSize())) * _step->_nbPointDistStep;
+                    if (md2 > maxDist) {maxDist = md2;}
+                    if (maxDist > _step->_maxMergingDist) {maxDist = _step->_maxMergingDist;}
+
+                    double dist = sqrt(pow(bary1.x() - bary2.x(), 2) + pow(bary1.y() - bary2.y(), 2));
+                    if (dist < maxDist)
+                    {
+                        correspondances.insert(cluster1, cluster2);
+                        correspondances.insert(cluster2, cluster1);
+                    }
                 }
             }
         }
-
+        
 
         // merge neighbours clusters
         qSort(clustersList.begin(), clustersList.end(), ONF_StepDetectVerticalAlignments04::orderByAscendingNumberOfPoints);
@@ -492,96 +496,96 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
             clustersDiameters.insert(cluster, maxDist);
         }
 
-
         // Check for intersecting circles
-        bool intersectionsExist = true;
-        while (intersectionsExist)
-        {
-            // Find intersections
-            correspondances.clear();
-            for (int i = 0 ; i < mergedClusters.size() ; i++)
-            {
-                CT_PointCluster* cluster1 = mergedClusters.at(i);
-                double maxDist1 = clustersDiameters.value(cluster1);
-                const CT_PointClusterBarycenter& bary1 = cluster1->getBarycenter();
+////        bool intersectionsExist = true;
+////        while (intersectionsExist)
+////        {
+//            // Find intersections
+//            correspondances.clear();
+//            for (int i = 0 ; i < mergedClusters.size() ; i++)
+//            {
+//                CT_PointCluster* cluster1 = mergedClusters.at(i);
+//                double maxDist1 = clustersDiameters.value(cluster1);
+//                const CT_PointClusterBarycenter& bary1 = cluster1->getBarycenter();
 
-                for (int j = i + 1 ; j < mergedClusters.size() ; j++)
-                {
-                    CT_PointCluster* cluster2 = mergedClusters.at(j);
-                    double maxDist2 = clustersDiameters.value(cluster2);
-                    const CT_PointClusterBarycenter& bary2 = cluster2->getBarycenter();
+//                for (int j = i + 1 ; j < mergedClusters.size() ; j++)
+//                {
+//                    CT_PointCluster* cluster2 = mergedClusters.at(j);
+//                    double maxDist2 = clustersDiameters.value(cluster2);
+//                    const CT_PointClusterBarycenter& bary2 = cluster2->getBarycenter();
 
-                    double distance = sqrt(pow(bary1.x() - bary2.x(), 2) + pow(bary1.y() - bary2.y(), 2));
+//                    double distance = sqrt(pow(bary1.x() - bary2.x(), 2) + pow(bary1.y() - bary2.y(), 2));
 
-                    if (distance < (maxDist2 + maxDist1))
-                    {
-                        correspondances.insert(cluster1, cluster2);
-                        correspondances.insert(cluster2, cluster1);
-                    }
-                }
-            }
+//                    if (distance < (maxDist2 + maxDist1))
+//                    {
+//                        correspondances.insert(cluster1, cluster2);
+//                        correspondances.insert(cluster2, cluster1);
+//                    }
+//                }
+//            }
 
-            if (correspondances.isEmpty())
-            {
-                intersectionsExist = false;
-            } else {
-                // Merge intersecting circles, and compute new diameters
-                clustersList.clear();
-                clustersList.append(mergedClusters);
-                mergedClusters.clear();
 
-                while (!clustersList.isEmpty())
-                {
-                    QList<CT_PointCluster*> toMerge;
-                    CT_PointCluster* first = clustersList.takeLast();
-                    toMerge.append(first);
+////            if (correspondances.isEmpty())
+////            {
+////                intersectionsExist = false;
+////            } else {
+//                // Merge intersecting circles, and compute new diameters
+//                clustersList.clear();
+//                clustersList.append(mergedClusters);
+//                mergedClusters.clear();
 
-                    QList<CT_PointCluster*> list = correspondances.values(first);
-                    for (int j = 0 ; j < list.size() ; j++)
-                    {
-                        CT_PointCluster* currentClust = list.at(j);
-                        if (clustersList.contains(currentClust) && !toMerge.contains(currentClust)) {toMerge.append(currentClust);}
-                        clustersList.removeOne(currentClust);
-                    }
+//                while (!clustersList.isEmpty())
+//                {
+//                    QList<CT_PointCluster*> toMerge;
+//                    CT_PointCluster* first = clustersList.takeLast();
+//                    toMerge.append(first);
 
-                    if (toMerge.size() == 1)
-                    {
-                        mergedClusters.append(toMerge.first());
-                    } else {
-                        CT_PointCluster* newCluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
+//                    QList<CT_PointCluster*> list = correspondances.values(first);
+//                    for (int j = 0 ; j < list.size() ; j++)
+//                    {
+//                        CT_PointCluster* currentClust = list.at(j);
+//                        if (clustersList.contains(currentClust) && !toMerge.contains(currentClust)) {toMerge.append(currentClust);}
+//                        clustersList.removeOne(currentClust);
+//                    }
 
-                        for (int i = 0 ; i < toMerge.size() ; i++)
-                        {
-                            CT_PointCluster* cluster = toMerge.at(i);
-                            const CT_AbstractPointCloudIndex* pointCloudIndexCl = cluster->getPointCloudIndex();
+//                    if (toMerge.size() == 1)
+//                    {
+//                        mergedClusters.append(toMerge.first());
+//                    } else {
+//                        CT_PointCluster* newCluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
 
-                            CT_PointIterator itP(pointCloudIndexCl);
-                            while(itP.hasNext())
-                            {
-                                size_t index = itP.next().currentGlobalIndex();
-                                newCluster->addPoint(index);
-                            }
-                            delete cluster;
-                            clustersDiameters.remove(cluster);
-                        }
-                        mergedClusters.append(newCluster);
+//                        for (int i = 0 ; i < toMerge.size() ; i++)
+//                        {
+//                            CT_PointCluster* cluster = toMerge.at(i);
+//                            const CT_AbstractPointCloudIndex* pointCloudIndexCl = cluster->getPointCloudIndex();
 
-                        double maxDist = 0;
-                        Eigen::Vector3d center;
-                        center(0) = newCluster->getBarycenter().x();
-                        center(1) = newCluster->getBarycenter().y();
-                        center(2) = newCluster->getBarycenter().z();
+//                            CT_PointIterator itP(pointCloudIndexCl);
+//                            while(itP.hasNext())
+//                            {
+//                                size_t index = itP.next().currentGlobalIndex();
+//                                newCluster->addPoint(index);
+//                            }
+//                            delete cluster;
+//                            clustersDiameters.remove(cluster);
+//                        }
+//                        mergedClusters.append(newCluster);
 
-                        Eigen::Vector2d center2D;
-                        center2D(0) = center(0);
-                        center2D(1) = center(1);
+//                        double maxDist = 0;
+//                        Eigen::Vector3d center;
+//                        center(0) = newCluster->getBarycenter().x();
+//                        center(1) = newCluster->getBarycenter().y();
+//                        center(2) = newCluster->getBarycenter().z();
 
-                        computeDBH(newCluster, center, maxDist);
-                        clustersDiameters.insert(newCluster, maxDist);
-                    }
-                }
-            }
-        }
+//                        Eigen::Vector2d center2D;
+//                        center2D(0) = center(0);
+//                        center2D(1) = center(1);
+
+//                        computeDBH(newCluster, center, maxDist);
+//                        clustersDiameters.insert(newCluster, maxDist);
+//                    }
+//                }
+////            }
+////        }
 
         // Remove clusters with 2 points or less and add others to result
         QList<CT_Circle2D*> circles;
