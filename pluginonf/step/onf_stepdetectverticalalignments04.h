@@ -186,11 +186,10 @@ private:
         }
 
         void detectAlignmentsForScene(CT_StandardItemGroup* grp);
-        void validateScanLineCluster(CT_PointCluster *cluster, QList<CT_PointCluster *> &keptClusters, QList<size_t> &isolatedPointIndices, CT_PointAccessor &pointAccessor);
-        void processCurrentList(QList<size_t> &isolatedPointIndices, QList<size_t> &currentList, QList<CT_PointCluster*> &keptClusters);
         void computeDBH(CT_PointCluster* cluster, Eigen::Vector3d &center, double &maxDist);
         void findNeighborLines(QList<ONF_StepDetectVerticalAlignments04::LineData*> candidateLines, double distThreshold);
-
+        void transferPointsToIsolatedList(QList<size_t> &isolatedPointIndices, CT_PointCluster* cluster);
+        double correctDbh(double diameter, int pointsNumber, bool *corrected = NULL);
     private:
         ONF_StepDetectVerticalAlignments04* _step;
         CT_ResultGroup* _res;
@@ -213,7 +212,7 @@ private:
 
 
     // Step parameters
-    double      _thresholdGPSTime;
+    double      _thresholdDist3D;
     double      _thresholdDistXY;
     double      _thresholdZenithalAngle;
     int         _minPts;
@@ -224,12 +223,18 @@ private:
 
     double      _DBH_resAzimZeni;
     double      _DBH_zeniMax;
+
     double      _maxPhiAngleSmall;
     double      _pointDistThresholdSmall;
     double      _lineDistThresholdSmall;
     int         _minPtsSmall;
     double      _lineLengthRatioSmall;
     double      _exclusionRadiusSmall;
+
+    double      _ratioDbhNbptsMax;
+    double      _dbhMin;
+    double      _dbhMax;
+    int         _nbPtsForDbhMax;
 
     bool      _clusterDebugMode;
 
