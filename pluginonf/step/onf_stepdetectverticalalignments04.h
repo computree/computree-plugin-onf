@@ -35,6 +35,7 @@
 #include "ct_tools/model/ct_autorenamemodels.h"
 #include "ct_point.h"
 #include "ct_itemdrawable/ct_pointcluster.h"
+#include "ct_accessor/ct_pointaccessor.h"
 
 #include "eigen/Eigen/Core"
 
@@ -164,6 +165,29 @@ private:
         return s1->neighborsCount() > s2->neighborsCount();
     }
 
+    struct ScanLineData {
+
+        ScanLineData() {}
+        ScanLineData(const ScanLineData &lineData)
+        {
+            _indices = lineData._indices;
+            _length  = lineData._length;
+            _maxCurv = lineData._maxCurv;
+        }
+
+        QList<size_t> _indices;
+        double _length;
+        double _maxCurv;
+    };
+
+    static bool orderScanLineData(ScanLineData *l1, ScanLineData *l2)
+    {
+        if (l1->_indices.size() < l2->_indices.size()) {return true;}
+        return (l1->_maxCurv > l2->_maxCurv);
+    }
+
+
+
     static bool orderByAscendingNumberOfPoints(CT_PointCluster *cl1, CT_PointCluster *cl2)
     {
         return cl1->getPointCloudIndexSize() < cl2->getPointCloudIndexSize();
@@ -186,10 +210,12 @@ private:
         }
 
         void detectAlignmentsForScene(CT_StandardItemGroup* grp);
+        double computeCurvature(CT_PointAccessor &pointAccessor, const QList<size_t> &line);
         void computeDBH(CT_PointCluster* cluster, Eigen::Vector3d &center, double &maxDist);
         void findNeighborLines(QList<ONF_StepDetectVerticalAlignments04::LineData*> candidateLines, double distThreshold);
         void transferPointsToIsolatedList(QList<size_t> &isolatedPointIndices, CT_PointCluster* cluster);
         double correctDbh(double diameter, int pointsNumber, bool *corrected = NULL);
+
     private:
         ONF_StepDetectVerticalAlignments04* _step;
         CT_ResultGroup* _res;
@@ -212,8 +238,8 @@ private:
 
 
     // Step parameters
-    double      _thresholdDist3D;
-    double      _thresholdDistXY;
+    double      _thresholdGPSTime;
+    double      _maxCurvature;
     double      _thresholdZenithalAngle;
     int         _minPts;
 

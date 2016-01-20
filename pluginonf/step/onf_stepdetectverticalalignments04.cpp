@@ -43,7 +43,6 @@
 #include "ct_math/ct_sphericalline3d.h"
 #include "ct_math/ct_mathstatistics.h"
 #include "ct_math/ct_mathpoint.h"
-#include "ct_accessor/ct_pointaccessor.h"
 
 #include <QtConcurrent>
 
@@ -60,8 +59,8 @@
 // Constructor : initialization of parameters
 ONF_StepDetectVerticalAlignments04::ONF_StepDetectVerticalAlignments04(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
-    _thresholdDist3D = 1.5;
-    _thresholdDistXY = 0.25;
+    _thresholdGPSTime = 1e-5;
+    _maxCurvature = 0.25;
     _thresholdZenithalAngle = 30.0;
     _minPts = 2;
 
@@ -154,8 +153,8 @@ void ONF_StepDetectVerticalAlignments04::createPostConfigurationDialog()
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
 
     configDialog->addTitle( tr("1- Détéction des lignes de scan :"));
-    configDialog->addDouble(tr("Seuil de distance 3D      pour changer de ligne de scan"), "m", 0, 1e+4, 4, _thresholdDist3D);
-    configDialog->addDouble(tr("Seuil de distance 2D (XY) pour changer de ligne de scan"), "m", 0, 1e+4, 4, _thresholdDistXY);
+    configDialog->addDouble(tr("Seuil de temps GPS pour changer de ligne de scan"), "m", 0, 1e+10, 10, _thresholdGPSTime);
+    configDialog->addDouble(tr("Courbure maximale d'une ligne de scan"), "cm/m", 0, 1e+4, 2, _maxCurvature, 100);
     configDialog->addDouble(tr("Angle zénithal maximal conserver une ligne de scan"), "°", 0, 360, 2, _thresholdZenithalAngle);
     configDialog->addInt(tr("Ne conserver que les lignes de scan avec au moins"), "points", 0, 1000, _minPts);
 
@@ -217,7 +216,6 @@ void ONF_StepDetectVerticalAlignments04::compute()
 
 }
 
-
 void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlignmentsForScene(CT_StandardItemGroup* grp)
 {
     CT_PointAccessor pointAccessor;
@@ -252,44 +250,95 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
             }
         }
 
-        CT_PointCluster* cluster = NULL;
-        QList<CT_PointCluster*> scanLineClusters;
+        // List of not attributes points
+        QList<size_t> isolatedPointIndices;
 
-        // Create lines of scan
-        bool first = true;
-        CT_Point lastPoint;
+        QList<size_t> currentIndexList;
+        QList<QList<size_t> > linesOfScan;
+
+        // Creation des lignes de scan
+        double lastGPSTime = -std::numeric_limits<double>::max();
         QMapIterator<double, size_t> itMapSorted(sortedIndices);
         while (itMapSorted.hasNext())
         {
             itMapSorted.next();
+            double gpsTime = itMapSorted.key();
             size_t index = itMapSorted.value();
 
-            const CT_Point &point = pointAccessor.constPointAt(index);
+            double delta = gpsTime - lastGPSTime;
+            lastGPSTime = gpsTime;
 
-            double dist = 0;
-            double distXY = 0;
-            if (first)
+            if (delta < _step->_thresholdGPSTime)
             {
-                first = false;
-            } else  {
-               dist   = sqrt(pow(point(0) - lastPoint(0), 2) + pow(point(1) - lastPoint(1), 2) + pow(point(2) - lastPoint(2), 2));
-               distXY = sqrt(pow(point(0) - lastPoint(0), 2) + pow(point(1) - lastPoint(1), 2));
-               lastPoint = point;
-            }
-
-            if (cluster != NULL && dist < _step->_thresholdDist3D && distXY < _step->_thresholdDistXY)
-            {
-                // add to line of scan
-                cluster->addPoint(index);
+                // add point to current line of scan
+                currentIndexList.append(index);
             } else {
-                // create new line of scan and add
-                cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);                                
-                scanLineClusters.append(cluster);
-
-                cluster->addPoint(index);
+                // init a new line of scan
+                if (currentIndexList.size() > 1)
+                {
+                    linesOfScan.append(currentIndexList);
+                } else {
+                    if (!currentIndexList.isEmpty()) {isolatedPointIndices.append(currentIndexList.first());}
+                }
+                currentIndexList.clear();
+                // then add the point
+                currentIndexList.append(index);
             }
         }
         sortedIndices.clear();
+
+        // Eliminate noise in lines of scan
+        QList<CT_PointCluster*> scanLineClusters;
+        QListIterator<QList<size_t> > itLines(linesOfScan);
+        while (itLines.hasNext())
+        {
+            const QList<size_t> &completeLine = itLines.next();
+
+            QList<ScanLineData> candidateLines;
+
+            for (int i = 0 ; i < completeLine.size() ; i++)
+            {
+                size_t index1 = completeLine.at(i);
+
+
+                for (int j = i + 2 ; j < completeLine.size() ; j++)
+                {
+                    size_t index2 = completeLine.at(i);
+
+                    ScanLineData simplifiedLine;
+                    simplifiedLine._indices.append(index1);
+
+                    CT_Point p1 = pointAccessor.constPointAt(index1);
+                    CT_Point p2 = pointAccessor.constPointAt(index2);
+                    Eigen::Vector3d direction = p2 - p1;
+                    double length = direction.norm();
+                    direction.normalize();
+
+                    for (int k = i + 1 ; k < j ; k++)
+                    {
+                        size_t index3 = completeLine.at(k);
+                        CT_Point p3 = pointAccessor.constPointAt(index3);
+
+                        double curv = CT_MathPoint::distancePointLine(p3, direction, p1) / length;
+                        if (curv < _step->_maxCurvature)
+                        {
+                            simplifiedLine._indices.append(index3);
+                        }
+                    }
+
+                    simplifiedLine._indices.append(index2);
+
+                    if (simplifiedLine._indices.size() > 2)
+                    {
+                        candidateLines.append(simplifiedLine);
+                    }
+                }
+            }
+
+            //todo
+
+        }
+        linesOfScan.clear();
 
         // Archive detection of lines of scan (all)
         if (_step->_clusterDebugMode)
@@ -314,7 +363,6 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
         }
 
         // Remove clusters with 1 point or with phi > maxPhi
-        QList<size_t> isolatedPointIndices;
         QList<CT_PointCluster*> keptClustersScanLineOk;
         for (int i = 0 ; i < scanLineClusters.size() ; i++)
         {
@@ -753,6 +801,31 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
         insertedPoints.clear();
     }
 }
+
+double ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::computeCurvature(CT_PointAccessor &pointAccessor, const QList<size_t> &line)
+{
+    if (line.size() < 2) {return -1;}
+
+    const size_t index1 = line.first();
+    const size_t index2 = line.last();
+
+    CT_Point p1 = pointAccessor.constPointAt(index1);
+    CT_Point p2 = pointAccessor.constPointAt(index2);
+    Eigen::Vector3d direction = p2 - p1;
+    direction.normalize();
+
+    double curvature = 0;
+    double curv;
+    for (int i = 1 ; i < line.size() - 1 ; i++)
+    {
+        size_t index = line.at(i);
+        CT_Point p = pointAccessor.constPointAt(index);
+        curv = CT_MathPoint::distancePointLine(p, direction, p1);
+        if (curv > curvature) {curvature = curv;}
+    }
+    return curvature;
+}
+
 
 void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::computeDBH(CT_PointCluster* cluster, Eigen::Vector3d &center, double &maxDist)
 {
