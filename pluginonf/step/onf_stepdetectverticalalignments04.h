@@ -165,29 +165,6 @@ private:
         return s1->neighborsCount() > s2->neighborsCount();
     }
 
-    struct ScanLineData {
-
-        ScanLineData() {}
-        ScanLineData(const ScanLineData &lineData)
-        {
-            _indices = lineData._indices;
-            _length  = lineData._length;
-            _maxCurv = lineData._maxCurv;
-        }
-
-        QList<size_t> _indices;
-        double _length;
-        double _maxCurv;
-    };
-
-    static bool orderScanLineData(ScanLineData *l1, ScanLineData *l2)
-    {
-        if (l1->_indices.size() < l2->_indices.size()) {return true;}
-        return (l1->_maxCurv > l2->_maxCurv);
-    }
-
-
-
     static bool orderByAscendingNumberOfPoints(CT_PointCluster *cl1, CT_PointCluster *cl2)
     {
         return cl1->getPointCloudIndexSize() < cl2->getPointCloudIndexSize();
@@ -231,15 +208,18 @@ private:
     CT_AutoRenameModels    _attStemType_ModelName;
     CT_AutoRenameModels    _circle_ModelName;
 
-    CT_AutoRenameModels    _grpClusterDebug_ModelName;
+    CT_AutoRenameModels    _grpClusterDebug1_ModelName;
     CT_AutoRenameModels    _grpClusterDebug2_ModelName;
-    CT_AutoRenameModels    _clusterDebug_ModelName;
+    CT_AutoRenameModels    _grpClusterDebug3_ModelName;
+    CT_AutoRenameModels    _clusterDebug1_ModelName;
     CT_AutoRenameModels    _clusterDebug2_ModelName;
+    CT_AutoRenameModels    _clusterDebug3_ModelName;
 
 
     // Step parameters
     double      _thresholdGPSTime;
     double      _maxCurvature;
+    double      _maxXYDist;
     double      _thresholdZenithalAngle;
     int         _minPts;
 

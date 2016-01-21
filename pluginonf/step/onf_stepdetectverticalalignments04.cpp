@@ -53,7 +53,7 @@
 #define DEFin_sceneAll "sceneAll"
 #define DEFin_attLineOfScan "lineOfScan"
 #define DEFin_attGPSTime "gpstime"
-
+#define DEFin_attIntensity "intensity"
 
 
 // Constructor : initialization of parameters
@@ -61,6 +61,7 @@ ONF_StepDetectVerticalAlignments04::ONF_StepDetectVerticalAlignments04(CT_StepIn
 {
     _thresholdGPSTime = 1e-5;
     _maxCurvature = 0.25;
+    _maxXYDist = 0.25;
     _thresholdZenithalAngle = 30.0;
     _minPts = 2;
 
@@ -121,6 +122,7 @@ void ONF_StepDetectVerticalAlignments04::createInResultModelListProtected()
     resIn_res->addGroupModel("", DEFin_grp, CT_AbstractItemGroup::staticGetType(), tr("Scènes (grp)"));
     resIn_res->addItemModel(DEFin_grp, DEFin_sceneStem, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène (tiges)"));
     resIn_res->addItemModel(DEFin_grp, DEFin_attGPSTime, CT_AbstractPointAttributesScalar::staticGetType(), tr("Temps GPS"), tr("Attribut codant le temps GPS"));
+    resIn_res->addItemModel(DEFin_grp, DEFin_attIntensity, CT_AbstractPointAttributesScalar::staticGetType(), tr("Intensité"), tr("Attribut codant l'intensité"));
 
     resIn_res->addItemModel(DEFin_grp, DEFin_sceneAll, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène (complète)"), "",
                             CT_InAbstractModel::C_ChooseOneIfMultiple, CT_InAbstractModel::F_IsOptional);
@@ -140,10 +142,12 @@ void ONF_StepDetectVerticalAlignments04::createOutResultModelListProtected()
 
     if (_clusterDebugMode)
     {
-        resCpy->addGroupModel(DEFin_grp, _grpClusterDebug_ModelName, new CT_StandardItemGroup(), tr("Debug"));
-        resCpy->addItemModel(_grpClusterDebug_ModelName, _clusterDebug_ModelName, new CT_PointCluster(), tr("Lignes de scan (toutes)"));
+        resCpy->addGroupModel(DEFin_grp, _grpClusterDebug1_ModelName, new CT_StandardItemGroup(), tr("Debug"));
+        resCpy->addItemModel(_grpClusterDebug1_ModelName, _clusterDebug1_ModelName, new CT_PointCluster(), tr("Lignes de scan complètes (toutes)"));
         resCpy->addGroupModel(DEFin_grp, _grpClusterDebug2_ModelName, new CT_StandardItemGroup(), tr("Debug"));
-        resCpy->addItemModel(_grpClusterDebug2_ModelName, _clusterDebug2_ModelName, new CT_PointCluster(), tr("Lignes de scan (conservées)"));
+        resCpy->addItemModel(_grpClusterDebug2_ModelName, _clusterDebug2_ModelName, new CT_PointCluster(), tr("Lignes de scan débruitées (toutes)"));
+        resCpy->addGroupModel(DEFin_grp, _grpClusterDebug3_ModelName, new CT_StandardItemGroup(), tr("Debug"));
+        resCpy->addItemModel(_grpClusterDebug3_ModelName, _clusterDebug3_ModelName, new CT_PointCluster(), tr("Lignes de scan (conservées)"));
     }
 }
 
@@ -154,8 +158,9 @@ void ONF_StepDetectVerticalAlignments04::createPostConfigurationDialog()
 
     configDialog->addTitle( tr("1- Détéction des lignes de scan :"));
     configDialog->addDouble(tr("Seuil de temps GPS pour changer de ligne de scan"), "m", 0, 1e+10, 10, _thresholdGPSTime);
-    configDialog->addDouble(tr("Courbure maximale d'une ligne de scan"), "cm/m", 0, 1e+4, 2, _maxCurvature, 100);
-    configDialog->addDouble(tr("Angle zénithal maximal conserver une ligne de scan"), "°", 0, 360, 2, _thresholdZenithalAngle);
+    configDialog->addDouble(tr("Courbure maximale d'une ligne de scan"), "cm", 0, 1e+4, 2, _maxCurvature, 100);
+    configDialog->addDouble(tr("Distance XY maximale entre points d'une ligne de scan"), "cm", 0, 1e+4, 2, _maxXYDist, 100);
+    configDialog->addDouble(tr("Angle zénithal maximal pour conserver une ligne de scan"), "°", 0, 360, 2, _thresholdZenithalAngle);
     configDialog->addInt(tr("Ne conserver que les lignes de scan avec au moins"), "points", 0, 1000, _minPts);
 
     configDialog->addEmpty();
@@ -182,7 +187,7 @@ void ONF_StepDetectVerticalAlignments04::createPostConfigurationDialog()
     configDialog->addTitle( tr("5- Estimation des diamètres :"));
     configDialog->addDouble(tr("Ratio maximal diamètre / nb. points"), "cm", 0, 1e+4, 2, _ratioDbhNbptsMax, 100);
     configDialog->addDouble(tr("Diamètre minimal"), "cm", 0, 1e+4, 2, _dbhMin, 100);
-    configDialog->addDouble(tr("Diamètre maximal des \"petites tiges\""), "cm", 0, 1e+4, 2, _dbhMax, 100);
+    configDialog->addDouble(tr("Diamètre maximal des petites tiges"), "cm", 0, 1e+4, 2, _dbhMax, 100);
     configDialog->addInt(tr("Nombre de points équivalents au diamètre maximal"), "points", 2, 1e+4, _nbPtsForDbhMax);
 
     configDialog->addEmpty();
@@ -223,10 +228,14 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
 
     const CT_AbstractItemDrawableWithPointCloud* sceneStem = (CT_AbstractItemDrawableWithPointCloud*)grp->firstItemByINModelName(_step, DEFin_sceneStem);
     const CT_AbstractPointAttributesScalar* attributeGPSTime = (CT_AbstractPointAttributesScalar*)grp->firstItemByINModelName(_step, DEFin_attGPSTime);
+    const CT_AbstractPointAttributesScalar* attributeIntensity = (CT_AbstractPointAttributesScalar*)grp->firstItemByINModelName(_step, DEFin_attIntensity);
 
-    if (sceneStem != NULL && attributeGPSTime != NULL)
+    if (sceneStem != NULL && attributeGPSTime != NULL && attributeIntensity != NULL)
     {
         const CT_AbstractPointCloudIndex* pointCloudIndex = sceneStem->getPointCloudIndex();
+        const CT_AbstractPointCloudIndex* pci_attGPSTime = attributeGPSTime->getPointCloudIndex();
+        const CT_AbstractPointCloudIndex* pci_attItensity = attributeIntensity->getPointCloudIndex();
+
 
         ////////////////////////////////////////////////////
         /// Detection of big stems: lines of scan        ///
@@ -238,19 +247,17 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
         while(itP.hasNext() && (!_step->isStopped()))
         {
             size_t index = itP.next().currentGlobalIndex();
-
-            const CT_AbstractPointCloudIndex* pci_att = attributeGPSTime->getPointCloudIndex();
-            size_t localIndex = pci_att->indexOf(index);
+            size_t localIndex = pci_attGPSTime->indexOf(index);
 
             double gpsTime = 0; // Récupération de la ligne de scan pour le point 1
-            if (localIndex < pci_att->size())
+            if (localIndex < pci_attGPSTime->size())
             {
                 gpsTime = attributeGPSTime->dValueAt(localIndex);
                 sortedIndices.insert(gpsTime, index);
             }
         }
 
-        // List of not attributes points
+        // List of not clusterized points
         QList<size_t> isolatedPointIndices;
 
         QList<size_t> currentIndexList;
@@ -287,6 +294,8 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
         }
         sortedIndices.clear();
 
+
+
         // Eliminate noise in lines of scan
         QList<CT_PointCluster*> scanLineClusters;
         QListIterator<QList<size_t> > itLines(linesOfScan);
@@ -294,59 +303,155 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
         {
             const QList<size_t> &completeLine = itLines.next();
 
-            QList<ScanLineData> candidateLines;
 
+            // Archive detection of lines of scan (all complete)
+            if (_step->_clusterDebugMode)
+            {
+                CT_PointCluster* cluster = new CT_PointCluster(_step->_clusterDebug1_ModelName.completeName(), _res);
+                for (int i = 0 ; i < completeLine.size() ; i++)
+                {
+                    cluster->addPoint(completeLine.at(i));
+                }
+                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpClusterDebug1_ModelName.completeName(), _res);
+                grp->addGroup(grpClKept);
+                grpClKept->addItemDrawable(cluster);
+            }
+
+
+            // Find a reference point on the line of scan (max intensity point)
+            double maxIntensity = -std::numeric_limits<double>::max();
+            int refi = 0;
             for (int i = 0 ; i < completeLine.size() ; i++)
             {
-                size_t index1 = completeLine.at(i);
+                size_t localIndex = pci_attItensity->indexOf(completeLine.at(i));
+                double intensity = maxIntensity;
+                if (localIndex < pci_attItensity->size()) {intensity = attributeIntensity->dValueAt(localIndex);}
 
-
-                for (int j = i + 2 ; j < completeLine.size() ; j++)
+                if (intensity > maxIntensity)
                 {
-                    size_t index2 = completeLine.at(i);
+                    maxIntensity = intensity;
+                    refi = i;
+                }
+            }
 
-                    ScanLineData simplifiedLine;
-                    simplifiedLine._indices.append(index1);
-
-                    CT_Point p1 = pointAccessor.constPointAt(index1);
-                    CT_Point p2 = pointAccessor.constPointAt(index2);
+            int newRefI = 0;
+            // Test all lines linking reference point to another point, and keep the best one: max number of points, or if equal min length
+            CT_Point p1 = pointAccessor.constPointAt(completeLine.at(refi));
+            QList<size_t> bestSimplifiedLine;
+            double bestSimplifiedLineLength = std::numeric_limits<double>::max();
+            for (int i = 0 ; i < completeLine.size() ; i++)
+            {
+                if (i != refi)
+                {
+                    CT_Point p2 = pointAccessor.constPointAt(completeLine.at(i));
                     Eigen::Vector3d direction = p2 - p1;
-                    double length = direction.norm();
                     direction.normalize();
 
-                    for (int k = i + 1 ; k < j ; k++)
-                    {
-                        size_t index3 = completeLine.at(k);
-                        CT_Point p3 = pointAccessor.constPointAt(index3);
+                    QList<size_t> simplifiedLine;
 
-                        double curv = CT_MathPoint::distancePointLine(p3, direction, p1) / length;
-                        if (curv < _step->_maxCurvature)
+                    for (int j = 0 ; j < completeLine.size() ; j++)
+                    {
+                        if (j == refi)
                         {
-                            simplifiedLine._indices.append(index3);
+                            simplifiedLine.append(completeLine.at(j));
+                            newRefI = simplifiedLine.size() - 1;
+                        } else if (j == i) {
+                            simplifiedLine.append(completeLine.at(j));
+                        } else {
+                            size_t index = completeLine.at(j);
+                            CT_Point p3 = pointAccessor.constPointAt(index);
+                            double curv = CT_MathPoint::distancePointLine(p3, direction, p1);
+                            if (curv < _step->_maxCurvature)
+                            {
+                                simplifiedLine.append(index);
+                            }
                         }
                     }
 
-                    simplifiedLine._indices.append(index2);
+                    // Compute bestSimplifiedLineLength
+                    const size_t index01 = simplifiedLine.first();
+                    const size_t index02 = simplifiedLine.last();
 
-                    if (simplifiedLine._indices.size() > 2)
+                    CT_Point p01 = pointAccessor.constPointAt(index01);
+                    CT_Point p02 = pointAccessor.constPointAt(index02);
+
+                    double length = sqrt(pow(p01(0) - p02(0), 2) + pow(p01(1) - p02(1), 2) + pow(p01(2) - p02(2), 2));
+
+                    // Compare with previous best simplified line
+                    if (simplifiedLine.size() > bestSimplifiedLine.size())
                     {
-                        candidateLines.append(simplifiedLine);
+                        bestSimplifiedLine = simplifiedLine;
+                        bestSimplifiedLineLength = length;
+                    } else if (simplifiedLine.size() == bestSimplifiedLine.size() && length < bestSimplifiedLineLength)
+                    {
+                        bestSimplifiedLine = simplifiedLine;
+                        bestSimplifiedLineLength = length;
                     }
                 }
             }
 
-            //todo
+            if (bestSimplifiedLine.size() > 1)
+            {
 
+                // Delete extremities from reference points, if a distXY between succesive points > threshold
+                int firstI = 0;
+                bool stop = false;
+                for (int i = newRefI - 1 ; !stop && i >= 0 ; i--)
+                {
+                    const size_t index01 = bestSimplifiedLine.at(i);
+                    const size_t index02 = bestSimplifiedLine.at(i+1);
+
+                    CT_Point p01 = pointAccessor.constPointAt(index01);
+                    CT_Point p02 = pointAccessor.constPointAt(index02);
+
+                    double distXY = sqrt(pow(p01(0) - p02(0), 2) + pow(p01(1) - p02(1), 2));
+                    if (distXY > _step->_maxXYDist)
+                    {
+                        firstI = i + 1;
+                        stop = true;
+                    }
+                }
+
+                int lastI = bestSimplifiedLine.size() - 1;
+                stop = false;
+                for (int i = newRefI + 1 ; !stop && i < bestSimplifiedLine.size() ; i++)
+                {
+                    const size_t index01 = bestSimplifiedLine.at(i);
+                    const size_t index02 = bestSimplifiedLine.at(i-1);
+
+                    CT_Point p01 = pointAccessor.constPointAt(index01);
+                    CT_Point p02 = pointAccessor.constPointAt(index02);
+
+                    double distXY = sqrt(pow(p01(0) - p02(0), 2) + pow(p01(1) - p02(1), 2));
+                    if (distXY > _step->_maxXYDist)
+                    {
+                        lastI = i - 1;
+                        stop = true;
+                    }
+                }
+
+                // If it remains points in the line, create cluster
+                if ((lastI - firstI) > 0)
+                {
+                    CT_PointCluster* cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
+                    for (int i = firstI ; i <= lastI ; i++)
+                    {
+                        cluster->addPoint(bestSimplifiedLine.at(i));
+                    }
+                    scanLineClusters.append(cluster);
+                }
+            }
         }
         linesOfScan.clear();
 
-        // Archive detection of lines of scan (all)
+
+        // Archive detection of lines of scan (all denoised)
         if (_step->_clusterDebugMode)
         {
             for (int i = 0 ; i < scanLineClusters.size() ; i++)
             {
                 CT_PointCluster* cluster = scanLineClusters.at(i);
-                CT_PointCluster* cpy = new CT_PointCluster(_step->_clusterDebug_ModelName.completeName(), _res);
+                CT_PointCluster* cpy = new CT_PointCluster(_step->_clusterDebug2_ModelName.completeName(), _res);
 
                 const CT_AbstractPointCloudIndex* pointCloudIndexCl = cluster->getPointCloudIndex();
                 CT_PointIterator itP(pointCloudIndexCl);
@@ -356,7 +461,7 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
                     cpy->addPoint(index);
                 }
 
-                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpClusterDebug_ModelName.completeName(), _res);
+                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpClusterDebug2_ModelName.completeName(), _res);
                 grp->addGroup(grpClKept);
                 grpClKept->addItemDrawable(cpy);
             }
@@ -404,7 +509,7 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
             for (int i = 0 ; i < keptClustersScanLineOk.size() ; i++)
             {
                 CT_PointCluster* cluster = keptClustersScanLineOk.at(i);
-                CT_PointCluster* cpy = new CT_PointCluster(_step->_clusterDebug2_ModelName.completeName(), _res);
+                CT_PointCluster* cpy = new CT_PointCluster(_step->_clusterDebug3_ModelName.completeName(), _res);
 
                 const CT_AbstractPointCloudIndex* pointCloudIndexCl = cluster->getPointCloudIndex();
                 CT_PointIterator itP(pointCloudIndexCl);
@@ -414,7 +519,7 @@ void ONF_StepDetectVerticalAlignments04::AlignmentsDetectorForScene::detectAlign
                     cpy->addPoint(index);
                 }
 
-                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpClusterDebug2_ModelName.completeName(), _res);
+                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpClusterDebug3_ModelName.completeName(), _res);
                 grp->addGroup(grpClKept);
                 grpClKept->addItemDrawable(cpy);
             }
