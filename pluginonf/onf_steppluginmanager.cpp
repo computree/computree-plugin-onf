@@ -74,6 +74,7 @@
 #include "step/onf_stepdetectverticalalignments02.h"
 #include "step/onf_stepdetectverticalalignments03.h"
 #include "step/onf_stepdetectverticalalignments04.h"
+#include "step/onf_stepdetectverticalalignments05.h"
 #include "step/onf_stepextractlogbuffer.h"
 #include "step/onf_stepfilteritemsbyposition.h"
 #include "step/onf_stepfilterpointsbyboolgrid.h"
@@ -145,6 +146,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
 //    addNewGeometricalShapesStep<ONF_StepDetectVerticalAlignments02>(CT_StepsMenu::LP_Stems);
     addNewBetaStep<ONF_StepDetectVerticalAlignments03>(CT_StepsMenu::LP_Stems);
     addNewBetaStep<ONF_StepDetectVerticalAlignments04>(CT_StepsMenu::LP_Stems);
+    addNewBetaStep<ONF_StepDetectVerticalAlignments05>(CT_StepsMenu::LP_Stems);
     addNewGeometricalShapesStep<ONF_StepFilterItemsByPosition>(CT_StepsMenu::LP_Filter);
     addNewGeometricalShapesStep<ONF_StepFitCylinderOnCluster>(CT_StepsMenu::LP_Fit);
     addNewBetaStep<ONF_StepMatchItemsPositions>("");
