@@ -22,8 +22,8 @@
  along with PluginONF.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
 *****************************************************************************/
 
-#ifndef ONF_STEPDETECTVERTICALALIGNMENTS05_H
-#define ONF_STEPDETECTVERTICALALIGNMENTS05_H
+#ifndef ONF_STEPDETECTVERTICALALIGNMENTS06_H
+#define ONF_STEPDETECTVERTICALALIGNMENTS06_H
 
 #include "ct_step/abstract/ct_abstractstep.h"
 
@@ -42,7 +42,7 @@
 class CT_StandardItemGroup;
 
 
-class ONF_StepDetectVerticalAlignments05: public CT_AbstractStep
+class ONF_StepDetectVerticalAlignments06: public CT_AbstractStep
 {
     Q_OBJECT
 
@@ -54,7 +54,7 @@ public:
      *
      * \param dataInit Step parameters object
      */
-    ONF_StepDetectVerticalAlignments05(CT_StepInitializeData &dataInit);
+    ONF_StepDetectVerticalAlignments06(CT_StepInitializeData &dataInit);
 
     /*! \brief Step description
      *
@@ -147,18 +147,17 @@ protected:
             return *this;
         }
 
-
         double _length;
         double _centerX;
         double _centerY;
 
     };
 
-    static bool orderLinesByDescendingNumberAndLength(const ScanLineData &l1, const ScanLineData &l2)
+    static bool orderLinesByAscendingNumberAndLength(ScanLineData *l1, ScanLineData *l2)
     {
-        if (l1.size() < l2.size()) {return true;}
-        if (l1.size() > l2.size()) {return false;}
-        return l1._length < l2._length;
+        if (l1->size() < l2->size()) {return true;}
+        if (l1->size() > l2->size()) {return false;}
+        return l1->_length < l2->_length;
     }
 
     struct LineData {
@@ -198,7 +197,7 @@ protected:
         Eigen::Vector3d _highCoord;
 
 
-        QList<ONF_StepDetectVerticalAlignments05::LineData*> _neighbors;
+        QList<ONF_StepDetectVerticalAlignments06::LineData*> _neighbors;
         bool                                                 _processed;
         double                                               _distSum;
 
@@ -226,7 +225,7 @@ protected:
     {
     public:
 
-        AlignmentsDetectorForScene(ONF_StepDetectVerticalAlignments05* step, CT_ResultGroup* res)
+        AlignmentsDetectorForScene(ONF_StepDetectVerticalAlignments06* step, CT_ResultGroup* res)
         {
             _step = step;
             _res = res;
@@ -241,11 +240,11 @@ protected:
         double computeDiameterByVerticalProjection(const ScanLineData &line);
 
         void detectAlignmentsForScene(CT_StandardItemGroup* grp);
-        void findNeighborLines(QList<ONF_StepDetectVerticalAlignments05::LineData*> candidateLines, double distThreshold);
+        void findNeighborLines(QList<ONF_StepDetectVerticalAlignments06::LineData*> candidateLines, double distThreshold);
         double correctDbh(double diameter, int pointsNumber, bool *corrected = NULL);
 
     private:
-        ONF_StepDetectVerticalAlignments05* _step;
+        ONF_StepDetectVerticalAlignments06* _step;
         CT_ResultGroup* _res;
     };
 
@@ -258,7 +257,6 @@ protected:
     CT_AutoRenameModels    _attMaxDistXY_ModelName;
     CT_AutoRenameModels    _attStemType_ModelName;
     CT_AutoRenameModels    _circle_ModelName;
-    CT_AutoRenameModels    _sphere_ModelName;
 
     CT_AutoRenameModels    _grpClusterDebug1_ModelName;
     CT_AutoRenameModels    _grpClusterDebug2_ModelName;
@@ -276,6 +274,7 @@ protected:
     int         _minPts;
 
     double      _maxSearchRadius;
+    double      _minDiameter;
     double      _maxDiameter;
     double      _resolutionForDiameterEstimation;
 
@@ -295,4 +294,4 @@ protected:
 
 };
 
-#endif // ONF_STEPDETECTVERTICALALIGNMENTS05_H
+#endif // ONF_STEPDETECTVERTICALALIGNMENTS06_H

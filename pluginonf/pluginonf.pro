@@ -107,7 +107,8 @@ HEADERS += \
     step/onf_stepextractpointsinverticalcylinders.h \
     step/onf_stepdetectverticalalignments04.h \
     step/onf_stepaddtilexyareas.h \
-    step/onf_stepdetectverticalalignments05.h
+    step/onf_stepdetectverticalalignments05.h \
+    step/onf_stepdetectverticalalignments06.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -209,7 +210,8 @@ SOURCES += \
     step/onf_stepextractpointsinverticalcylinders.cpp \
     step/onf_stepdetectverticalalignments04.cpp \
     step/onf_stepaddtilexyareas.cpp \
-    step/onf_stepdetectverticalalignments05.cpp
+    step/onf_stepdetectverticalalignments05.cpp \
+    step/onf_stepdetectverticalalignments06.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts
