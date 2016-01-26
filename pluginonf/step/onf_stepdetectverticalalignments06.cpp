@@ -68,7 +68,7 @@ ONF_StepDetectVerticalAlignments06::ONF_StepDetectVerticalAlignments06(CT_StepIn
     _maxSearchRadius = 1.5;
     _minDiameter = 0.075;
     _maxDiameter = 1.500;
-    _resolutionForDiameterEstimation = 0.10;
+    _resolutionForDiameterEstimation = 1;
 
     _pointDistThresholdSmall = 4.0;
     _maxPhiAngleSmall = 20.0;
@@ -77,18 +77,13 @@ ONF_StepDetectVerticalAlignments06::ONF_StepDetectVerticalAlignments06(CT_StepIn
     _lineLengthRatioSmall = 0.8;
     _exclusionRadiusSmall = 1.5;
 
-    _ratioDbhNbptsMax = 0.07;
-    _dbhMin = 0.075;
-    _dbhMax = 0.275;
-    _nbPtsForDbhMax = 10;
-
     _clusterDebugMode = false;
 }
 
 // Step description (tooltip of contextual menu)
 QString ONF_StepDetectVerticalAlignments06::getStepDescription() const
 {
-    return tr("Détecter des alignements verticaux de points (V5)");
+    return tr("Détecter des alignements verticaux de points (V6)");
 }
 
 // Step detailled description
@@ -166,7 +161,7 @@ void ONF_StepDetectVerticalAlignments06::createPostConfigurationDialog()
     configDialog->addDouble(tr("Distance de recherche des voisins"), "m", 0, 1e+4, 2, _maxSearchRadius);
     configDialog->addDouble(tr("Diamètre minimal"), "cm", 0, 1e+4, 2, _minDiameter, 100);
     configDialog->addDouble(tr("Diamètre maximal"), "cm", 0, 1e+4, 2, _maxDiameter, 100);
-    configDialog->addDouble(tr("Résolution pour la recherche de diamètre"), "cm", 0, 1e+4, 2, _resolutionForDiameterEstimation, 100);
+    configDialog->addDouble(tr("Résolution pour la recherche de tronc"), "°", 0, 1e+4, 2, _resolutionForDiameterEstimation);
 
     configDialog->addEmpty();
     configDialog->addTitle( tr("3- Détéction des petites tiges (alignements) :"));
@@ -176,13 +171,6 @@ void ONF_StepDetectVerticalAlignments06::createPostConfigurationDialog()
     configDialog->addInt(tr("Nombre de points minimum dans un cluster"), "", 2, 1000, _minPtsSmall);
     configDialog->addDouble(tr("Pourcentage maximum de la longueur de segment sans points"), "%", 0, 100, 0, _lineLengthRatioSmall, 100);
     configDialog->addDouble(tr("Rayon d'exclusion autour des grosses tiges"), "m", 0, 1e+4, 2, _exclusionRadiusSmall);
-
-    configDialog->addEmpty();
-    configDialog->addTitle( tr("4- Estimation des diamètres :"));
-    configDialog->addDouble(tr("Ratio maximal diamètre / nb. points"), "cm", 0, 1e+4, 2, _ratioDbhNbptsMax, 100);
-    configDialog->addDouble(tr("Diamètre minimal"), "cm", 0, 1e+4, 2, _dbhMin, 100);
-    configDialog->addDouble(tr("Diamètre maximal des petites tiges"), "cm", 0, 1e+4, 2, _dbhMax, 100);
-    configDialog->addInt(tr("Nombre de points équivalents au diamètre maximal"), "points", 2, 1e+4, _nbPtsForDbhMax);
 
     configDialog->addEmpty();
     configDialog->addBool(tr("Mode Debug Clusters"), "", "", _clusterDebugMode);
@@ -490,7 +478,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                     }
                 } else {
                     double length = sqrt(pow(p1(0) - p2(0), 2) + pow(p1(1) - p2(1), 2) + pow(p1(2) - p2(2), 2));
-                    keptLinesOfScan.append(new ScanLineData(simplifiedLine, length, (p1(0) + p2(0)) / 2.0,  (p1(1) + p2(1)) / 2.0));
+                    keptLinesOfScan.append(new ScanLineData(simplifiedLine, length, (p1(0) + p2(0)) / 2.0,  (p1(1) + p2(1)) / 2.0, std::min(p1(2), p2(2))));
                 }
             }
         }
@@ -560,8 +548,79 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                 diameter = computeDiameterByVerticalProjection(*mainLine);
             } else {
 
-                // To DO
+                // For each direction
+                for (float zenithal = 0 ; zenithal <= thresholdZenithalAngleRadians ; zenithal += _step->_resolutionForDiameterEstimation)
+                {
+                    float zeniRad = M_PI * zenithal / 180.0;
+                    for (float azimut = 0 ; azimut <= 360 ; azimut += _step->_resolutionForDiameterEstimation)
+                    {
+                        float azimRad = M_PI * azimut / 180.0;
 
+                        // Compute projected points
+                        float dx, dy, dz;
+                        CT_SphericalLine3D::convertToCartesianCoordinates(zeniRad, azimRad, 1, dx, dy, dz);
+                        Eigen::Vector3d direction(dx, dy, dz);
+                        Eigen::Vector3d center(mainLine->_centerX, mainLine->_centerY, mainLine->_centerZ);
+
+                        QList<Eigen::Vector2d*> projPtsForMainLine;
+                        QList<Eigen::Vector2d*> projPtsForNeighbourPoints;
+                        Eigen::Hyperplane<double, 3> plane(direction, center);
+
+                        // Compute projected points for main Line
+                        for (int i = 0 ; i < mainLinePoints.size() ; i++)
+                        {
+                            Eigen::Vector3d projectedPt = plane.projection(mainLinePoints[i]);
+                            projPtsForMainLine.append(new Eigen::Vector2d(projectedPt(0), projectedPt(1)));
+                        }
+
+                        // Compute projected points for neighbours Lines
+                        for (int i = 0 ; i < neighbourPoints.size() ; i++)
+                        {
+                            Eigen::Vector3d projectedPt = plane.projection(neighbourPoints[i]);
+                            projPtsForNeighbourPoints.append(new Eigen::Vector2d(projectedPt(0), projectedPt(1)));
+                        }
+
+                        // Test all possibile diameter between one point from the main line, and one point from the neighbours lines
+                        for (int i = 0 ; i < projPtsForMainLine.size() ; i++)
+                        {
+                            const Eigen::Vector3d& projectedPt = mainLinePoints[i];
+
+                            for (int j = 0 ; j < neighbourPoints.size() ; j++)
+                            {
+                                const Eigen::Vector3d& neighbourProjectedPoint = neighbourPoints[j];
+
+                                double candidateDiameter = sqrt(pow (projectedPt(0) - neighbourProjectedPoint(0), 2) + pow (projectedPt(1) - neighbourProjectedPoint(1), 2));
+
+                                // If candidate diameter is in the good range
+                                if (candidateDiameter <= _step->_maxDiameter && candidateDiameter >= _step->_minDiameter)
+                                {
+                                    double candidateRadius = candidateDiameter / 2.0;
+                                    Eigen::Vector2d circleCenter((projectedPt(0) + neighbourProjectedPoint(0)) / 2.0, (projectedPt(1) + neighbourProjectedPoint(1)) / 2.0);
+
+
+                                    // test how many other points are in the "valid zone" around diameter
+                                    for (int k = 0 ; k < projPtsForMainLine.size() ; k++)
+                                    {
+                                        if (k != i)
+                                        {
+                                            const Eigen::Vector3d& point = mainLinePoints[k];
+                                            double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
+
+                                            if (distXY <= candidateRadius)
+                                            {
+
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+
+                        qDeleteAll(projPtsForMainLine);
+                        qDeleteAll(projPtsForNeighbourPoints);
+                    }
+                }
             }
 
             // if not valid diameter, compute vertical projection diameter
@@ -777,7 +836,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                             } else {
 
                                 // compute diameter
-                                double diameter = correctDbh(0, nbPts);
+                                double diameter = 0.075;
 
                                 // add items to result
                                 CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpCluster_ModelName.completeName(), _res);
@@ -884,20 +943,4 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::findNeighbo
             }
         }
     }
-}
-
-
-double ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::correctDbh(double diameter, int pointsNumber, bool* corrected)
-{
-    if (diameter >= _step->_dbhMax)
-    {
-        if (corrected != NULL) {*corrected = false;}
-        return diameter;
-    }
-    if (corrected != NULL) {*corrected = true;}
-
-    double ratio = (float) pointsNumber / (float) _step->_nbPtsForDbhMax;
-    if (ratio > 1) {ratio = 1;}
-
-    return ratio * (_step->_dbhMax - _step->_dbhMin) + _step->_dbhMin;
 }

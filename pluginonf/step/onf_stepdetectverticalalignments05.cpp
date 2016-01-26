@@ -573,6 +573,7 @@ void ONF_StepDetectVerticalAlignments05::AlignmentsDetectorForScene::detectAlign
 
                 // Create list of neighbour points
                 QList<CT_Point> neighbourPoints;
+                QList<CT_Point> extremityPoints;
                 for (int i = 0 ; i < neighbourLines.size() ; i++)
                 {
                     const ScanLineData &testedLine = neighbourLines.at(i);
@@ -595,6 +596,23 @@ void ONF_StepDetectVerticalAlignments05::AlignmentsDetectorForScene::detectAlign
                             {
                                 intermediatePoint = point1 + direction * l;
                                 neighbourPoints.append(intermediatePoint);
+                            }
+
+                            if (j == 0)
+                            {
+                                for (double l = -length ; l < 0 ; l += _step->_resolutionForDiameterEstimation)
+                                {
+                                    intermediatePoint = point1 + direction * l;
+                                    extremityPoints.append(intermediatePoint);
+                                }
+                            }
+                            if (j == testedLine.size() - 2)
+                            {
+                                for (double l = length + _step->_resolutionForDiameterEstimation ; l < 2.0*length ; l += _step->_resolutionForDiameterEstimation)
+                                {
+                                    intermediatePoint = point1 + direction * l;
+                                    extremityPoints.append(intermediatePoint);
+                                }
                             }
                         }
                     }
@@ -643,6 +661,17 @@ void ONF_StepDetectVerticalAlignments05::AlignmentsDetectorForScene::detectAlign
                                         if (k != i)
                                         {
                                             const CT_Point &testedPoint = mainLinePoints.at(k);
+                                            double dist2 = sqrt(pow(sphereCenter(0) - testedPoint(0), 2) + pow(sphereCenter(1) - testedPoint(1), 2) + pow(sphereCenter(2) - testedPoint(2), 2));
+
+                                            if (dist2 < halfDist) {invalidated = true;}
+                                        }
+                                    }
+
+                                    for (int k = 0 ; k < extremityPoints.size() && !invalidated; k++)
+                                    {
+                                        if (k != i)
+                                        {
+                                            const CT_Point &testedPoint = extremityPoints.at(k);
                                             double dist2 = sqrt(pow(sphereCenter(0) - testedPoint(0), 2) + pow(sphereCenter(1) - testedPoint(1), 2) + pow(sphereCenter(2) - testedPoint(2), 2));
 
                                             if (dist2 < halfDist) {invalidated = true;}

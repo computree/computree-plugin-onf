@@ -115,6 +115,7 @@ protected:
             _length = 0;
             _centerX = 0;
             _centerY = 0;
+            _centerZ = 0;
         }
 
         ScanLineData(const ScanLineData& line) : QList<size_t>(line)
@@ -122,20 +123,23 @@ protected:
             _length = line._length;
             _centerX = line._centerX;
             _centerY = line._centerY;
+            _centerZ = line._centerZ;
         }
 
-        ScanLineData(double length, double centerX, double centerY) : QList<size_t>()
+        ScanLineData(double length, double centerX, double centerY, double centerZ) : QList<size_t>()
         {
             _length = length;
             _centerX = centerX;
             _centerY = centerY;
+            _centerZ = centerZ;
         }
 
-        ScanLineData(const QList<size_t> &list, double length, double centerX, double centerY) : QList<size_t>(list)
+        ScanLineData(const QList<size_t> &list, double length, double centerX, double centerY, double centerZ) : QList<size_t>(list)
         {
             _length = length;
             _centerX = centerX;
             _centerY = centerY;
+            _centerZ = centerZ;
         }
 
         ScanLineData& ScanLineData::operator=(const ScanLineData& arg)
@@ -144,12 +148,14 @@ protected:
             this->_length = arg._length;
             this->_centerX = arg._centerX;
             this->_centerY = arg._centerY;
+            this->_centerZ = arg._centerZ;
             return *this;
         }
 
         double _length;
         double _centerX;
         double _centerY;
+        double _centerZ;
 
     };
 
@@ -241,7 +247,6 @@ protected:
 
         void detectAlignmentsForScene(CT_StandardItemGroup* grp);
         void findNeighborLines(QList<ONF_StepDetectVerticalAlignments06::LineData*> candidateLines, double distThreshold);
-        double correctDbh(double diameter, int pointsNumber, bool *corrected = NULL);
 
     private:
         ONF_StepDetectVerticalAlignments06* _step;
@@ -284,11 +289,6 @@ protected:
     int         _minPtsSmall;
     double      _lineLengthRatioSmall;
     double      _exclusionRadiusSmall;
-
-    double      _ratioDbhNbptsMax;
-    double      _dbhMin;
-    double      _dbhMax;
-    int         _nbPtsForDbhMax;
 
     bool      _clusterDebugMode;
 
