@@ -698,6 +698,9 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             }
 
             int type = 1; // Multi lines of scans, ok
+            double centerX = mainLine->_centerX;
+            double centerY = mainLine->_centerY;
+            double centerZ = mainLine->_centerZ;
 
             // if not valid diameter, compute vertical projection diameter
             if (diameter >= _step->_maxDiameter || diameter <= 0)
@@ -716,7 +719,18 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
                 type = 2; // Mono line of scan or excessive diameter
                 bestDirection = direction;
-                if (bestDirection(2) < 0) {bestDirection = -bestDirection;}
+
+                centerX = p1(0);
+                centerY = p1(1);
+                centerZ = p1(2);
+
+                if (bestDirection(2) < 0)
+                {
+                    bestDirection = -bestDirection;
+                    centerX = p2(0);
+                    centerY = p2(1);
+                    centerZ = p2(2);
+                }
             }
 
             // Add points of the neighbours lines
@@ -742,7 +756,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                 diameter = _step->_minDiameter;
                 type = 3; // Excessive diameter
             }
-            circles.append(addClusterToResult(grp, cluster, diameter, type, mainLine->_centerX, mainLine->_centerY,  mainLine->_centerZ, mainLine->_length, bestDirection));
+            circles.append(addClusterToResult(grp, cluster, diameter, type, centerX, centerY,  centerZ, mainLine->_length, bestDirection));
 
             delete mainLine;
             qDeleteAll(neighbourLines);
