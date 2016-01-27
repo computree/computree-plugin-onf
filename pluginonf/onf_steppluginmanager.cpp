@@ -70,11 +70,6 @@
 #include "step/onf_stepcorrectalsprofile.h"
 #include "step/onf_stepcreateplotmanagerfromfile.h"
 #include "step/onf_stepcreateplotmanagergrid.h"
-#include "step/onf_stepdetectverticalalignments.h"
-#include "step/onf_stepdetectverticalalignments02.h"
-#include "step/onf_stepdetectverticalalignments03.h"
-#include "step/onf_stepdetectverticalalignments04.h"
-#include "step/onf_stepdetectverticalalignments05.h"
 #include "step/onf_stepdetectverticalalignments06.h"
 #include "step/onf_stepextractlogbuffer.h"
 #include "step/onf_stepfilteritemsbyposition.h"
@@ -143,11 +138,6 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewPointsStep<ONF_StepExtractPointsInVerticalCylinders>(CT_StepsMenu::LP_Extract);
 
     addNewGeometricalShapesStep<ONF_StepComputeCrownProjection>(CT_StepsMenu::LP_Crowns);
-//    addNewGeometricalShapesStep<ONF_StepDetectVerticalAlignments>(CT_StepsMenu::LP_Stems);
-//    addNewGeometricalShapesStep<ONF_StepDetectVerticalAlignments02>(CT_StepsMenu::LP_Stems);
-    addNewBetaStep<ONF_StepDetectVerticalAlignments03>(CT_StepsMenu::LP_Stems);
-    addNewBetaStep<ONF_StepDetectVerticalAlignments04>(CT_StepsMenu::LP_Stems);
-    addNewBetaStep<ONF_StepDetectVerticalAlignments05>(CT_StepsMenu::LP_Stems);
     addNewBetaStep<ONF_StepDetectVerticalAlignments06>(CT_StepsMenu::LP_Stems);
     addNewGeometricalShapesStep<ONF_StepFilterItemsByPosition>(CT_StepsMenu::LP_Filter);
     addNewGeometricalShapesStep<ONF_StepFitCylinderOnCluster>(CT_StepsMenu::LP_Fit);

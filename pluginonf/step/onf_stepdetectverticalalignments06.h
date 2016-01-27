@@ -29,6 +29,7 @@
 
 #include "ct_itemdrawable/ct_standarditemgroup.h"
 #include "ct_itemdrawable/ct_line.h"
+#include "ct_itemdrawable/ct_circle2d.h"
 
 
 // Inclusion of auto-indexation system
@@ -243,10 +244,12 @@ protected:
             detectAlignmentsForScene(grp);
         }
 
-        double computeDiameterByVerticalProjection(const ScanLineData &line);
 
         void detectAlignmentsForScene(CT_StandardItemGroup* grp);
+        double computeDiameterAlongLine(CT_PointCluster *cluster, const Eigen::Vector3d &direction, const Eigen::Vector3d &origin);
+        CT_Circle2D *addClusterToResult(CT_StandardItemGroup* grp, CT_PointCluster* cluster, double diameter, int type, double centerX, double centerY, double centerZ, double length, const Eigen::Vector3d &direction);
         void findNeighborLines(QList<ONF_StepDetectVerticalAlignments06::LineData*> candidateLines, double distThreshold);
+
 
     private:
         ONF_StepDetectVerticalAlignments06* _step;
@@ -258,10 +261,15 @@ protected:
     // Declaration of autoRenames Variables (groups or items added to In models copies)
     CT_AutoRenameModels    _grpCluster_ModelName;
     CT_AutoRenameModels    _cluster_ModelName;
-    CT_AutoRenameModels    _line_ModelName;
     CT_AutoRenameModels    _attMaxDistXY_ModelName;
     CT_AutoRenameModels    _attStemType_ModelName;
     CT_AutoRenameModels    _circle_ModelName;
+    CT_AutoRenameModels    _attMaxDistXY2_ModelName;
+    CT_AutoRenameModels    _attStemType2_ModelName;
+    CT_AutoRenameModels    _line_ModelName;
+    CT_AutoRenameModels    _attMaxDistXY3_ModelName;
+    CT_AutoRenameModels    _attStemType3_ModelName;
+
 
     CT_AutoRenameModels    _grpClusterDebug1_ModelName;
     CT_AutoRenameModels    _grpClusterDebug2_ModelName;
@@ -278,10 +286,12 @@ protected:
     double      _thresholdZenithalAngle;
     int         _minPts;
 
-    double      _maxSearchRadius;
     double      _minDiameter;
     double      _maxDiameter;
+    double      _maxSearchRadius;
     double      _resolutionForDiameterEstimation;
+    double      _ratioDbhNbPtsMax;
+    double      _monoLineMult;
 
     double      _maxPhiAngleSmall;
     double      _pointDistThresholdSmall;
