@@ -556,6 +556,8 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                 }
             }
 
+            int mainLinePointsSize = mainLinePoints.size();
+
             // Search for neighbours
             QList<ScanLineData*> neighbourLines;
             QList<CT_Point> neighbourPoints;
@@ -598,62 +600,69 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             if (!neighbourPointsOfDifferentsLinesOfFlight.isEmpty())
             {
                 double bestScore = 0;
-                // For each direction
-                for (float zenithal = 0 ; zenithal <= _step->_thresholdZenithalAngle ; zenithal += _step->_resolutionForDiameterEstimation)
-                {
-                    float zeniRad = M_PI * zenithal / 180.0;
-                    for (float azimut = 0 ; azimut <= 360 ; azimut += _step->_resolutionForDiameterEstimation)
-                    {
-                        float azimRad = M_PI * azimut / 180.0;
+                int neighbourPointsSize = neighbourPoints.size();
+                int neighbourPointsOfDifferentsLinesOfFlightSize = neighbourPointsOfDifferentsLinesOfFlight.size();
 
+                std::vector<Eigen::Vector2d> prjPtsMainLine(mainLinePointsSize);
+                std::vector<Eigen::Vector2d> prjPtsNeighbours(neighbourPointsSize);
+                Eigen::Vector3d projectedPt;
+                Eigen::Vector2d circleCenter;
+
+                float resolutionInRadians = M_PI*_step->_resolutionForDiameterEstimation / 180.0;
+                float pi2 = 2.0*M_PI;
+                // For each direction
+                for (float zenithal = 0 ; zenithal <= thresholdZenithalAngleRadians ; zenithal += resolutionInRadians)
+                {
+                    for (float azimut = 0 ; azimut <= pi2 ; azimut += resolutionInRadians)
+                    {
                         // Compute projected points
                         float dx, dy, dz;
-                        CT_SphericalLine3D::convertToCartesianCoordinates(zeniRad, azimRad, 1, dx, dy, dz);
+                        CT_SphericalLine3D::convertToCartesianCoordinates(zenithal, azimut, 1, dx, dy, dz);
                         Eigen::Vector3d direction(dx, dy, dz);
 
-                        QList<Eigen::Vector2d*> projPtsForMainLine;
-                        QList<Eigen::Vector2d*> projPtsForNeighbourPoints;
-                        Eigen::Hyperplane<double, 3> plane(direction, center);
+                        Eigen::Hyperplane<double, 3> plane(direction, center);                        
 
                         // Compute projected points for main Line
-                        for (int i = 0 ; i < mainLinePoints.size() ; i++)
+                        for (int i = 0 ; i < mainLinePointsSize ; i++)
                         {
-                            Eigen::Vector3d projectedPt = plane.projection(mainLinePoints[i]);
-                            projPtsForMainLine.append(new Eigen::Vector2d(projectedPt(0), projectedPt(1)));
+                            projectedPt = plane.projection(mainLinePoints[i]);
+                            prjPtsMainLine[i](0) = projectedPt(0);
+                            prjPtsMainLine[i](1) = projectedPt(1);
                         }
 
                         // Compute projected points for neighbours Lines
-                        for (int i = 0 ; i < neighbourPoints.size() ; i++)
+                        for (int i = 0 ; i < neighbourPointsSize ; i++)
                         {
-                            Eigen::Vector3d projectedPt = plane.projection(neighbourPoints[i]);
-                            projPtsForNeighbourPoints.append(new Eigen::Vector2d(projectedPt(0), projectedPt(1)));
+                            projectedPt = plane.projection(neighbourPoints[i]);
+                            prjPtsNeighbours[i](0) = projectedPt(0);
+                            prjPtsNeighbours[i](1) = projectedPt(1);
                         }
 
                         // Test all possibile diameter between one point from the main line, and one point from the neighbours lines
-                        for (int i = 0 ; i < projPtsForMainLine.size() ; i++)
+                        for (int i = 0 ; i < mainLinePointsSize ; i++)
                         {
-                            Eigen::Vector2d* projectedPt = projPtsForMainLine.at(i);
+                            const Eigen::Vector2d& projectedPtMain = prjPtsMainLine[i];
 
-                            for (int j = 0 ; j < neighbourPointsOfDifferentsLinesOfFlight.size() ; j++)
+                            for (int j = 0 ; j < neighbourPointsOfDifferentsLinesOfFlightSize ; j++)
                             {
                                 int currentNeighbourIndex = neighbourPointsOfDifferentsLinesOfFlight.at(j);
-                                Eigen::Vector2d* neighbourProjectedPoint = projPtsForNeighbourPoints.at(currentNeighbourIndex);
+                                const Eigen::Vector2d& neighbourProjectedPoint = prjPtsNeighbours[currentNeighbourIndex];
 
-                                double candidateDiameter = sqrt(pow ((*projectedPt)(0) - (*neighbourProjectedPoint)(0), 2) + pow ((*projectedPt)(1) - (*neighbourProjectedPoint)(1), 2));
+                                double candidateDiameter = sqrt(pow (projectedPtMain(0) - neighbourProjectedPoint(0), 2) + pow (projectedPtMain(1) - neighbourProjectedPoint(1), 2));
 
                                 // If candidate diameter is in the good range
                                 if (candidateDiameter <= _step->_maxDiameter && candidateDiameter >= _step->_minDiameter)
                                 {
                                     double candidateRadius = candidateDiameter / 2.0;
                                     double candidateScore = 0;
-                                    Eigen::Vector2d circleCenter(((*projectedPt)(0) + (*neighbourProjectedPoint)(0)) / 2.0, ((*projectedPt)(1) + (*neighbourProjectedPoint)(1)) / 2.0);
+                                    circleCenter (0) = (projectedPtMain(0) + neighbourProjectedPoint(0)) / 2.0;
+                                    circleCenter (1) = (projectedPtMain(1) + neighbourProjectedPoint(1)) / 2.0;
 
-
-                                    // test how many other points (from mainLine) are in the "valid zone" around diameter
-                                    for (int k = 0 ; k < projPtsForMainLine.size() ; k++)
+                                    // compute score for mainLine points
+                                    for (int k = 0 ; k < mainLinePointsSize ; k++)
                                     {
-                                        Eigen::Vector2d* point = projPtsForMainLine.at(k);
-                                        double distXY = sqrt(pow (circleCenter(0) - (*point)(0), 2) + pow (circleCenter(1) - (*point)(1), 2));
+                                        const Eigen::Vector2d& point = prjPtsMainLine[k];
+                                        double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
 
                                         if (distXY <= candidateRadius)
                                         {
@@ -661,11 +670,11 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                                         }
                                     }
 
-                                    // test how many other points (from neighbours lines) are in the "valid zone" around diameter
-                                    for (int k = 0 ; k < projPtsForNeighbourPoints.size() ; k++)
+                                    // compute score for neighbour points
+                                    for (int k = 0 ; k < neighbourPointsSize ; k++)
                                     {
-                                        Eigen::Vector2d* point = projPtsForNeighbourPoints.at(k);
-                                        double distXY = sqrt(pow (circleCenter(0) - (*point)(0), 2) + pow (circleCenter(1) - (*point)(1), 2));
+                                        const Eigen::Vector2d& point = prjPtsNeighbours[k];
+                                        double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
 
                                         if (distXY <= candidateRadius)
                                         {
@@ -682,9 +691,6 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                                 }
                             }
                         }
-
-                        qDeleteAll(projPtsForMainLine);
-                        qDeleteAll(projPtsForNeighbourPoints);
                     }
                 }
             }
