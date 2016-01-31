@@ -94,14 +94,11 @@ protected:
     void compute();
 
 private:
-    CT_AutoRenameModels     _outPlotManagerGrid_ModelName;
-    CT_AutoRenameModels     _outPlotList_ModelName;
+    CT_AutoRenameModels     _outGrpPlot_ModelName;
+    CT_AutoRenameModels     _outPlot_ModelName;
 
     // Step parameters
-    double  _plotSize;
-    double  _plotSpacing;
-    double  _xref;
-    double  _yref;
+    QString     _plotType;
 
 };
 

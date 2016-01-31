@@ -34,20 +34,18 @@
 #include "ct_itemdrawable/abstract/ct_abstractareashape2d.h"
 
 #include "ct_itemdrawable/ct_plotgridmanager.h"
+#include "ct_itemdrawable/ct_plotlistingrid.h"
 
 // Alias for indexing models
 #define DEFin_result "resultDataSource"
+#define DEFin_grpRoot "grproot"
 #define DEFin_grpShape2D "grpshape2D"
 #define DEFin_shape2D "shape2D"
 
 
-#define DEF_typeSquare tr("Carrée")
-#define DEF_typeCircular tr("Circulaire")
-
 // Constructor : initialization of parameters
 ONF_StepCreatePlotManagerGrid::ONF_StepCreatePlotManagerGrid(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
-    _plotType = DEF_typeCircular;
     _plotSize = 15.0;
     _plotSpacing = 30.0;
     _xref = 15.0;
@@ -86,7 +84,8 @@ void ONF_StepCreatePlotManagerGrid::createInResultModelListProtected()
 {
     CT_InResultModelGroupToCopy *resIn = createNewInResultModelForCopy(DEFin_result, tr("Tuiles"), tr(""), true);
     resIn->setZeroOrMoreRootGroup();
-    resIn->addGroupModel("", DEFin_grpShape2D, CT_AbstractItemGroup::staticGetType(), tr("Groupe"));
+    resIn->addGroupModel("", DEFin_grpRoot, CT_AbstractItemGroup::staticGetType(), tr("Groupe Racine"));
+    resIn->addGroupModel(DEFin_grpRoot, DEFin_grpShape2D, CT_AbstractItemGroup::staticGetType(), tr("Groupe"));
     resIn->addItemModel(DEFin_grpShape2D, DEFin_shape2D, CT_AbstractAreaShape2D::staticGetType(), tr("Emprise (sans buffer)"));
 
 }
@@ -95,7 +94,8 @@ void ONF_StepCreatePlotManagerGrid::createInResultModelListProtected()
 void ONF_StepCreatePlotManagerGrid::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEFin_result);
-    res->addItemModel(DEFin_grpShape2D, _outPlotManagerGrid, new CT_PlotGridManager(), tr("Gestionnaire de placettes (grille)"));
+    res->addItemModel(DEFin_grpRoot, _outPlotManagerGrid_ModelName, new CT_PlotGridManager(), tr("Gestionnaire de placettes (grille)"));
+    res->addItemModel(DEFin_grpShape2D, _outPlotList_ModelName, new CT_PlotListInGrid(), tr("Liste de Placettes"));
 }
 
 // Semi-automatic creation of step parameters DialogBox
@@ -103,12 +103,7 @@ void ONF_StepCreatePlotManagerGrid::createPostConfigurationDialog()
 {
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
 
-    QStringList types;
-    types << DEF_typeCircular;
-    types << DEF_typeSquare;
-
-    configDialog->addStringChoice(tr("Type de placette"), "", types, _plotType);
-    configDialog->addDouble(tr("Taille de placette (rayon/circulaire ; coté/carrée)"), "m", 0, 1e+10, 2, _plotSize);
+    configDialog->addDouble(tr("Taille de placette (rayon/circulaire ; DEMI-coté/carrée)"), "m", 0, 1e+10, 2, _plotSize);
     configDialog->addDouble(tr("Espacement des placettes"),   "m", 0, 1e+10, 2, _plotSpacing);
 
     configDialog->addEmpty();
@@ -122,44 +117,63 @@ void ONF_StepCreatePlotManagerGrid::compute()
     QList<CT_ResultGroup*> outResultList = getOutResultList();
     CT_ResultGroup* resOut = outResultList.at(0);
 
-    CT_ResultItemIterator itOut(resOut, this, DEFin_grpShape2D);
+    Eigen::Vector2d refCoords(_xref, _yref);
+
+    Eigen::Vector2d  minAll, maxAll;
+    minAll(0) = std::numeric_limits<double>::max();
+    minAll(1) = std::numeric_limits<double>::max();
+    maxAll(0) = -std::numeric_limits<double>::max();
+    maxAll(1) = -std::numeric_limits<double>::max();
+
+    CT_ResultGroupIterator itOut(resOut, this, DEFin_grpRoot);
     while (itOut.hasNext() && !isStopped())
     {
         CT_StandardItemGroup* group = (CT_StandardItemGroup*) itOut.next();
-        CT_AbstractAreaShape2D* shape = (CT_AbstractAreaShape2D*) group->firstItemByINModelName(this, DEFin_shape2D);
 
-        if (shape != NULL)
+        QList<CT_PlotListInGrid*> plotLists;
+
+        // Add a plot list for each input shape
+        CT_GroupIterator itGrpShape(group, this, DEFin_grpShape2D);
+        while (itGrpShape.hasNext() && !isStopped())
         {
-            // select type of plot
-            //CT_PlotManager_grid::Type type = CT_PlotManager_grid::T_Circle;
-            //if (_plotType == DEF_typeSquare) {type = CT_PlotManager_grid::T_Square;}
+            CT_StandardItemGroup* grpShape = (CT_StandardItemGroup*) itOut.next();
+            CT_AbstractAreaShape2D* shape = (CT_AbstractAreaShape2D*) grpShape->firstItemByINModelName(this, DEFin_shape2D);
+            CT_AreaShape2DData* data = (CT_AreaShape2DData*) shape->getPointerData();
 
-            // compute min (x,y) value and the number of row/col
-            Eigen::Vector3d min, max;
-            shape->getBoundingBox(min, max);
+            if (shape != NULL && data != NULL)
+            {
+                CT_PlotListInGrid* plotList = new CT_PlotListInGrid(_outPlotList_ModelName.completeName(), resOut, data, refCoords, _plotSpacing, _plotSize);
+                plotLists.append(plotList);
 
-            Eigen::Vector2d minBB, maxBB;
+                Eigen::Vector2d  min, max;
+                plotList->getBoundingBox2D(min, max);
 
-            minBB(0) = std::floor((min(0) - _xref) / _plotSpacing) * _plotSpacing + _xref;
-            minBB(1) = std::floor((min(1) - _yref) / _plotSpacing) * _plotSpacing + _yref;
+                if (min(0) < minAll(0)) {minAll(0) = min(0);}
+                if (min(1) < minAll(1)) {minAll(1) = min(1);}
+                if (max(0) > maxAll(0)) {maxAll(0) = max(0);}
+                if (max(1) > maxAll(1)) {maxAll(1) = max(1);}
 
-            while (minBB(0) < min(0)) {minBB(0) += _plotSpacing;}
-            while (minBB(1) < min(1)) {minBB(1) += _plotSpacing;}
-
-            maxBB(0) = minBB(0);
-            maxBB(1) = minBB(1);
-
-            size_t ncol = 0;
-            size_t nrow = 0;
-
-            while (maxBB(0) < max(0)) {ncol++; maxBB(0) += _plotSpacing;}
-            while (maxBB(1) < max(1)) {nrow++; maxBB(1) += _plotSpacing;}
-
-
-            // create and add manager
-            //CT_PlotManager* plotmanager = new CT_PlotManager(_outPlotManagerGrid.completeName(), resOut, new CT_PlotManager_grid(0, 0, 0, 0, type));
-            //group->addItemDrawable(plotmanager);
+                grpShape->addItemDrawable(plotList);
+            }
         }
-    }
-    
+
+        size_t indexJump = std::floor((maxAll(0) - minAll(0)) / _plotSpacing) + 1;
+
+        // Set the index bounds for each plot list
+        for (int i = 0 ; i < plotLists.size() ; i++)
+        {
+            CT_PlotListInGrid* plotList = plotLists.at(i);
+            Eigen::Vector2d  min, max;
+            plotList->getBoundingBox2D(min, max);
+
+            size_t firstIndex = std::floor((min(0) - minAll(0)) / _plotSpacing) + 1 + std::floor((maxAll(1) - max(1)) / _plotSpacing) * indexJump;
+
+            plotList->setIndices(firstIndex, indexJump);
+        }
+
+
+        // create and add manager
+        //CT_PlotManager* plotmanager = new CT_PlotManager(_outPlotManagerGrid.completeName(), resOut, new CT_PlotManager_grid(0, 0, 0, 0, type));
+        //group->addItemDrawable(plotmanager);
+    }    
 }

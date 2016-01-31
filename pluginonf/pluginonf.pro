@@ -108,7 +108,8 @@ HEADERS += \
     step/onf_stepdetectverticalalignments04.h \
     step/onf_stepaddtilexyareas.h \
     step/onf_stepdetectverticalalignments05.h \
-    step/onf_stepdetectverticalalignments06.h
+    step/onf_stepdetectverticalalignments06.h \
+    step/onf_stepcreateplotsfromlist.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -211,7 +212,8 @@ SOURCES += \
     step/onf_stepdetectverticalalignments04.cpp \
     step/onf_stepaddtilexyareas.cpp \
     step/onf_stepdetectverticalalignments05.cpp \
-    step/onf_stepdetectverticalalignments06.cpp
+    step/onf_stepdetectverticalalignments06.cpp \
+    step/onf_stepcreateplotsfromlist.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts
