@@ -558,10 +558,13 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
             int mainLinePointsSize = mainLinePoints.size();
 
+            int type = 1; // Multi lines of scans, ok
+
             // Search for neighbours
             QList<ScanLineData*> neighbourLines;
             QList<CT_Point> neighbourPoints;
-            QList<int> neighbourPointsOfDifferentsLinesOfFlight;
+            QList<int> neighbourPointsToTest;
+            QList<int> neighbourPointsToTestIfOnlyOneLineOfFlight;
             for (int i = 0 ; i < keptLinesOfScan.size() ; i++)
             {
                 ScanLineData* testedLine = keptLinesOfScan.at(i);
@@ -587,21 +590,30 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
                         if (lineOfFlight != mainLineOfFlight)
                         {
-                            neighbourPointsOfDifferentsLinesOfFlight.append(neighbourPoints.size() - 1);
+                            neighbourPointsToTest.append(neighbourPoints.size() - 1);
+                        } else {
+                            neighbourPointsToTestIfOnlyOneLineOfFlight.append(neighbourPoints.size() - 1);
                         }
                     }
                 }
-            }           
+            }
+
+            if (neighbourPointsToTest.isEmpty())
+            {
+                neighbourPointsToTest.append(neighbourPointsToTestIfOnlyOneLineOfFlight);
+                neighbourPointsToTestIfOnlyOneLineOfFlight.clear();
+                type = 2;
+            }
 
             double diameter = 0.0;
             Eigen::Vector3d bestDirection(0, 0, 1);
             Eigen::Vector3d center(mainLine->_centerX, mainLine->_centerY, mainLine->_centerZ);
 
-            if (!neighbourPointsOfDifferentsLinesOfFlight.isEmpty())
+            if (!neighbourPointsToTest.isEmpty())
             {
                 double bestScore = 0;
                 int neighbourPointsSize = neighbourPoints.size();
-                int neighbourPointsOfDifferentsLinesOfFlightSize = neighbourPointsOfDifferentsLinesOfFlight.size();
+                int neighbourPointsOfDifferentsLinesOfFlightSize = neighbourPointsToTest.size();
 
                 std::vector<Eigen::Vector2d> prjPtsMainLine(mainLinePointsSize);
                 std::vector<Eigen::Vector2d> prjPtsNeighbours(neighbourPointsSize);
@@ -645,7 +657,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
                             for (int j = 0 ; j < neighbourPointsOfDifferentsLinesOfFlightSize ; j++)
                             {
-                                int currentNeighbourIndex = neighbourPointsOfDifferentsLinesOfFlight.at(j);
+                                int currentNeighbourIndex = neighbourPointsToTest.at(j);
                                 const Eigen::Vector2d& neighbourProjectedPoint = prjPtsNeighbours[currentNeighbourIndex];
 
                                 double candidateDiameter = sqrt(pow (projectedPtMain(0) - neighbourProjectedPoint(0), 2) + pow (projectedPtMain(1) - neighbourProjectedPoint(1), 2));
@@ -667,6 +679,9 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                                         if (distXY <= candidateRadius)
                                         {
                                             candidateScore += distXY / candidateRadius;
+                                        } else if (distXY <= candidateDiameter)
+                                        {
+                                            candidateScore += (candidateDiameter - distXY) / candidateRadius;
                                         }
                                     }
 
@@ -679,6 +694,9 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                                         if (distXY <= candidateRadius)
                                         {
                                             candidateScore += distXY / candidateRadius;
+                                        } else if (distXY <= candidateDiameter)
+                                        {
+                                            candidateScore += (candidateDiameter - distXY) / candidateRadius;
                                         }
                                     }
 
@@ -703,7 +721,6 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                 cluster->addPoint(index);
             }
 
-            int type = 1; // Multi lines of scans, ok
             double centerX = mainLine->_centerX;
             double centerY = mainLine->_centerY;
             double centerZ = mainLine->_centerZ;
@@ -723,7 +740,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
                 diameter = _step->_monoLineMult * computeDiameterAlongLine(cluster, direction, p1);
 
-                type = 2; // Mono line of scan or excessive diameter
+                type = 3; // Mono line of scan or excessive diameter
                 bestDirection = direction;
 
                 centerX = p1(0);
@@ -746,7 +763,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                 for (int j = 0 ; j < testedLine->size() ; j++)
                 {
                     size_t index = testedLine->at(j);
-                    if (type == 1)
+                    if (type == 1 || type == 2)
                     {
                         cluster->addPoint(index);
                     } else {
@@ -760,7 +777,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             if (nbPts == 0 || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
             {
                 diameter = _step->_minDiameter;
-                type = 3; // Excessive diameter
+                type = 4; // Excessive diameter
             }
             circles.append(addClusterToResult(grp, cluster, diameter, type, centerX, centerY,  centerZ, mainLine->_length, bestDirection));
 
@@ -780,13 +797,15 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             size_t index = isolatedPointIndices.at(iso);
             CT_Point point = pointAccessor.constPointAt(index);
 
-            for (int i = 0 ; i < circles.size() ; i++)
+            bool removed = false;
+            for (int i = 0 ; i < circles.size() && !removed; i++)
             {
                 CT_Circle2D* circle = circles.at(i);
                 double dist = sqrt(pow(circle->getCenterX() - point(0), 2) + pow(circle->getCenterY() - point(1), 2));
                 if (dist < _step->_maxSearchRadius)
                 {
                     isolatedPointIndices.removeAt(iso--);
+                    removed = true;
                 }
             }
         }
@@ -934,11 +953,11 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                                 double diameter = computeDiameterAlongLine(cluster, fittedLineData->getDirection(), center);
 
                                 int nbPts = cluster->getPointCloudIndexSize();
-                                int type = 4; // Alignement, ok
+                                int type = 5; // Alignement, ok
                                 if (nbPts == 0 || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
                                 {
                                     diameter = _step->_minDiameter;
-                                        type = 5; // Alignement, excessive diameter
+                                        type = 6; // Alignement, excessive diameter
                                 }
                                 addClusterToResult(grp, cluster, diameter, type, center(0), center(1),  center(2), fittedLineData->length(), fittedLineData->getDirection());
                         } else {

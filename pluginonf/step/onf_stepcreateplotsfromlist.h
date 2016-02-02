@@ -22,14 +22,14 @@
  along with PluginONF.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
 *****************************************************************************/
 
-#ifndef ONF_STEPCREATEPLOTMANAGERGRID_H
-#define ONF_STEPCREATEPLOTMANAGERGRID_H
+#ifndef ONF_STEPCREATEPLOTSFROMLIST_H
+#define ONF_STEPCREATEPLOTSFROMLIST_H
 
 #include "ct_step/abstract/ct_abstractstep.h"
 #include "ct_tools/model/ct_autorenamemodels.h"
 
 
-class ONF_StepCreatePlotManagerGrid: public CT_AbstractStep
+class ONF_StepCreatePlotsFromList: public CT_AbstractStep
 {
     Q_OBJECT
 
@@ -41,7 +41,7 @@ public:
      * 
      * \param dataInit Step parameters object
      */
-    ONF_StepCreatePlotManagerGrid(CT_StepInitializeData &dataInit);
+    ONF_StepCreatePlotsFromList(CT_StepInitializeData &dataInit);
 
     /*! \brief Step description
      * 
@@ -102,4 +102,4 @@ private:
 
 };
 
-#endif // ONF_STEPCREATEPLOTMANAGERGRID_H
+#endif // ONF_STEPCREATEPLOTSFROMLIST_H

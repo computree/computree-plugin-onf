@@ -45,40 +45,40 @@
 #define DEF_typeCircular "Circle"
 
 // Constructor : initialization of parameters
-ONF_StepCreatePlotManagerGrid::ONF_StepCreatePlotManagerGrid(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
+ONF_StepCreatePlotsFromList::ONF_StepCreatePlotsFromList(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
     _plotType = DEF_typeCircular;
 }
 
 // Step description (tooltip of contextual menu)
-QString ONF_StepCreatePlotManagerGrid::getStepDescription() const
+QString ONF_StepCreatePlotsFromList::getStepDescription() const
 {
     return tr("Ajoute des gestionnaires de placette (grille)");
 }
 
 // Step detailled description
-QString ONF_StepCreatePlotManagerGrid::getStepDetailledDescription() const
+QString ONF_StepCreatePlotsFromList::getStepDetailledDescription() const
 {
     return tr("No detailled description for this step");
 }
 
 // Step URL
-QString ONF_StepCreatePlotManagerGrid::getStepURL() const
+QString ONF_StepCreatePlotsFromList::getStepURL() const
 {
     //return tr("STEP URL HERE");
     return CT_AbstractStep::getStepURL(); //by default URL of the plugin
 }
 
 // Step copy method
-CT_VirtualAbstractStep* ONF_StepCreatePlotManagerGrid::createNewInstance(CT_StepInitializeData &dataInit)
+CT_VirtualAbstractStep* ONF_StepCreatePlotsFromList::createNewInstance(CT_StepInitializeData &dataInit)
 {
-    return new ONF_StepCreatePlotManagerGrid(dataInit);
+    return new ONF_StepCreatePlotsFromList(dataInit);
 }
 
 //////////////////// PROTECTED METHODS //////////////////
 
 // Creation and affiliation of IN models
-void ONF_StepCreatePlotManagerGrid::createInResultModelListProtected()
+void ONF_StepCreatePlotsFromList::createInResultModelListProtected()
 {
     CT_InResultModelGroupToCopy *resIn = createNewInResultModelForCopy(DEFin_result, tr("Placettes"), tr(""), true);
     resIn->setZeroOrMoreRootGroup();
@@ -88,7 +88,7 @@ void ONF_StepCreatePlotManagerGrid::createInResultModelListProtected()
 }
 
 // Creation and affiliation of OUT models
-void ONF_StepCreatePlotManagerGrid::createOutResultModelListProtected()
+void ONF_StepCreatePlotsFromList::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEFin_result);
     res->addGroupModel(DEFin_grpPlotList, _outGrpPlot_ModelName, new CT_StandardItemGroup(), tr("Placette (Groupe)"));
@@ -102,7 +102,7 @@ void ONF_StepCreatePlotManagerGrid::createOutResultModelListProtected()
 }
 
 // Semi-automatic creation of step parameters DialogBox
-void ONF_StepCreatePlotManagerGrid::createPostConfigurationDialog()
+void ONF_StepCreatePlotsFromList::createPostConfigurationDialog()
 {
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
     QStringList types;
@@ -113,7 +113,7 @@ void ONF_StepCreatePlotManagerGrid::createPostConfigurationDialog()
 
 }
 
-void ONF_StepCreatePlotManagerGrid::compute()
+void ONF_StepCreatePlotsFromList::compute()
 {
     QList<CT_ResultGroup*> outResultList = getOutResultList();
     CT_ResultGroup* resOut = outResultList.at(0);
@@ -122,7 +122,7 @@ void ONF_StepCreatePlotManagerGrid::compute()
     while (itOut.hasNext() && !isStopped())
     {
         CT_StandardItemGroup* group = (CT_StandardItemGroup*) itOut.next();
-        CT_PlotListInGrid* plotList = group->firstItemByINModelName(this, DEFin_plotList);
+        CT_PlotListInGrid* plotList = (CT_PlotListInGrid*) group->firstItemByINModelName(this, DEFin_plotList);
 
         if (plotList != NULL)
         {
@@ -134,7 +134,7 @@ void ONF_StepCreatePlotManagerGrid::compute()
                 type = CT_PlotListInGrid::T_Square;
             }
 
-            QMap<CT_AreaShape2DData*, size_t> plots = CT_PlotListInGrid::createPlots(type);
+            QMap<CT_AreaShape2DData*, size_t> plots = plotList->createPlots(type);
 
             QMapIterator<CT_AreaShape2DData*, size_t> itPl(plots);
             while (itPl.hasNext())
