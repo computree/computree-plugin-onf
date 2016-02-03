@@ -36,6 +36,9 @@
 #include "ct_itemdrawable/ct_plotgridmanager.h"
 #include "ct_itemdrawable/ct_plotlistingrid.h"
 
+
+#include <QDebug>
+
 // Alias for indexing models
 #define DEFin_result "resultDataSource"
 #define DEFin_grpRoot "grproot"
@@ -94,7 +97,7 @@ void ONF_StepCreatePlotManagerGrid::createInResultModelListProtected()
 void ONF_StepCreatePlotManagerGrid::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEFin_result);
-    res->addItemModel(DEFin_grpRoot, _outPlotManagerGrid_ModelName, new CT_PlotGridManager(), tr("Gestionnaire de placettes (grille)"));
+    //res->addItemModel(DEFin_grpRoot, _outPlotManagerGrid_ModelName, new CT_PlotGridManager(), tr("Gestionnaire de placettes (grille)"));
     res->addItemModel(DEFin_grpShape2D, _outPlotList_ModelName, new CT_PlotListInGrid(), tr("Liste de Placettes"));
 }
 
@@ -136,24 +139,27 @@ void ONF_StepCreatePlotManagerGrid::compute()
         CT_GroupIterator itGrpShape(group, this, DEFin_grpShape2D);
         while (itGrpShape.hasNext() && !isStopped())
         {
-            CT_StandardItemGroup* grpShape = (CT_StandardItemGroup*) itOut.next();
+            CT_StandardItemGroup* grpShape = (CT_StandardItemGroup*) itGrpShape.next();
             CT_AbstractAreaShape2D* shape = (CT_AbstractAreaShape2D*) grpShape->firstItemByINModelName(this, DEFin_shape2D);
-            CT_AreaShape2DData* data = (CT_AreaShape2DData*) shape->getPointerData();
-
-            if (shape != NULL && data != NULL)
+            if (shape != NULL)
             {
-                CT_PlotListInGrid* plotList = new CT_PlotListInGrid(_outPlotList_ModelName.completeName(), resOut, data, refCoords, _plotSpacing, _plotSize);
-                plotLists.append(plotList);
+                CT_AreaShape2DData* data = (CT_AreaShape2DData*) shape->getPointerData();
 
-                Eigen::Vector2d  min, max;
-                plotList->getBoundingBox2D(min, max);
+                if (data != NULL)
+                {
+                    CT_PlotListInGrid* plotList = new CT_PlotListInGrid(_outPlotList_ModelName.completeName(), resOut, data, refCoords, _plotSpacing, _plotSize);
+                    plotLists.append(plotList);
 
-                if (min(0) < minAll(0)) {minAll(0) = min(0);}
-                if (min(1) < minAll(1)) {minAll(1) = min(1);}
-                if (max(0) > maxAll(0)) {maxAll(0) = max(0);}
-                if (max(1) > maxAll(1)) {maxAll(1) = max(1);}
+                    Eigen::Vector2d  min, max;
+                    plotList->getBoundingBox2D(min, max);
 
-                grpShape->addItemDrawable(plotList);
+                    if (min(0) < minAll(0)) {minAll(0) = min(0);}
+                    if (min(1) < minAll(1)) {minAll(1) = min(1);}
+                    if (max(0) > maxAll(0)) {maxAll(0) = max(0);}
+                    if (max(1) > maxAll(1)) {maxAll(1) = max(1);}
+
+                    grpShape->addItemDrawable(plotList);
+                }
             }
         }
 
