@@ -67,6 +67,10 @@ ONF_StepDetectVerticalAlignments06::ONF_StepDetectVerticalAlignments06(CT_StepIn
     _maxDiameter = 1.500;
     _maxSearchRadius = 1.5;
     _resolutionForDiameterEstimation = 1;
+    _applySigmoid = true;
+    _sigmoidCoefK = 10.0;
+    _sigmoidX0 = 0.5;
+
     _ratioDbhNbPtsMax = 0.07;
     _monoLineMult = 3.0;
 
@@ -128,14 +132,17 @@ void ONF_StepDetectVerticalAlignments06::createOutResultModelListProtected()
 
     resCpy->addItemModel(_grpCluster_ModelName, _cluster_ModelName, new CT_PointCluster(), tr("Cluster"));
     resCpy->addItemAttributeModel(_cluster_ModelName, _attMaxDistXY_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Diamètre"));
+    resCpy->addItemAttributeModel(_cluster_ModelName, _attScore_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Score"));
     resCpy->addItemAttributeModel(_cluster_ModelName, _attStemType_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_VALUE), tr("Type"), tr("0 = petite tige ; 1 = grosse tige"));
 
     resCpy->addItemModel(_grpCluster_ModelName, _circle_ModelName, new CT_Circle2D(), tr("Diamètre"));
     resCpy->addItemAttributeModel(_circle_ModelName, _attMaxDistXY2_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Diamètre"));
+    resCpy->addItemAttributeModel(_circle_ModelName, _attScore2_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Score"));
     resCpy->addItemAttributeModel(_circle_ModelName, _attStemType2_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_VALUE), tr("Type"), tr("0 = petite tige ; 1 = grosse tige"));
 
     resCpy->addItemModel(_grpCluster_ModelName, _line_ModelName, new CT_PointCluster(), tr("Droite ajustée"));
     resCpy->addItemAttributeModel(_line_ModelName, _attMaxDistXY3_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Diamètre"));
+    resCpy->addItemAttributeModel(_line_ModelName, _attScore3_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Score"));
     resCpy->addItemAttributeModel(_line_ModelName, _attStemType3_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_VALUE), tr("Type"), tr("0 = petite tige ; 1 = grosse tige"));
 
     if (_clusterDebugMode)
@@ -167,6 +174,9 @@ void ONF_StepDetectVerticalAlignments06::createPostConfigurationDialog()
     configDialog->addDouble(tr("Diamètre maximal"), "cm", 0, 1e+4, 2, _maxDiameter, 100);
     configDialog->addDouble(tr("Distance de recherche des voisins"), "m", 0, 1e+4, 2, _maxSearchRadius);
     configDialog->addDouble(tr("Résolution pour la recherche de tronc"), "°", 0, 1e+4, 2, _resolutionForDiameterEstimation);
+    configDialog->addBool(tr("Appliquer une fonction sigmoide pour le scoring"), "", "", _applySigmoid);
+    configDialog->addDouble(tr("Fonction Sigmoide : coefficient K"), "", 0, 1e+4, 2, _sigmoidCoefK);
+    configDialog->addDouble(tr("Fonction Sigmoide : coordonnée x0 du point d'inflexion "), "", 0, 1, 2, _sigmoidX0);
     configDialog->addDouble(tr("Ratio maximal diamètre / nb. points"), "cm", 0, 1e+4, 2, _ratioDbhNbPtsMax, 100);
     configDialog->addDouble(tr("Multiplicateur de diamètre pour les lignes de scan uniques"), "fois", 0, 1e+4, 2, _monoLineMult);
 
@@ -606,12 +616,12 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             }
 
             double diameter = 0.0;
+            double bestScore = 0;
             Eigen::Vector3d bestDirection(0, 0, 1);
             Eigen::Vector3d center(mainLine->_centerX, mainLine->_centerY, mainLine->_centerZ);
 
             if (!neighbourPointsToTest.isEmpty())
             {
-                double bestScore = 0;
                 int neighbourPointsSize = neighbourPoints.size();
                 int neighbourPointsOfDifferentsLinesOfFlightSize = neighbourPointsToTest.size();
 
@@ -678,10 +688,10 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
                                         if (distXY <= candidateRadius)
                                         {
-                                            candidateScore += distXY / candidateRadius;
+                                            candidateScore += weightedScore(_step->_applySigmoid, distXY / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
                                         } else if (distXY <= candidateDiameter)
                                         {
-                                            candidateScore += (candidateDiameter - distXY) / candidateRadius;
+                                            candidateScore += weightedScore(_step->_applySigmoid, (candidateDiameter - distXY) / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
                                         }
                                     }
 
@@ -693,10 +703,10 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
                                         if (distXY <= candidateRadius)
                                         {
-                                            candidateScore += distXY / candidateRadius;
+                                            candidateScore += weightedScore(_step->_applySigmoid, distXY / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
                                         } else if (distXY <= candidateDiameter)
                                         {
-                                            candidateScore += (candidateDiameter - distXY) / candidateRadius;
+                                            candidateScore += weightedScore(_step->_applySigmoid, (candidateDiameter - distXY) / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
                                         }
                                     }
 
@@ -725,7 +735,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             double centerY = mainLine->_centerY;
             double centerZ = mainLine->_centerZ;
 
-            // if not valid diameter, compute vertical projection diameter
+            // if not valid diameter, compute diameter along first-last line
             if (diameter >= _step->_maxDiameter || diameter <= 0)
             {
                 const size_t index1 = mainLine->first();
@@ -776,10 +786,10 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             int nbPts = cluster->getPointCloudIndexSize();
             if (nbPts == 0 || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
             {
-                diameter = _step->_minDiameter;
+                //diameter = _step->_minDiameter;
                 type = 4; // Excessive diameter
             }
-            circles.append(addClusterToResult(grp, cluster, diameter, type, centerX, centerY,  centerZ, mainLine->_length, bestDirection));
+            circles.append(addClusterToResult(grp, cluster, diameter, type, centerX, centerY,  centerZ, mainLine->_length, bestDirection, bestScore));
 
             delete mainLine;
             qDeleteAll(neighbourLines);
@@ -959,7 +969,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                                     diameter = _step->_minDiameter;
                                         type = 6; // Alignement, excessive diameter
                                 }
-                                addClusterToResult(grp, cluster, diameter, type, center(0), center(1),  center(2), fittedLineData->length(), fittedLineData->getDirection());
+                                addClusterToResult(grp, cluster, diameter, type, center(0), center(1),  center(2), fittedLineData->length(), fittedLineData->getDirection(), 0);
                         } else {
                             delete cluster;
                         }
@@ -976,7 +986,6 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
         insertedPoints.clear();
     }
 }
-
 
 double ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeDiameterAlongLine(CT_PointCluster* cluster, const Eigen::Vector3d& direction, const Eigen::Vector3d& origin)
 {
@@ -1010,7 +1019,7 @@ double ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeDi
 }
 
 
-CT_Circle2D *ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::addClusterToResult(CT_StandardItemGroup* grp, CT_PointCluster* cluster, double diameter, int type, double centerX, double centerY, double centerZ, double length, const Eigen::Vector3d& direction)
+CT_Circle2D *ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::addClusterToResult(CT_StandardItemGroup* grp, CT_PointCluster* cluster, double diameter, int type, double centerX, double centerY, double centerZ, double length, const Eigen::Vector3d& direction, double score)
 {
     Eigen::Vector2d center2D(centerX, centerY);
     Eigen::Vector3d center3D(centerX, centerY, centerZ);
@@ -1020,16 +1029,19 @@ CT_Circle2D *ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::add
 
 
     cluster->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMaxDistXY_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, diameter*100.0));
+    cluster->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attScore_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, score));
     cluster->addItemAttribute(new CT_StdItemAttributeT<int>(_step->_attStemType_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, type));
     grpClKept->addItemDrawable(cluster);
 
     CT_Circle2D *circle = new CT_Circle2D(_step->_circle_ModelName.completeName(), _res, new CT_Circle2DData(center2D, diameter/2.0));
     circle->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMaxDistXY2_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, diameter*100.0));
+    circle->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attScore2_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, score));
     circle->addItemAttribute(new CT_StdItemAttributeT<int>(_step->_attStemType2_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, type));
     grpClKept->addItemDrawable(circle);
 
     CT_Line* line = new CT_Line(_step->_line_ModelName.completeName(), _res, new CT_LineData(center3D, center3D + length*direction));
     line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMaxDistXY3_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, diameter*100.0));
+    line->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attScore3_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, score));
     line->addItemAttribute(new CT_StdItemAttributeT<int>(_step->_attStemType3_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, type));
     grpClKept->addItemDrawable(line);
 

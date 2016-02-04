@@ -246,8 +246,17 @@ protected:
 
 
         void detectAlignmentsForScene(CT_StandardItemGroup* grp);
+        inline double weightedScore(bool applySigmoid, double val, const double &k, const double &x0)
+        {
+            if (applySigmoid)
+            {
+                return 1.0/ (1.0 + std::exp(-k*(val - x0)));
+            }
+            return val;
+        }
+
         double computeDiameterAlongLine(CT_PointCluster *cluster, const Eigen::Vector3d &direction, const Eigen::Vector3d &origin);
-        CT_Circle2D *addClusterToResult(CT_StandardItemGroup* grp, CT_PointCluster* cluster, double diameter, int type, double centerX, double centerY, double centerZ, double length, const Eigen::Vector3d &direction);
+        CT_Circle2D *addClusterToResult(CT_StandardItemGroup* grp, CT_PointCluster* cluster, double diameter, int type, double centerX, double centerY, double centerZ, double length, const Eigen::Vector3d &direction, double score);
         void findNeighborLines(QList<ONF_StepDetectVerticalAlignments06::LineData*> candidateLines, double distThreshold);
 
 
@@ -262,12 +271,15 @@ protected:
     CT_AutoRenameModels    _grpCluster_ModelName;
     CT_AutoRenameModels    _cluster_ModelName;
     CT_AutoRenameModels    _attMaxDistXY_ModelName;
+    CT_AutoRenameModels    _attScore_ModelName;
     CT_AutoRenameModels    _attStemType_ModelName;
     CT_AutoRenameModels    _circle_ModelName;
     CT_AutoRenameModels    _attMaxDistXY2_ModelName;
+    CT_AutoRenameModels    _attScore2_ModelName;
     CT_AutoRenameModels    _attStemType2_ModelName;
     CT_AutoRenameModels    _line_ModelName;
     CT_AutoRenameModels    _attMaxDistXY3_ModelName;
+    CT_AutoRenameModels    _attScore3_ModelName;
     CT_AutoRenameModels    _attStemType3_ModelName;
 
 
@@ -290,6 +302,12 @@ protected:
     double      _maxDiameter;
     double      _maxSearchRadius;
     double      _resolutionForDiameterEstimation;
+
+
+    bool        _applySigmoid;
+    double      _sigmoidCoefK;
+    double      _sigmoidX0;
+
     double      _ratioDbhNbPtsMax;
     double      _monoLineMult;
 
