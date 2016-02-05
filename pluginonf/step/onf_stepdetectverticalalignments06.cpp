@@ -69,7 +69,7 @@ ONF_StepDetectVerticalAlignments06::ONF_StepDetectVerticalAlignments06(CT_StepIn
     _resolutionForDiameterEstimation = 1;
     _applySigmoid = true;
     _sigmoidCoefK = 10.0;
-    _sigmoidX0 = 0.5;
+    _sigmoidX0 = 0.75;
 
     _ratioDbhNbPtsMax = 0.07;
     _monoLineMult = 3.0;
@@ -547,7 +547,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
         // Compute diameters using neighbourhoud
         QList<CT_Circle2D*> circles;
-        while (!keptLinesOfScan.isEmpty())
+        while (!keptLinesOfScan.isEmpty() && keptLinesOfScan.last()->size() > 2)
         {
             ScanLineData *mainLine = keptLinesOfScan.takeLast();
 
@@ -723,6 +723,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                 }
             }
 
+            // Create cluster containing mainline and neighbourhood
             CT_PointCluster* cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
             // Add points of the main line
             for (int j = 0 ; j < mainLine->size() ; j++)
@@ -730,13 +731,25 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                 size_t index = mainLine->at(j);
                 cluster->addPoint(index);
             }
+            // Add points of the neighbours lines
+            for (int i = 0 ; i < neighbourLines.size() ; i++)
+            {
+                ScanLineData* testedLine = neighbourLines.at(i);
+                for (int j = 0 ; j < testedLine->size() ; j++)
+                {
+                    size_t index = testedLine->at(j);
+                    cluster->addPoint(index);
+                }
+            }
+
+            int nbPts = cluster->getPointCloudIndexSize();
 
             double centerX = mainLine->_centerX;
             double centerY = mainLine->_centerY;
             double centerZ = mainLine->_centerZ;
 
-            // if not valid diameter, compute diameter along first-last line
-            if (diameter >= _step->_maxDiameter || diameter <= 0)
+            // if not valid diameter, compute diameter along first-last points line
+            if (diameter >= _step->_maxDiameter || diameter <= 0 || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
             {
                 const size_t index1 = mainLine->first();
                 const size_t index2 = mainLine->last();
@@ -764,36 +777,55 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                     centerY = p2(1);
                     centerZ = p2(2);
                 }
-            }
 
-            // Add points of the neighbours lines
-            for (int i = 0 ; i < neighbourLines.size() ; i++)
-            {
-                ScanLineData* testedLine = neighbourLines.at(i);
-                for (int j = 0 ; j < testedLine->size() ; j++)
+                // If we have only kept main line, reconstruct the cluster only with it and put meighbourhood to isolatedpoints list
+                delete cluster;
+                CT_PointCluster* cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
+                // Add points of the main line
+                for (int j = 0 ; j < mainLine->size() ; j++)
                 {
-                    size_t index = testedLine->at(j);
-                    if (type == 1 || type == 2)
+                    size_t index = mainLine->at(j);
+                    cluster->addPoint(index);
+                }
+                // Add points of the neighbours lines
+                for (int i = 0 ; i < neighbourLines.size() ; i++)
+                {
+                    ScanLineData* testedLine = neighbourLines.at(i);
+                    for (int j = 0 ; j < testedLine->size() ; j++)
                     {
-                        cluster->addPoint(index);
-                    } else {
+                        size_t index = testedLine->at(j);
                         isolatedPointIndices.append(index);
                     }
                 }
             }
 
-            // Add to result
-            int nbPts = cluster->getPointCloudIndexSize();
+            nbPts = cluster->getPointCloudIndexSize();
             if (nbPts == 0 || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
             {
-                //diameter = _step->_minDiameter;
-                type = 4; // Excessive diameter
+                CT_PointIterator itP(cluster->getPointCloudIndex());
+                while(itP.hasNext())
+                {
+                   size_t index = itP.next().currentGlobalIndex();
+                   isolatedPointIndices.append(index);
+                }
+                delete cluster;
+            } else {
+                // Add to result
+                circles.append(addClusterToResult(grp, cluster, diameter, type, centerX, centerY,  centerZ, mainLine->_length, bestDirection, bestScore));
             }
-            circles.append(addClusterToResult(grp, cluster, diameter, type, centerX, centerY,  centerZ, mainLine->_length, bestDirection, bestScore));
 
             delete mainLine;
             qDeleteAll(neighbourLines);
         }
+
+        // Put all point from not merged 2 points lines in isolated points
+        while (!keptLinesOfScan.isEmpty())
+        {
+            ScanLineData *line = keptLinesOfScan.takeLast();
+            if (line->size() > 0) {isolatedPointIndices.append(line->at(0));}
+            if (line->size() > 1) {isolatedPointIndices.append(line->at(1));}
+        }
+
 
         ////////////////////////////////////////////////////
         /// Detection of small stems: points alignements ///
@@ -963,11 +995,11 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                                 double diameter = computeDiameterAlongLine(cluster, fittedLineData->getDirection(), center);
 
                                 int nbPts = cluster->getPointCloudIndexSize();
-                                int type = 5; // Alignement, ok
+                                int type = 4; // Alignement, ok
                                 if (nbPts == 0 || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
                                 {
                                     diameter = _step->_minDiameter;
-                                        type = 6; // Alignement, excessive diameter
+                                        type = 5; // Alignement, excessive diameter
                                 }
                                 addClusterToResult(grp, cluster, diameter, type, center(0), center(1),  center(2), fittedLineData->length(), fittedLineData->getDirection(), 0);
                         } else {
