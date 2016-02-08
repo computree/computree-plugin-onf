@@ -77,7 +77,9 @@ void ONF_StepRefPointFromArcCenter::createInResultModelListProtected()
 void ONF_StepRefPointFromArcCenter::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
-    res->addItemModel(DEF_SearchInGroup, _outRefPointModelName, new CT_ReferencePoint(), tr("Barycentre"));
+
+    if(res != NULL)
+        res->addItemModel(DEF_SearchInGroup, _outRefPointModelName, new CT_ReferencePoint(), tr("Barycentre"));
 }
 
 void ONF_StepRefPointFromArcCenter::compute()

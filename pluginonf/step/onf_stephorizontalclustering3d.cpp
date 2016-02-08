@@ -111,10 +111,11 @@ void ONF_StepHorizontalClustering3D::createOutResultModelListProtected()
 {   
     CT_OutResultModelGroupToCopyPossibilities *resultModel = createNewOutResultModelToCopy(DEF_SearchInResult);
 
-    resultModel->addGroupModel(DEF_SearchInGroup, _outLayerGroupModel, new CT_StandardItemGroup(), tr("Niveau Z (Grp)"));
-    resultModel->addGroupModel(_outLayerGroupModel, _outClusterGroupModel, new CT_StandardItemGroup(), tr("Cluster (Grp)"));
-    resultModel->addItemModel(_outClusterGroupModel, _outClusterModel, new CT_PointCluster(), tr("Points"));
-
+    if(resultModel != NULL) {
+        resultModel->addGroupModel(DEF_SearchInGroup, _outLayerGroupModel, new CT_StandardItemGroup(), tr("Niveau Z (Grp)"));
+        resultModel->addGroupModel(_outLayerGroupModel, _outClusterGroupModel, new CT_StandardItemGroup(), tr("Cluster (Grp)"));
+        resultModel->addItemModel(_outClusterGroupModel, _outClusterModel, new CT_PointCluster(), tr("Points"));
+    }
 }
 
 void ONF_StepHorizontalClustering3D::compute()

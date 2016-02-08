@@ -102,10 +102,12 @@ void ONF_StepChangeClusterThickness02::createPostConfigurationDialog()
 void ONF_StepChangeClusterThickness02::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities* resultCopy = createNewOutResultModelToCopy(DEF_SearchInResult);
-    resultCopy->addGroupModel(DEF_SearchInSectionGroup, _autoSearchOutClusterGroup, new CT_StandardItemGroup(), tr("Cluster (Grp)"));
-    resultCopy->addItemModel(_autoSearchOutClusterGroup, _autoSearchOutPointCluster, new CT_PointCluster(), tr("Points"));
-    resultCopy->removeGroupModel(DEF_SearchInClusterGroup);
 
+    if(resultCopy != NULL) {
+        resultCopy->addGroupModel(DEF_SearchInSectionGroup, _autoSearchOutClusterGroup, new CT_StandardItemGroup(), tr("Cluster (Grp)"));
+        resultCopy->addItemModel(_autoSearchOutClusterGroup, _autoSearchOutPointCluster, new CT_PointCluster(), tr("Points"));
+        resultCopy->removeGroupModel(DEF_SearchInClusterGroup);
+    }
     // ATTENTION il est important de faire l'ajout D'ABORD des nouveaux
     // modèles et seulement APRES de supprimer l'ancien clusterGroup afin que les nouveaux éléments n'est pas le même nom
     // qu'un de ceux qui était déjà présent dans le modèle

@@ -94,7 +94,9 @@ void ONF_StepSetFootCoordinatesVertically::createPostConfigurationDialog()
 void ONF_StepSetFootCoordinatesVertically::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
-    res->addItemModel(DEF_SearchInBaseGroup, _outFootCoordinateModelName, new CT_ReferencePoint(), tr("Coordonnée MNT"));
+
+    if(res != NULL)
+        res->addItemModel(DEF_SearchInBaseGroup, _outFootCoordinateModelName, new CT_ReferencePoint(), tr("Coordonnée MNT"));
 }
 
 void ONF_StepSetFootCoordinatesVertically::compute()

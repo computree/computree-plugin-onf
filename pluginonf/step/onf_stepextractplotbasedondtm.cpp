@@ -107,7 +107,9 @@ void ONF_StepExtractPlotBasedOnDTM::createPostConfigurationDialog()
 void ONF_StepExtractPlotBasedOnDTM::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
-    res->addItemModel(DEF_SearchInGroup, _outSceneModel, new CT_Scene(), tr("Scène extraite"));
+
+    if(res != NULL)
+        res->addItemModel(DEF_SearchInGroup, _outSceneModel, new CT_Scene(), tr("Scène extraite"));
 }
 
 void ONF_StepExtractPlotBasedOnDTM::compute()

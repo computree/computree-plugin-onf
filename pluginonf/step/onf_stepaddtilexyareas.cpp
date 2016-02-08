@@ -89,8 +89,11 @@ void ONF_StepAddTileXYAreas::createPostConfigurationDialog()
 void ONF_StepAddTileXYAreas::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
-    res->addItemModel(DEF_SearchInGroup, _outTileXYAreaModelName, new CT_Box2D(), tr("Emprise"));
-    res->addItemModel(DEF_SearchInGroup, _outBufferTileXYAreaModelName, new CT_Box2D(), tr("Emprise (Buffer)"));
+
+    if(res != NULL) {
+        res->addItemModel(DEF_SearchInGroup, _outTileXYAreaModelName, new CT_Box2D(), tr("Emprise"));
+        res->addItemModel(DEF_SearchInGroup, _outBufferTileXYAreaModelName, new CT_Box2D(), tr("Emprise (Buffer)"));
+    }
 }
 
 void ONF_StepAddTileXYAreas::compute()

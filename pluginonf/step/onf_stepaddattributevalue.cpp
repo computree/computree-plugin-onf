@@ -86,7 +86,9 @@ void ONF_StepAddAttributeValue::createInResultModelListProtected()
 void ONF_StepAddAttributeValue::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resCpy_res = createNewOutResultModelToCopy(DEFin_res);
-    resCpy_res->addItemAttributeModel(DEFin_item, _Att_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), _name);
+
+    if(resCpy_res != NULL)
+        resCpy_res->addItemAttributeModel(DEFin_item, _Att_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), _name);
 }
 
 // Semi-automatic creation of step parameters DialogBox

@@ -94,11 +94,14 @@ void ONF_StepFilterMaximaByClusterPositions::createInResultModelListProtected()
 void ONF_StepFilterMaximaByClusterPositions::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resCpy_res = createNewOutResultModelToCopy(DEFin_res);
-    resCpy_res->addItemModel(DEFin_grp, _filteredMaxima_ModelName, new CT_Image2D<qint32>(), tr("Maxima filtrés"));
 
-    resCpy_res->addItemModel(DEFin_grpPos, _attMaximaItem_ModelName, new CT_AttributesList(), tr("MaximaID"));
-    resCpy_res->addItemAttributeModel(_attMaximaItem_ModelName, _attMaxima_ModelName, new CT_StdItemAttributeT<qint32>(CT_AbstractCategory::DATA_ID), tr("MaximaID"));
-    resCpy_res->addItemAttributeModel(_attMaximaItem_ModelName, _attClusterID_ModelName, new CT_StdItemAttributeT<quint64>(CT_AbstractCategory::DATA_ID), tr("PointClusterID"));
+    if(resCpy_res != NULL) {
+        resCpy_res->addItemModel(DEFin_grp, _filteredMaxima_ModelName, new CT_Image2D<qint32>(), tr("Maxima filtrés"));
+
+        resCpy_res->addItemModel(DEFin_grpPos, _attMaximaItem_ModelName, new CT_AttributesList(), tr("MaximaID"));
+        resCpy_res->addItemAttributeModel(_attMaximaItem_ModelName, _attMaxima_ModelName, new CT_StdItemAttributeT<qint32>(CT_AbstractCategory::DATA_ID), tr("MaximaID"));
+        resCpy_res->addItemAttributeModel(_attMaximaItem_ModelName, _attClusterID_ModelName, new CT_StdItemAttributeT<quint64>(CT_AbstractCategory::DATA_ID), tr("PointClusterID"));
+    }
 }
 
 // Semi-automatic creation of step parameters DialogBox

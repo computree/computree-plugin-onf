@@ -81,7 +81,9 @@ void ONF_StepSmoothSkeleton::createPostConfigurationDialog()
 void ONF_StepSmoothSkeleton::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
-    res->addItemModel(DEF_SearchInGroup, _outRefPointModelName, new CT_ReferencePoint(), tr("Point de référence (lissé)"));
+
+    if(res != NULL)
+        res->addItemModel(DEF_SearchInGroup, _outRefPointModelName, new CT_ReferencePoint(), tr("Point de référence (lissé)"));
 }
 
 void ONF_StepSmoothSkeleton::compute()

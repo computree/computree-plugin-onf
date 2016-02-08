@@ -97,8 +97,9 @@ void ONF_StepComputeAttributeMapFromClusters::createInResultModelListProtected()
 void ONF_StepComputeAttributeMapFromClusters::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEFin_res);
-    res->addItemModel(DEFin_mainGrp, _attMap_ModelName, new CT_Image2D<double>(), tr("Carte d'attribut"));
 
+    if(res != NULL)
+        res->addItemModel(DEFin_mainGrp, _attMap_ModelName, new CT_Image2D<double>(), tr("Carte d'attribut"));
 }
 
 // Semi-automatic creation of step parameters DialogBox

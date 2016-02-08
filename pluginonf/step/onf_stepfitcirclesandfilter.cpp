@@ -90,7 +90,9 @@ void ONF_StepFitCirclesAndFilter::createPostConfigurationDialog()
 void ONF_StepFitCirclesAndFilter::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
-    res->addItemModel(DEF_SearchInGroup, _outCircleModelName, new CT_Circle(), tr("Cercle"));
+
+    if(res != NULL)
+        res->addItemModel(DEF_SearchInGroup, _outCircleModelName, new CT_Circle(), tr("Cercle"));
 }
 
 void ONF_StepFitCirclesAndFilter::compute()

@@ -90,12 +90,14 @@ void ONF_StepAddAffiliationID::createOutResultModelListProtected()
     // create a new OUT result that is a copy of the IN result selected by the user
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
 
-    // in this result we add a CT_AffiliationID to the group named DEF_SearchInGroup. The name of the model of
-    // the CT_AffiliationID will be generated automatically by the _outAffiliationIDModelName object.
-    res->addItemModel(DEF_SearchInGroup,
-                      _outAffiliationIDModelName,
-                      new CT_AffiliationID(),
-                      tr("ID"));
+    if(res != NULL) {
+        // in this result we add a CT_AffiliationID to the group named DEF_SearchInGroup. The name of the model of
+        // the CT_AffiliationID will be generated automatically by the _outAffiliationIDModelName object.
+        res->addItemModel(DEF_SearchInGroup,
+                          _outAffiliationIDModelName,
+                          new CT_AffiliationID(),
+                          tr("ID"));
+    }
 }
 
 void ONF_StepAddAffiliationID::compute()

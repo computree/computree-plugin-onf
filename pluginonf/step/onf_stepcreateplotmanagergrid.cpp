@@ -97,8 +97,11 @@ void ONF_StepCreatePlotManagerGrid::createInResultModelListProtected()
 void ONF_StepCreatePlotManagerGrid::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEFin_result);
-    //res->addItemModel(DEFin_grpRoot, _outPlotManagerGrid_ModelName, new CT_PlotGridManager(), tr("Gestionnaire de placettes (grille)"));
-    res->addItemModel(DEFin_grpShape2D, _outPlotList_ModelName, new CT_PlotListInGrid(), tr("Liste de Placettes"));
+
+    if(res != NULL) {
+        //res->addItemModel(DEFin_grpRoot, _outPlotManagerGrid_ModelName, new CT_PlotGridManager(), tr("Gestionnaire de placettes (grille)"));
+        res->addItemModel(DEFin_grpShape2D, _outPlotList_ModelName, new CT_PlotListInGrid(), tr("Liste de Placettes"));
+    }
 }
 
 // Semi-automatic creation of step parameters DialogBox

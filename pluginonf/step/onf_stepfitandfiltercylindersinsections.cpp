@@ -117,7 +117,9 @@ void ONF_StepFitAndFilterCylindersInSections::createPostConfigurationDialog()
 void ONF_StepFitAndFilterCylindersInSections::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
-    res->addItemModel(DEF_SearchInGroup, _outCylinderModelName, new CT_Cylinder(), tr("Cylindre"));
+
+    if(res != NULL)
+        res->addItemModel(DEF_SearchInGroup, _outCylinderModelName, new CT_Cylinder(), tr("Cylindre"));
 }
 
 void ONF_StepFitAndFilterCylindersInSections::compute()

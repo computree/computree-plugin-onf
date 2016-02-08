@@ -139,41 +139,42 @@ void ONF_StepManualInventory::createOutResultModelListProtected()
 
     CT_OutResultModelGroupToCopyPossibilities *resCpy_scres = createNewOutResultModelToCopy(DEFin_scres);
 
-    resCpy_scres->addItemModel(DEFin_scBase, _dbhcircle_ModelName, new CT_Circle(), tr("Cercle du DHP"));
-    resCpy_scres->addItemModel(DEFin_scBase, _attributes_ModelName, new CT_AttributesList(), tr("Attributs"));
+    if(resCpy_scres != NULL) {
+        resCpy_scres->addItemModel(DEFin_scBase, _dbhcircle_ModelName, new CT_Circle(), tr("Cercle du DHP"));
+        resCpy_scres->addItemModel(DEFin_scBase, _attributes_ModelName, new CT_AttributesList(), tr("Attributs"));
 
-    resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_dbh_ModelName,
-                                        new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_NUMBER),
-                                        tr("DHP (cm)"));
-    resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_x_ModelName,
-                                        new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_X),
-                                        tr("X"));
-    resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_y_ModelName,
-                                        new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_Y),
-                                        tr("Y"));
-    resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_z_ModelName,
-                                        new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_Z),
-                                        tr("Z"));
-    resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_h130_ModelName,
-                                        new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_HEIGHT),
-                                        tr("H130"));
-    resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_h_ModelName,
-                                        new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_HEIGHT),
-                                        tr("Hauteur"));
+        resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_dbh_ModelName,
+                                            new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_NUMBER),
+                                            tr("DHP (cm)"));
+        resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_x_ModelName,
+                                            new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_X),
+                                            tr("X"));
+        resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_y_ModelName,
+                                            new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_Y),
+                                            tr("Y"));
+        resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_z_ModelName,
+                                            new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_Z),
+                                            tr("Z"));
+        resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_h130_ModelName,
+                                            new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_HEIGHT),
+                                            tr("H130"));
+        resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_h_ModelName,
+                                            new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_HEIGHT),
+                                            tr("Hauteur"));
 
-    // Ajout des modèles pour les attributs supplémentaires
-    QMutableMapIterator<QString, CT_AutoRenameModels> itAutoRename(_paramAutoRename);
-    while (itAutoRename.hasNext())
-    {
-        itAutoRename.next();
+        // Ajout des modèles pour les attributs supplémentaires
+        QMutableMapIterator<QString, CT_AutoRenameModels> itAutoRename(_paramAutoRename);
+        while (itAutoRename.hasNext())
+        {
+            itAutoRename.next();
 
-        const QString &name = itAutoRename.key();
-        CT_AutoRenameModels &autoRenameModel =  itAutoRename.value();
+            const QString &name = itAutoRename.key();
+            CT_AutoRenameModels &autoRenameModel =  itAutoRename.value();
 
-        resCpy_scres->addItemAttributeModel(_attributes_ModelName, autoRenameModel,
-                                            new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_VALUE), name);
+            resCpy_scres->addItemAttributeModel(_attributes_ModelName, autoRenameModel,
+                                                new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_VALUE), name);
+        }
     }
-
 }
 
 

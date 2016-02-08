@@ -99,10 +99,14 @@ void ONF_StepSetAffiliationIDFromReference::createOutResultModelListProtected()
     setManual(_manualModeActivated);
 
     CT_OutResultModelGroupToCopyPossibilities *inResultRefCopy = createNewOutResultModelToCopy(DEF_SearchInSourceResult);
-    inResultRefCopy->addItemModel(DEF_SearchInSourceGroup, _outSourceIdModelName, new CT_AffiliationID(), tr("ID de référence"));
+
+    if(inResultRefCopy != NULL)
+        inResultRefCopy->addItemModel(DEF_SearchInSourceGroup, _outSourceIdModelName, new CT_AffiliationID(), tr("ID de référence"));
 
     CT_OutResultModelGroupToCopyPossibilities *inResultAffCopy = createNewOutResultModelToCopy(DEF_SearchInTargetResult);
-    inResultAffCopy->addItemModel(DEF_SearchInTargetGroup, _outTargetIdModelName, new CT_AffiliationID(), tr("ID à affilier"));
+
+    if(inResultAffCopy != NULL)
+        inResultAffCopy->addItemModel(DEF_SearchInTargetGroup, _outTargetIdModelName, new CT_AffiliationID(), tr("ID à affilier"));
 }
 
 void ONF_StepSetAffiliationIDFromReference::compute()

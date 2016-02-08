@@ -104,7 +104,9 @@ void ONF_StepExtractDiametersFromCylinders::createPostConfigurationDialog()
 void ONF_StepExtractDiametersFromCylinders::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
-    res->addItemModel(DEF_SearchInSectionGroup, _outCircleModelName, new CT_Circle(), tr("Diamètre à 1.30m"));
+
+    if(res != NULL)
+        res->addItemModel(DEF_SearchInSectionGroup, _outCircleModelName, new CT_Circle(), tr("Diamètre à 1.30m"));
 }
 
 void ONF_StepExtractDiametersFromCylinders::compute()

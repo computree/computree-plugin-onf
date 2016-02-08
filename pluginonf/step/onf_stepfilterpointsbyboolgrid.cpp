@@ -101,7 +101,8 @@ void ONF_StepFilterPointsByBoolGrid::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_IN_Result_Grids);
 
-    res->addItemModel(DEF_IN_GridGroup, _ModelOut_Scene, new CT_Scene(), tr("Scène filtrée"));
+    if(res != NULL)
+        res->addItemModel(DEF_IN_GridGroup, _ModelOut_Scene, new CT_Scene(), tr("Scène filtrée"));
 }
 
 // Semi-automatic creation of step parameters DialogBox

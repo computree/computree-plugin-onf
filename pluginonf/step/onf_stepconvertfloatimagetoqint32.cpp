@@ -84,7 +84,9 @@ void ONF_StepConvertFloatImageToqint32::createInResultModelListProtected()
 void ONF_StepConvertFloatImageToqint32::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEFin_res);
-    res->addItemModel(DEFin_grp, _imageI_ModelName, new CT_Image2D<qint32>(), tr("Image (qint32)"));
+
+    if(res != NULL)
+        res->addItemModel(DEFin_grp, _imageI_ModelName, new CT_Image2D<qint32>(), tr("Image (qint32)"));
 }
 
 // Semi-automatic creation of step parameters DialogBox

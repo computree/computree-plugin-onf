@@ -85,10 +85,13 @@ void ONF_StepCorrectALSProfile::createInResultModelListProtected()
 void ONF_StepCorrectALSProfile::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resCpy_res = createNewOutResultModelToCopy(DEFin_res);
-    resCpy_res->addItemModel(DEFin_grp, _profile_ModelName, new CT_Profile<double>(), tr("Profil corrigé"));
-    resCpy_res->addItemAttributeModel(_profile_ModelName, _profileAtt_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Seuil OTSU"));
-    resCpy_res->addItemModel(DEFin_grp, _profileLow_ModelName, new CT_Profile<double>(),  tr("Profil corrigé OTSU bas"));
-    resCpy_res->addItemModel(DEFin_grp, _profileHigh_ModelName, new CT_Profile<double>(), tr("Profil corrigé OTSU haut"));
+
+    if(resCpy_res != NULL) {
+        resCpy_res->addItemModel(DEFin_grp, _profile_ModelName, new CT_Profile<double>(), tr("Profil corrigé"));
+        resCpy_res->addItemAttributeModel(_profile_ModelName, _profileAtt_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Seuil OTSU"));
+        resCpy_res->addItemModel(DEFin_grp, _profileLow_ModelName, new CT_Profile<double>(),  tr("Profil corrigé OTSU bas"));
+        resCpy_res->addItemModel(DEFin_grp, _profileHigh_ModelName, new CT_Profile<double>(), tr("Profil corrigé OTSU haut"));
+    }
 }
 
 // Semi-automatic creation of step parameters DialogBox

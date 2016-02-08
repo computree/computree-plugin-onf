@@ -102,7 +102,9 @@ void ONF_StepLoadPlotAreas::createInResultModelListProtected()
 void ONF_StepLoadPlotAreas::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resCpy_res = createNewOutResultModelToCopy(DEFin_res);
-    resCpy_res->addItemModel(DEFin_grp, _areaModelName, new CT_Circle2D(), tr("Emprise"));
+
+    if(resCpy_res != NULL)
+        resCpy_res->addItemModel(DEFin_grp, _areaModelName, new CT_Circle2D(), tr("Emprise"));
 }
 
 // Semi-automatic creation of step parameters DialogBox

@@ -106,8 +106,8 @@ void ONF_StepExtractLogBuffer::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resCpy_rcircles = createNewOutResultModelToCopy(DEFin_rcircles);
 
-
-    resCpy_rcircles->addItemModel(DEFin_grpLog, _outPoint_ModelName, new CT_PointCluster(), tr("Points extraits"));
+    if(resCpy_rcircles != NULL)
+        resCpy_rcircles->addItemModel(DEFin_grpLog, _outPoint_ModelName, new CT_PointCluster(), tr("Points extraits"));
 }
 
 // Semi-automatic creation of step parameters DialogBox

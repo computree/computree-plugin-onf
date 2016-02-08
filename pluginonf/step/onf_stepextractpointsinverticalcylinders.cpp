@@ -127,9 +127,11 @@ void ONF_StepExtractPointsInVerticalCylinders::createOutResultModelListProtected
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
 
-    res->addGroupModel(DEF_SearchInGroup, _outSceneGroupModelName);
-    res->addItemModel(_outSceneGroupModelName, _outSceneModelName, new CT_Scene(), tr("Extracted Scene"));
-    res->addItemAttributeModel(_outSceneModelName, _outAttIDModelName, new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_VALUE), tr("PlotID"));
+    if(res != NULL) {
+        res->addGroupModel(DEF_SearchInGroup, _outSceneGroupModelName);
+        res->addItemModel(_outSceneGroupModelName, _outSceneModelName, new CT_Scene(), tr("Extracted Scene"));
+        res->addItemAttributeModel(_outSceneModelName, _outAttIDModelName, new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_VALUE), tr("PlotID"));
+    }
 }
 
 // Semi-automatic creation of step parameters DialogBox

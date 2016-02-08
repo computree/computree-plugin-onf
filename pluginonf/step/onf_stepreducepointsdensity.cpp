@@ -94,7 +94,9 @@ void ONF_StepReducePointsDensity::createInResultModelListProtected()
 void ONF_StepReducePointsDensity::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resultModel = createNewOutResultModelToCopy(DEF_SearchInResult);
-    resultModel->addItemModel(DEF_SearchInGroup, _outScene_ModelName, new CT_Scene(), tr("Scène réduite"));
+
+    if(resultModel != NULL)
+        resultModel->addItemModel(DEF_SearchInGroup, _outScene_ModelName, new CT_Scene(), tr("Scène réduite"));
 }
 
 void ONF_StepReducePointsDensity::createPostConfigurationDialog()

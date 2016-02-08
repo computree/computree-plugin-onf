@@ -110,7 +110,9 @@ void ONF_StepSelectBBoxByFileName::createInResultModelListProtected()
 void ONF_StepSelectBBoxByFileName::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resCpy_res = createNewOutResultModelToCopy(DEFin_resHeader);
-    resCpy_res->addItemModel(DEFin_grpHeader, _outBBox_ModelName, new CT_Box2D(), tr("Emprise"));
+
+    if(resCpy_res != NULL)
+        resCpy_res->addItemModel(DEFin_grpHeader, _outBBox_ModelName, new CT_Box2D(), tr("Emprise"));
 }
 
 // Semi-automatic creation of step parameters DialogBox

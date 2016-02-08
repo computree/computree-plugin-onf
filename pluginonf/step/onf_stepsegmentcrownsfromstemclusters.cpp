@@ -94,8 +94,11 @@ void ONF_StepSegmentCrownsFromStemClusters::createInResultModelListProtected()
 void ONF_StepSegmentCrownsFromStemClusters::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resCpy_res = createNewOutResultModelToCopy(DEFin_res);
-    resCpy_res->addItemModel(DEFin_grpPos, _outScene_ModelName, new CT_PointCluster(), tr("Cluster segmenté"));
-    resCpy_res->addItemAttributeModel(_outScene_ModelName, _outAttZmax_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_Z), tr("Zmax"));
+
+    if(resCpy_res != NULL) {
+        resCpy_res->addItemModel(DEFin_grpPos, _outScene_ModelName, new CT_PointCluster(), tr("Cluster segmenté"));
+        resCpy_res->addItemAttributeModel(_outScene_ModelName, _outAttZmax_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_Z), tr("Zmax"));
+    }
 }
 
 // Semi-automatic creation of step parameters DialogBox

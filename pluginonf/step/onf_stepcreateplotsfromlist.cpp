@@ -91,13 +91,16 @@ void ONF_StepCreatePlotsFromList::createInResultModelListProtected()
 void ONF_StepCreatePlotsFromList::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEFin_result);
-    res->addGroupModel(DEFin_grpPlotList, _outGrpPlot_ModelName, new CT_StandardItemGroup(), tr("Placette (Groupe)"));
 
-    if (_plotType == DEF_typeCircular)
-    {
-        res->addItemModel(_outGrpPlot_ModelName, _outPlot_ModelName, new CT_Circle2D(), tr("Placette circulaire"));
-    } else {
-        res->addItemModel(_outGrpPlot_ModelName, _outPlot_ModelName, new CT_Box2D(), tr("Placette carrée"));
+    if(res != NULL) {
+        res->addGroupModel(DEFin_grpPlotList, _outGrpPlot_ModelName, new CT_StandardItemGroup(), tr("Placette (Groupe)"));
+
+        if (_plotType == DEF_typeCircular)
+        {
+            res->addItemModel(_outGrpPlot_ModelName, _outPlot_ModelName, new CT_Circle2D(), tr("Placette circulaire"));
+        } else {
+            res->addItemModel(_outGrpPlot_ModelName, _outPlot_ModelName, new CT_Box2D(), tr("Placette carrée"));
+        }
     }
 }
 

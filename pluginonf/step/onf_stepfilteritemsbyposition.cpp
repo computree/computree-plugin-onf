@@ -87,8 +87,7 @@ void ONF_StepFilterItemsByPosition::createInResultModelListProtected()
 // Creation and affiliation of OUT models
 void ONF_StepFilterItemsByPosition::createOutResultModelListProtected()
 {
-    CT_OutResultModelGroupToCopyPossibilities *resCpy_res = createNewOutResultModelToCopy(DEFin_res);
-
+    createNewOutResultModelToCopy(DEFin_res);
 }
 
 // Semi-automatic creation of step parameters DialogBox

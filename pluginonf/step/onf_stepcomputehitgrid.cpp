@@ -94,7 +94,9 @@ void ONF_StepComputeHitGrid::createInResultModelListProtected()
 void ONF_StepComputeHitGrid::createOutResultModelListProtected()
 {    
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
-    res->addItemModel(DEF_SearchInGroup, _hits_ModelName, new CT_Grid3D<int>(), tr("Hits"));
+
+    if(res != NULL)
+        res->addItemModel(DEF_SearchInGroup, _hits_ModelName, new CT_Grid3D<int>(), tr("Hits"));
 }
 
 void ONF_StepComputeHitGrid::createPostConfigurationDialog()

@@ -95,12 +95,13 @@ void ONF_StepExtractPositionsFromDensity::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEFin_rpts);
 
-    res->addGroupModel(DEFin_grp, _grpPosition2D_ModelName, new CT_StandardItemGroup(), tr("Positions 2D (grp)"));
-    res->addItemModel(_grpPosition2D_ModelName, _position2D_ModelName, new CT_Point2D(), tr("Positions 2D"));
-    res->addItemAttributeModel(_position2D_ModelName, _position2DAtt_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_NUMBER), tr("Densité"));
-    res->addItemAttributeModel(_position2D_ModelName, _position2DAttMax_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_NUMBER), tr("DensitéMax"));
-    res->addItemModel(DEFin_grp, _grid2D_ModelName, new CT_Image2D<int>(), tr("Grille de densité"));
-
+    if(res != NULL) {
+        res->addGroupModel(DEFin_grp, _grpPosition2D_ModelName, new CT_StandardItemGroup(), tr("Positions 2D (grp)"));
+        res->addItemModel(_grpPosition2D_ModelName, _position2D_ModelName, new CT_Point2D(), tr("Positions 2D"));
+        res->addItemAttributeModel(_position2D_ModelName, _position2DAtt_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_NUMBER), tr("Densité"));
+        res->addItemAttributeModel(_position2D_ModelName, _position2DAttMax_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_NUMBER), tr("DensitéMax"));
+        res->addItemModel(DEFin_grp, _grid2D_ModelName, new CT_Image2D<int>(), tr("Grille de densité"));
+    }
 }
 
 // Semi-automatic creation of step parameters DialogBox

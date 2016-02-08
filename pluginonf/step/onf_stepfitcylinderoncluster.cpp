@@ -86,7 +86,8 @@ void ONF_StepFitCylinderOnCluster::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resCpy_rpoints = createNewOutResultModelToCopy(DEFin_rpoints);
 
-    resCpy_rpoints->addItemModel(DEFin_grp, _cyl_ModelName, new CT_Cylinder(), tr("Cylindre"));
+    if(resCpy_rpoints != NULL)
+        resCpy_rpoints->addItemModel(DEFin_grp, _cyl_ModelName, new CT_Cylinder(), tr("Cylindre"));
 }
 
 // Semi-automatic creation of step parameters DialogBox

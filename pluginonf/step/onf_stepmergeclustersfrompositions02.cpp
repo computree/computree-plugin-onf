@@ -138,8 +138,11 @@ void ONF_StepMergeClustersFromPositions02::createInResultModelListProtected()
 void ONF_StepMergeClustersFromPositions02::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEFin_rPos);
-    res->addItemModel(DEFin_grpPos, _outSceneModelName, new CT_Scene(), tr("Scène segmentée"));
-    res->addItemAttributeModel(_outSceneModelName, _outSceneZRefModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_Z), tr("Z MNT"));
+
+    if(res != NULL) {
+        res->addItemModel(DEFin_grpPos, _outSceneModelName, new CT_Scene(), tr("Scène segmentée"));
+        res->addItemAttributeModel(_outSceneModelName, _outSceneZRefModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_Z), tr("Z MNT"));
+    }
 }
 
 // Semi-automatic creation of step parameters DialogBox

@@ -99,12 +99,14 @@ void ONF_StepComputeCrownProjection::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resCpy_rscene = createNewOutResultModelToCopy(DEFin_rscene);
 
-    resCpy_rscene->addItemModel(DEFin_grpsc, _convexHull_ModelName, new CT_Polygon2D(), tr("Enveloppe Convexe au sol"));
-//    resCpy_rscene->addItemModel(DEFin_grpsc, _directionalHull_ModelName, new CT_Polygon2D(), tr("Enveloppe Directionnelle au sol"));
-    resCpy_rscene->addGroupModel(DEFin_grpsc, _grpSlice_ModelName, new CT_StandardItemGroup(), tr("Groupe"));
+    if(resCpy_rscene != NULL) {
+        resCpy_rscene->addItemModel(DEFin_grpsc, _convexHull_ModelName, new CT_Polygon2D(), tr("Enveloppe Convexe au sol"));
+    //    resCpy_rscene->addItemModel(DEFin_grpsc, _directionalHull_ModelName, new CT_Polygon2D(), tr("Enveloppe Directionnelle au sol"));
+        resCpy_rscene->addGroupModel(DEFin_grpsc, _grpSlice_ModelName, new CT_StandardItemGroup(), tr("Groupe"));
 
-    resCpy_rscene->addItemModel(_grpSlice_ModelName, _scliceCvx_ModelName, new CT_Polygon2D(), tr("Enveloppe Convexe d'une tranche"));
-//    resCpy_rscene->addItemModel(_grpSlice_ModelName, _scliceDir_ModelName, new CT_Polygon2D(), tr("Enveloppe Directionnelle d'une tranche"));
+        resCpy_rscene->addItemModel(_grpSlice_ModelName, _scliceCvx_ModelName, new CT_Polygon2D(), tr("Enveloppe Convexe d'une tranche"));
+    //    resCpy_rscene->addItemModel(_grpSlice_ModelName, _scliceDir_ModelName, new CT_Polygon2D(), tr("Enveloppe Directionnelle d'une tranche"));
+    }
 }
 
 // Semi-automatic creation of step parameters DialogBox

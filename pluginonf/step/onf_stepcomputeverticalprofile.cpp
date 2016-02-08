@@ -89,7 +89,8 @@ void ONF_StepComputeVerticalProfile::createOutResultModelListProtected()
 {    
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
 
-    res->addItemModel(DEF_SearchInGroup, _itemOut_prz_ModelName, new CT_Profile<int>(), tr("ProfilZ"));
+    if(res != NULL)
+        res->addItemModel(DEF_SearchInGroup, _itemOut_prz_ModelName, new CT_Profile<int>(), tr("ProfilZ"));
 }
 
 void ONF_StepComputeVerticalProfile::createPostConfigurationDialog()

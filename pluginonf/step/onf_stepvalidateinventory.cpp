@@ -84,17 +84,19 @@ void ONF_StepValidateInventory::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resCpy_scres = createNewOutResultModelToCopy(DEFin_scres);
 
-    resCpy_scres->addItemModel(DEFin_scBase, _attributes_ModelName, new CT_ReferencePoint(), tr("Position de référence"));
+    if(resCpy_scres != NULL) {
+        resCpy_scres->addItemModel(DEFin_scBase, _attributes_ModelName, new CT_ReferencePoint(), tr("Position de référence"));
 
-    resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_sp_ModelName,
-                                        new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_VALUE),
-                                        tr("Espèce"));
-    resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_id_ModelName,
-                                        new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_ID),
-                                        tr("IDterrain"));
-    resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_idItem_ModelName,
-                                        new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_ID),
-                                        tr("IDitem"));
+        resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_sp_ModelName,
+                                            new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_VALUE),
+                                            tr("Espèce"));
+        resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_id_ModelName,
+                                            new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_ID),
+                                            tr("IDterrain"));
+        resCpy_scres->addItemAttributeModel(_attributes_ModelName,_attribute_idItem_ModelName,
+                                            new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_ID),
+                                            tr("IDitem"));
+    }
 
 }
 

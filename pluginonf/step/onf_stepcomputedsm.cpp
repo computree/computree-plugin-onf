@@ -104,8 +104,11 @@ void ONF_StepComputeDSM::createPostConfigurationDialog()
 void ONF_StepComputeDSM::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *resultModel = createNewOutResultModelToCopy(DEF_SearchInResult);
-    resultModel->addItemModel(DEF_SearchInGroup, _outDSMModelName, new CT_Image2D<float>(), tr("MNS"));
-    resultModel->addItemModel(DEF_SearchInGroup, _outCHMModelName, new CT_Image2D<float>(), tr("MNH"));
+
+    if(resultModel != NULL) {
+        resultModel->addItemModel(DEF_SearchInGroup, _outDSMModelName, new CT_Image2D<float>(), tr("MNS"));
+        resultModel->addItemModel(DEF_SearchInGroup, _outCHMModelName, new CT_Image2D<float>(), tr("MNH"));
+    }
 }
 
 void ONF_StepComputeDSM::compute()
