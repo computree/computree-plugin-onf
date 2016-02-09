@@ -71,6 +71,7 @@
 #include "step/onf_stepcreateplotmanagerfromfile.h"
 #include "step/onf_stepcreateplotmanagergrid.h"
 #include "step/onf_stepcreateplotsfromlist.h"
+#include "step/onf_stepextractpointsforplots.h"
 #include "step/onf_stepdetectverticalalignments06.h"
 #include "step/onf_stepextractlogbuffer.h"
 #include "step/onf_stepfilteritemsbyposition.h"
@@ -167,6 +168,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewBetaStep<ONF_StepCreatePlotManagerFromFile>("");
     addNewBetaStep<ONF_StepCreatePlotManagerGrid>("");
     addNewBetaStep<ONF_StepCreatePlotsFromList>("");
+    addNewBetaStep<ONF_StepExtractPointsForPlots>("");
     addNewWorkflowStep<ONF_StepSelectBBoxByFileName>("");
     addNewWorkflowStep<ONF_StepSelectGroupsByReferenceHeight>(CT_StepsMenu::LP_Filter);
     addNewWorkflowStep<ONF_StepSetAffiliationIDFromReference>("");

@@ -22,14 +22,16 @@
  along with PluginONF.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
 *****************************************************************************/
 
-#ifndef ONF_STEPCREATEPLOTSFROMLIST_H
-#define ONF_STEPCREATEPLOTSFROMLIST_H
+#ifndef ONF_STEPEXTRACTPOINTSFORPLOTS_H
+#define ONF_STEPEXTRACTPOINTSFORPLOTS_H
 
 #include "ct_step/abstract/ct_abstractstep.h"
 #include "ct_tools/model/ct_autorenamemodels.h"
 
+#include "ct_itemdrawable/ct_standarditemgroup.h"
 
-class ONF_StepCreatePlotsFromList: public CT_AbstractStep
+
+class ONF_StepExtractPointsForPlots: public CT_AbstractStep
 {
     Q_OBJECT
 
@@ -41,7 +43,7 @@ public:
      * 
      * \param dataInit Step parameters object
      */
-    ONF_StepCreatePlotsFromList(CT_StepInitializeData &dataInit);
+    ONF_StepExtractPointsForPlots(CT_StepInitializeData &dataInit);
 
     /*! \brief Step description
      * 
@@ -94,15 +96,26 @@ protected:
     void compute();
 
 private:
-    CT_AutoRenameModels     _outGrpPlot_ModelName;
-    CT_AutoRenameModels     _outPlot_ModelName;
-    CT_AutoRenameModels     _outPlotBuffer_ModelName;
 
-    // Step parameters
-    QString     _plotType;
-    bool        _createBuffers;
-    double      _buffer;
+    struct PlotPointsIndices {
+
+        PlotPointsIndices(const PlotPointsIndices& other)
+        {
+            _group = other._group;
+            _indices.append(other._indices);
+        }
+
+        PlotPointsIndices(CT_StandardItemGroup* group)
+        {
+            _group = group;
+        }
+
+        CT_StandardItemGroup* _group;
+        QList<size_t>         _indices;
+    };
+
+    CT_AutoRenameModels     _outPoints_ModelName;
 
 };
 
-#endif // ONF_STEPCREATEPLOTSFROMLIST_H
+#endif // ONF_STEPEXTRACTPOINTSFORPLOTS_H

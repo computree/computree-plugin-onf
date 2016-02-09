@@ -48,12 +48,14 @@
 ONF_StepCreatePlotsFromList::ONF_StepCreatePlotsFromList(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
     _plotType = DEF_typeCircular;
+    _createBuffers = true;
+    _buffer = 5.0;
 }
 
 // Step description (tooltip of contextual menu)
 QString ONF_StepCreatePlotsFromList::getStepDescription() const
 {
-    return tr("Ajoute des gestionnaires de placette (grille)");
+    return tr("Créer des placettes à partir d'une liste");
 }
 
 // Step detailled description
@@ -102,6 +104,16 @@ void ONF_StepCreatePlotsFromList::createOutResultModelListProtected()
             res->addItemModel(_outGrpPlot_ModelName, _outPlot_ModelName, new CT_Box2D(), tr("Placette carrée"));
         }
     }
+
+    if (_createBuffers)
+    {
+        if (_plotType == DEF_typeCircular)
+        {
+            res->addItemModel(_outGrpPlot_ModelName, _outPlotBuffer_ModelName, new CT_Circle2D(), tr("Placette circulaire (buffer)"));
+        } else {
+            res->addItemModel(_outGrpPlot_ModelName, _outPlotBuffer_ModelName, new CT_Box2D(), tr("Placette carrée (buffer)"));
+        }
+    }
 }
 
 // Semi-automatic creation of step parameters DialogBox
@@ -113,6 +125,8 @@ void ONF_StepCreatePlotsFromList::createPostConfigurationDialog()
     types << DEF_typeSquare;
 
     configDialog->addStringChoice(tr("Type de placette"), "", types, _plotType);
+    configDialog->addBool(tr("Créer les buffers"), "", "", _createBuffers);
+    configDialog->addDouble(tr("Taille de buffer"), "m", 0, 1e+10, 2, _buffer);
 
 }
 
@@ -149,11 +163,27 @@ void ONF_StepCreatePlotsFromList::compute()
 
                 if (_plotType == DEF_typeCircular)
                 {
-                    CT_Circle2D* circle  = new CT_Circle2D(_outPlot_ModelName.completeName(), resOut, (CT_Circle2DData*) itPl.key());
+                    CT_Circle2DData* circleData = (CT_Circle2DData*) itPl.key();
+                    CT_Circle2D* circle  = new CT_Circle2D(_outPlot_ModelName.completeName(), resOut, circleData);
                     plGroup->addItemDrawable(circle);
+
+                    if (_createBuffers)
+                    {
+                        CT_Circle2DData* circleDataBuffer = new CT_Circle2DData(circleData->getCenter(), circleData->getRadius() + _buffer);
+                        CT_Circle2D* circleBuffer  = new CT_Circle2D(_outPlotBuffer_ModelName.completeName(), resOut, circleDataBuffer);
+                        plGroup->addItemDrawable(circleBuffer);
+                    }
                 } else {
-                    CT_Box2D* square     = new CT_Box2D(_outPlot_ModelName.completeName(), resOut, (CT_Box2DData*) itPl.key());
+                    CT_Box2DData* squareData = (CT_Box2DData*) itPl.key();
+                    CT_Box2D* square     = new CT_Box2D(_outPlot_ModelName.completeName(), resOut, squareData);
                     plGroup->addItemDrawable(square);
+
+                    if (_createBuffers)
+                    {
+                        CT_Box2DData* squareDataBuffer = new CT_Box2DData(squareData->getCenter(), squareData->getWidth() + 2.0*_buffer, squareData->getHeight() + 2.0*_buffer);
+                        CT_Box2D* squareBuffer  = new CT_Box2D(_outPlotBuffer_ModelName.completeName(), resOut, squareDataBuffer);
+                        plGroup->addItemDrawable(squareBuffer);
+                    }
                 }
             }
         }
