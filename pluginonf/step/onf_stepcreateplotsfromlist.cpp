@@ -103,15 +103,15 @@ void ONF_StepCreatePlotsFromList::createOutResultModelListProtected()
         } else {
             res->addItemModel(_outGrpPlot_ModelName, _outPlot_ModelName, new CT_Box2D(), tr("Placette carrée"));
         }
-    }
 
-    if (_createBuffers)
-    {
-        if (_plotType == DEF_typeCircular)
+        if (_createBuffers)
         {
-            res->addItemModel(_outGrpPlot_ModelName, _outPlotBuffer_ModelName, new CT_Circle2D(), tr("Placette circulaire (buffer)"));
-        } else {
-            res->addItemModel(_outGrpPlot_ModelName, _outPlotBuffer_ModelName, new CT_Box2D(), tr("Placette carrée (buffer)"));
+            if (_plotType == DEF_typeCircular)
+            {
+                res->addItemModel(_outGrpPlot_ModelName, _outPlotBuffer_ModelName, new CT_Circle2D(), tr("Placette circulaire (buffer)"));
+            } else {
+                res->addItemModel(_outGrpPlot_ModelName, _outPlotBuffer_ModelName, new CT_Box2D(), tr("Placette carrée (buffer)"));
+            }
         }
     }
 }

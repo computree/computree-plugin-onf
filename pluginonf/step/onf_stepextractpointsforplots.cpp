@@ -92,7 +92,10 @@ void ONF_StepExtractPointsForPlots::createInResultModelListProtected()
 void ONF_StepExtractPointsForPlots::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEFin_result);
-    res->addItemModel(DEFin_grpPlot, _outPoints_ModelName, new CT_Scene(), tr("Points"));
+    if (res != NULL)
+    {
+        res->addItemModel(DEFin_grpPlot, _outPoints_ModelName, new CT_Scene(), tr("Points"));
+    }
 }
 
 // Semi-automatic creation of step parameters DialogBox

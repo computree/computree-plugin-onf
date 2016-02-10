@@ -782,7 +782,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
                 // If we have only kept main line, reconstruct the cluster only with it and put meighbourhood to isolatedpoints list
                 delete cluster;
-                CT_PointCluster* cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
+                cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
                 // Add points of the main line
                 for (int j = 0 ; j < mainLine->size() ; j++)
                 {
