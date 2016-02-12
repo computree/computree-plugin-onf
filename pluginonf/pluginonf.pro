@@ -1,6 +1,11 @@
 CT_PREFIX = ../../computreev3
+
 include($${CT_PREFIX}/shared.pri)
 include($${PLUGIN_SHARED_DIR}/include.pri)
+
+COMPUTREE += ctlibio
+
+include($${CT_PREFIX}/include_ct_library.pri)
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += concurrent
 

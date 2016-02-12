@@ -25,7 +25,7 @@
 #ifndef ONF_FILTERBYRETURNTYPE_H
 #define ONF_FILTERBYRETURNTYPE_H
 
-#include "ct_filter/abstract/ct_abstractfilter_las.h"
+#include "ctlibio/filters/las/abstract/ct_abstractfilter_las.h"
 
 class ONF_FilterByReturnType : public CT_AbstractFilter_LAS
 {

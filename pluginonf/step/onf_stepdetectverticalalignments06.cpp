@@ -29,7 +29,7 @@
 #include "ct_itemdrawable/ct_line.h"
 #include "ct_itemdrawable/ct_pointcluster.h"
 #include "ct_itemdrawable/abstract/ct_abstractpointattributesscalar.h"
-#include "ct_itemdrawable/ct_stdlaspointsattributescontainer.h"
+#include "ctlibio/itemdrawable/las/ct_stdlaspointsattributescontainer.h"
 #include "ct_itemdrawable/ct_standarditemgroup.h"
 
 #include "ct_itemdrawable/ct_attributeslist.h"

@@ -524,7 +524,7 @@ void ONF_StepDetectVerticalAlignments05::AlignmentsDetectorForScene::detectAlign
         QList<CT_Circle2D*> circles;
         while (!keptLinesOfScan.isEmpty())
         {
-            ScanLineData &mainLine = keptLinesOfScan.takeLast();
+            ScanLineData mainLine = keptLinesOfScan.takeLast();
 
             CT_Point intermediatePoint;
             QList<CT_Point> mainLinePoints;

@@ -143,7 +143,7 @@ protected:
             _centerZ = centerZ;
         }
 
-        ScanLineData& ScanLineData::operator=(const ScanLineData& arg)
+        ScanLineData& operator=(const ScanLineData& arg)
         {
             this->append(arg);
             this->_length = arg._length;
