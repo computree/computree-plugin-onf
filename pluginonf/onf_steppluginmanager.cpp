@@ -78,7 +78,6 @@
 #include "step/onf_stepfilterpointsbyboolgrid.h"
 #include "step/onf_stepfitcylinderoncluster.h"
 #include "step/onf_stepimportsegmafilesformatching.h"
-#include "step/onf_steploaddatafromitemposition.h"
 #include "step/onf_steploadplotareas.h"
 #include "step/onf_steploadpositionsformatching.h"
 #include "step/onf_steploadtreemap.h"
@@ -172,7 +171,6 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewWorkflowStep<ONF_StepSelectBBoxByFileName>("");
     addNewWorkflowStep<ONF_StepSelectGroupsByReferenceHeight>(CT_StepsMenu::LP_Filter);
     addNewWorkflowStep<ONF_StepSetAffiliationIDFromReference>("");
-    addNewWorkflowStep<ONF_StepLoadDataFromItemPosition>("");
 
 #ifdef USE_OPENCV
     addNewGeometricalShapesStep<ONF_StepSetFootCoordinatesVertically>(QObject::tr("Détéction tiges (ONF 2013)"));

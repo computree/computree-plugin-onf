@@ -65,7 +65,6 @@ HEADERS += \
     step/onf_stepfitcylinderoncluster.h \
     step/onf_stephorizontalclustering3d.h \
     step/onf_stepimportsegmafilesformatching.h \
-    step/onf_steploaddatafromitemposition.h \
     step/onf_steploadplotareas.h \
     step/onf_steploadpositionsformatching.h \
     step/onf_steploadtreemap.h \
@@ -170,7 +169,6 @@ SOURCES += \
     step/onf_stepfitcylinderoncluster.cpp \
     step/onf_stephorizontalclustering3d.cpp \
     step/onf_stepimportsegmafilesformatching.cpp \
-    step/onf_steploaddatafromitemposition.cpp \
     step/onf_steploadplotareas.cpp \
     step/onf_steploadpositionsformatching.cpp \
     step/onf_steploadtreemap.cpp \
