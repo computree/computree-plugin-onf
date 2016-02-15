@@ -165,8 +165,14 @@ void ONF_StepExtractPlot::compute()
             // Calcul de l'azimut du point par rapport au centre de la placette extraite
             // Le nord est place dans la direction de l'axe Y
             distance = sqrt(xx*xx + yy*yy);
-            asinx = asin(xx/distance);
-            acosy = acos(yy/distance);
+
+            if(distance != 0) {
+                asinx = asin(xx/distance);
+                acosy = acos(yy/distance);
+            } else {
+                asinx = 0;
+                acosy = 0;
+            }
 
             if (asinx>=0) {
                 azimut = acosy;
