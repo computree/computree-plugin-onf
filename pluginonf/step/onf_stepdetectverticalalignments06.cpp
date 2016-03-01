@@ -65,7 +65,8 @@ ONF_StepDetectVerticalAlignments06::ONF_StepDetectVerticalAlignments06(CT_StepIn
 
     _minDiameter = 0.075;
     _maxDiameter = 1.500;
-    _maxSearchRadius = 1.5;
+    _maxSearchRadius = 1.2;
+    _maxLineSpacing = 0.15;
     _resolutionForDiameterEstimation = 1;
     _applySigmoid = true;
     _sigmoidCoefK = 10.0;
@@ -148,11 +149,11 @@ void ONF_StepDetectVerticalAlignments06::createOutResultModelListProtected()
 
         if (_clusterDebugMode)
         {
-            resCpy->addGroupModel(DEFin_grp, _grpClusterDebug1_ModelName, new CT_StandardItemGroup(), tr("Debug"));
+            resCpy->addGroupModel(DEFin_grp, _grpClusterDebug1_ModelName, new CT_StandardItemGroup(), tr("Debug (toutes)"));
             resCpy->addItemModel(_grpClusterDebug1_ModelName, _clusterDebug1_ModelName, new CT_PointCluster(), tr("Lignes de scan complètes (toutes)"));
-            resCpy->addGroupModel(DEFin_grp, _grpClusterDebug2_ModelName, new CT_StandardItemGroup(), tr("Debug"));
+            resCpy->addGroupModel(DEFin_grp, _grpClusterDebug2_ModelName, new CT_StandardItemGroup(), tr("Debug (débruitées)"));
             resCpy->addItemModel(_grpClusterDebug2_ModelName, _clusterDebug2_ModelName, new CT_PointCluster(), tr("Lignes de scan débruitées (toutes)"));
-            resCpy->addGroupModel(DEFin_grp, _grpClusterDebug3_ModelName, new CT_StandardItemGroup(), tr("Debug"));
+            resCpy->addGroupModel(DEFin_grp, _grpClusterDebug3_ModelName, new CT_StandardItemGroup(), tr("Debug (conservées)"));
             resCpy->addItemModel(_grpClusterDebug3_ModelName, _clusterDebug3_ModelName, new CT_PointCluster(), tr("Lignes de scan (conservées)"));
         }
     }
@@ -175,6 +176,7 @@ void ONF_StepDetectVerticalAlignments06::createPostConfigurationDialog()
     configDialog->addDouble(tr("Diamètre minimal"), "cm", 0, 1e+4, 2, _minDiameter, 100);
     configDialog->addDouble(tr("Diamètre maximal"), "cm", 0, 1e+4, 2, _maxDiameter, 100);
     configDialog->addDouble(tr("Distance de recherche des voisins"), "m", 0, 1e+4, 2, _maxSearchRadius);
+    configDialog->addDouble(tr("Ecartement maximal des lignes de scan"), "m", 0, 1e+4, 2, _maxLineSpacing);
     configDialog->addDouble(tr("Résolution pour la recherche de tronc"), "°", 0, 1e+4, 2, _resolutionForDiameterEstimation);
     configDialog->addBool(tr("Appliquer une fonction sigmoide pour le scoring"), "", "", _applySigmoid);
     configDialog->addDouble(tr("Fonction Sigmoide : coefficient K"), "", 0, 1e+4, 2, _sigmoidCoefK);
@@ -570,6 +572,10 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
             int mainLinePointsSize = mainLinePoints.size();
 
+            CT_Point mainLineLowestPoint = pointAccessor.constPointAt(mainLine->at(0));
+            CT_Point mainLineHighestPoint = pointAccessor.constPointAt(mainLine->at(mainLine->size() - 1));
+
+
             int type = 1; // Multi lines of scans, ok
 
             // Search for neighbours
@@ -584,27 +590,38 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
                 if (distXY < _step->_maxSearchRadius)
                 {
-                    neighbourLines.append(testedLine);
-                    keptLinesOfScan.removeAt(i--);
+                    CT_Point testedLineLowestPoint = pointAccessor.constPointAt(testedLine->at(0));
+                    CT_Point testedLineHighestPoint = pointAccessor.constPointAt(testedLine->at(testedLine->size() - 1));
 
-                    for (int j = 0 ; j < testedLine->size() ; j++)
+                    double distLowXY  = sqrt(pow(mainLineLowestPoint(0) - testedLineLowestPoint(0), 2) + pow(mainLineLowestPoint(1) - testedLineLowestPoint(1), 2));
+                    double distHighXY = sqrt(pow(mainLineHighestPoint(0) - testedLineHighestPoint(0), 2) + pow(mainLineHighestPoint(1) - testedLineHighestPoint(1), 2));
+
+                    double delta = distHighXY - distLowXY;
+
+                    if (delta <= _step->_maxLineSpacing)
                     {
-                        size_t index = testedLine->at(j);
-                        const CT_Point& point = pointAccessor.constPointAt(index);
-                        neighbourPoints.append(point);
+                        neighbourLines.append(testedLine);
+                        keptLinesOfScan.removeAt(i--);
 
-                        size_t localIndex = pointCloudIndexLAS->indexOf(index);
-                        int lineOfFlight = 0;
-                        if (localIndex < pointCloudIndexLAS->size())
+                        for (int j = 0 ; j < testedLine->size() ; j++)
                         {
-                            lineOfFlight = attributeLineOfFlight->dValueAt(localIndex);
-                        }
+                            size_t index = testedLine->at(j);
+                            const CT_Point& point = pointAccessor.constPointAt(index);
+                            neighbourPoints.append(point);
 
-                        if (lineOfFlight != mainLineOfFlight)
-                        {
-                            neighbourPointsToTest.append(neighbourPoints.size() - 1);
-                        } else {
-                            neighbourPointsToTestIfOnlyOneLineOfFlight.append(neighbourPoints.size() - 1);
+                            size_t localIndex = pointCloudIndexLAS->indexOf(index);
+                            int lineOfFlight = 0;
+                            if (localIndex < pointCloudIndexLAS->size())
+                            {
+                                lineOfFlight = attributeLineOfFlight->dValueAt(localIndex);
+                            }
+
+                            if (lineOfFlight != mainLineOfFlight)
+                            {
+                                neighbourPointsToTest.append(neighbourPoints.size() - 1);
+                            } else {
+                                neighbourPointsToTestIfOnlyOneLineOfFlight.append(neighbourPoints.size() - 1);
+                            }
                         }
                     }
                 }

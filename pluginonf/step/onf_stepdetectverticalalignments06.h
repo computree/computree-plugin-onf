@@ -301,6 +301,7 @@ protected:
     double      _minDiameter;
     double      _maxDiameter;
     double      _maxSearchRadius;
+    double      _maxLineSpacing;
     double      _resolutionForDiameterEstimation;
 
 
