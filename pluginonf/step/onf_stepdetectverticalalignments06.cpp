@@ -81,6 +81,8 @@ ONF_StepDetectVerticalAlignments06::ONF_StepDetectVerticalAlignments06(CT_StepIn
     _minPtsSmall = 3;
     _lineLengthRatioSmall = 0.8;
 
+    _radiusHmax = 1.5;
+
     _clusterDebugMode = false;
 }
 
@@ -141,6 +143,7 @@ void ONF_StepDetectVerticalAlignments06::createOutResultModelListProtected()
         resCpy->addItemAttributeModel(_circle_ModelName, _attMaxDistXY2_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Diamètre"));
         resCpy->addItemAttributeModel(_circle_ModelName, _attScore2_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Score"));
         resCpy->addItemAttributeModel(_circle_ModelName, _attStemType2_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_VALUE), tr("Type"), tr("0 = petite tige ; 1 = grosse tige"));
+        resCpy->addItemAttributeModel(_circle_ModelName, _attMaxHeight_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_HEIGHT), tr("MaxHeight"));
 
         resCpy->addItemModel(_grpCluster_ModelName, _line_ModelName, new CT_PointCluster(), tr("Droite ajustée"));
         resCpy->addItemAttributeModel(_line_ModelName, _attMaxDistXY3_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Diamètre"));
@@ -193,6 +196,9 @@ void ONF_StepDetectVerticalAlignments06::createPostConfigurationDialog()
     configDialog->addDouble(tr("Pourcentage maximum de la longueur de segment sans points"), "%", 0, 100, 0, _lineLengthRatioSmall, 100);
 
     configDialog->addEmpty();
+    configDialog->addDouble(tr("Rayon de recherche pour Hmax"), "m", 0, 1000, 2, _radiusHmax);
+
+    configDialog->addEmpty();
     configDialog->addBool(tr("Mode Debug Clusters"), "", "", _clusterDebugMode);
 }
 
@@ -230,6 +236,8 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
     const CT_AbstractItemDrawableWithPointCloud* sceneStem = (CT_AbstractItemDrawableWithPointCloud*)grp->firstItemByINModelName(_step, DEFin_sceneStem);
     const CT_StdLASPointsAttributesContainer* attributeLAS = (CT_StdLASPointsAttributesContainer*)grp->firstItemByINModelName(_step, DEFin_attLAS);
+
+    const CT_AbstractItemDrawableWithPointCloud* sceneStemAll = (CT_AbstractItemDrawableWithPointCloud*)grp->firstItemByINModelName(_step, DEFin_sceneAll);
 
     if (sceneStem != NULL && attributeLAS != NULL)
     {
@@ -920,6 +928,8 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
         // Constitution des clusters de points alignés
         QList<size_t> insertedPoints;
+        QList<CT_Circle2D*> otherCircles;
+
 
         for (int i = 0 ; i < candidateLines.size() ; i++)
         {
@@ -1020,7 +1030,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                                     diameter = _step->_minDiameter;
                                         type = 5; // Alignement, excessive diameter
                                 }
-                                addClusterToResult(grp, cluster, diameter, type, center(0), center(1),  center(2), fittedLineData->length(), fittedLineData->getDirection(), 0);
+                                otherCircles.append(addClusterToResult(grp, cluster, diameter, type, center(0), center(1),  center(2), fittedLineData->length(), fittedLineData->getDirection(), 0));
                         } else {
                             delete cluster;
                         }
@@ -1032,9 +1042,44 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             }
         }
 
+        // Compute max height (all points) for each detected stem
+        circles.append(otherCircles);
+        QVector<double> heights(circles.size());
+        heights.fill(0);
+
+        if (sceneStemAll != NULL)
+        {
+
+            const CT_AbstractPointCloudIndex* pointCloudIndexAll = sceneStemAll->getPointCloudIndex();
+            CT_PointIterator itP(pointCloudIndexAll);
+            while(itP.hasNext())
+            {
+                const CT_Point& point = itP.next().currentPoint();
+
+                for (int i = 0 ; i < circles.size() ; i++)
+                {
+                    CT_Circle2D* circle = circles.at(i);
+
+                    double dist = sqrt(pow(circle->getCenterX() - point(0), 2) + pow(circle->getCenterY() - point(1), 2));
+                    if (dist < _step->_radiusHmax && point(2) > heights[i])
+                    {
+                        heights[i] = point(2);
+                    }
+                }
+            }
+        }
+
+        for (int i = 0 ; i < circles.size() ; i++)
+        {
+            CT_Circle2D* circle = circles.at(i);
+            circle->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMaxHeight_ModelName.completeName(), CT_AbstractCategory::DATA_HEIGHT, _res, heights[i]));
+        }
+
         qDeleteAll(candidateLines);
         candidateLines.clear();
         insertedPoints.clear();
+        circles.clear();
+        otherCircles.clear();
     }
 }
 

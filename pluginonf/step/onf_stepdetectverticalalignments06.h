@@ -281,6 +281,7 @@ protected:
     CT_AutoRenameModels    _attMaxDistXY3_ModelName;
     CT_AutoRenameModels    _attScore3_ModelName;
     CT_AutoRenameModels    _attStemType3_ModelName;
+    CT_AutoRenameModels    _attMaxHeight_ModelName;
 
 
     CT_AutoRenameModels    _grpClusterDebug1_ModelName;
@@ -318,6 +319,8 @@ protected:
     int         _minPtsSmall;
     double      _lineLengthRatioSmall;
     double      _exclusionRadiusSmall;
+
+    double      _radiusHmax;
 
     bool      _clusterDebugMode;
 
