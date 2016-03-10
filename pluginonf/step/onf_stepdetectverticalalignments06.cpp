@@ -31,6 +31,7 @@
 #include "ct_itemdrawable/abstract/ct_abstractpointattributesscalar.h"
 #include "ctlibio/itemdrawable/las/ct_stdlaspointsattributescontainer.h"
 #include "ct_itemdrawable/ct_standarditemgroup.h"
+#include "ct_itemdrawable/ct_image2d.h"
 
 #include "ct_itemdrawable/ct_attributeslist.h"
 #include "ct_itemdrawable/tools/iterator/ct_groupiterator.h"
@@ -45,6 +46,8 @@
 #include "ct_math/ct_mathpoint.h"
 
 #include <QtConcurrent>
+
+#include <stdlib.h>
 
 // Alias for indexing models
 #define DEFin_res "res"
@@ -65,6 +68,7 @@ ONF_StepDetectVerticalAlignments06::ONF_StepDetectVerticalAlignments06(CT_StepIn
 
     _minDiameter = 0.075;
     _maxDiameter = 1.500;
+    _maxDiameterForUnderstorey = 0.225;
     _maxSearchRadius = 1.2;
     _maxLineSpacing = 0.15;
     _resolutionForDiameterEstimation = 1;
@@ -82,6 +86,10 @@ ONF_StepDetectVerticalAlignments06::ONF_StepDetectVerticalAlignments06(CT_StepIn
     _lineLengthRatioSmall = 0.8;
 
     _radiusHmax = 1.5;
+    _param_Hmax = 40.0;
+    _param_a = 1.6;
+    _param_m = 51.0;
+    _deltaHmax = 5.0;
 
     _clusterDebugMode = false;
 }
@@ -122,8 +130,7 @@ void ONF_StepDetectVerticalAlignments06::createInResultModelListProtected()
     resIn_res->addItemModel(DEFin_grp, DEFin_sceneStem, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène (tiges)"));
     resIn_res->addItemModel(DEFin_grp, DEFin_attLAS, CT_StdLASPointsAttributesContainer::staticGetType(), tr("Attributs LAS"), tr("Attribut LAS"));
 
-    resIn_res->addItemModel(DEFin_grp, DEFin_sceneAll, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène (complète)"), "",
-                            CT_InAbstractModel::C_ChooseOneIfMultiple, CT_InAbstractModel::F_IsOptional);
+    resIn_res->addItemModel(DEFin_grp, DEFin_sceneAll, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène (complète)"));
 }
 
 // Creation and affiliation of OUT models
@@ -139,16 +146,19 @@ void ONF_StepDetectVerticalAlignments06::createOutResultModelListProtected()
         resCpy->addItemAttributeModel(_cluster_ModelName, _attScore_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Score"));
         resCpy->addItemAttributeModel(_cluster_ModelName, _attStemType_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_VALUE), tr("Type"), tr("0 = petite tige ; 1 = grosse tige"));
 
+        resCpy->addItemModel(_grpCluster_ModelName, _line_ModelName, new CT_PointCluster(), tr("Droite ajustée"));
+        resCpy->addItemAttributeModel(_line_ModelName, _attMaxDistXY3_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Diamètre"));
+        resCpy->addItemAttributeModel(_line_ModelName, _attScore3_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Score"));
+        resCpy->addItemAttributeModel(_line_ModelName, _attStemType3_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_VALUE), tr("Type"), tr("0 = petite tige ; 1 = grosse tige"));
+
         resCpy->addItemModel(_grpCluster_ModelName, _circle_ModelName, new CT_Circle2D(), tr("Diamètre"));
         resCpy->addItemAttributeModel(_circle_ModelName, _attMaxDistXY2_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Diamètre"));
         resCpy->addItemAttributeModel(_circle_ModelName, _attScore2_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Score"));
         resCpy->addItemAttributeModel(_circle_ModelName, _attStemType2_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_VALUE), tr("Type"), tr("0 = petite tige ; 1 = grosse tige"));
         resCpy->addItemAttributeModel(_circle_ModelName, _attMaxHeight_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_HEIGHT), tr("MaxHeight"));
+        resCpy->addItemAttributeModel(_circle_ModelName, _attCorrectedDiameter_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Diamètre corrigé"));
+        resCpy->addItemAttributeModel(_circle_ModelName, _attCorrectedFlag_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_VALUE), tr("Flag Allométrie"));
 
-        resCpy->addItemModel(_grpCluster_ModelName, _line_ModelName, new CT_PointCluster(), tr("Droite ajustée"));
-        resCpy->addItemAttributeModel(_line_ModelName, _attMaxDistXY3_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Diamètre"));
-        resCpy->addItemAttributeModel(_line_ModelName, _attScore3_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Score"));
-        resCpy->addItemAttributeModel(_line_ModelName, _attStemType3_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_VALUE), tr("Type"), tr("0 = petite tige ; 1 = grosse tige"));
 
         if (_clusterDebugMode)
         {
@@ -178,6 +188,7 @@ void ONF_StepDetectVerticalAlignments06::createPostConfigurationDialog()
     configDialog->addTitle( tr("2- Estimation du diamètre :"));
     configDialog->addDouble(tr("Diamètre minimal"), "cm", 0, 1e+4, 2, _minDiameter, 100);
     configDialog->addDouble(tr("Diamètre maximal"), "cm", 0, 1e+4, 2, _maxDiameter, 100);
+    configDialog->addDouble(tr("Diamètre maximal des tiges de sous-étage"), "cm", 0, 1e+4, 2, _maxDiameterForUnderstorey, 100);
     configDialog->addDouble(tr("Distance de recherche des voisins"), "m", 0, 1e+4, 2, _maxSearchRadius);
     configDialog->addDouble(tr("Ecartement maximal des lignes de scan"), "m", 0, 1e+4, 2, _maxLineSpacing);
     configDialog->addDouble(tr("Résolution pour la recherche de tronc"), "°", 0, 1e+4, 2, _resolutionForDiameterEstimation);
@@ -196,18 +207,59 @@ void ONF_StepDetectVerticalAlignments06::createPostConfigurationDialog()
     configDialog->addDouble(tr("Pourcentage maximum de la longueur de segment sans points"), "%", 0, 100, 0, _lineLengthRatioSmall, 100);
 
     configDialog->addEmpty();
+    configDialog->addTitle( tr("4- Relation allometrique (H - Hmax)*(D - a*(H - 1.3)) = m :"));
     configDialog->addDouble(tr("Rayon de recherche pour Hmax"), "m", 0, 1000, 2, _radiusHmax);
+    configDialog->addDouble(tr("Paramètre Hmax"), "m", 0, 1000, 2, _param_Hmax);
+    configDialog->addDouble(tr("Paramètre a"), "", 0, 1000, 2, _param_a);
+    configDialog->addDouble(tr("Paramètre m"), "", 0, 1000, 2, _param_m);
+    configDialog->addDouble(tr("Tolérance sur H (+/-)"), "m", 0, 1000, 2, _deltaHmax);
+    configDialog->addFileChoice(tr("Fichier de paramètres (rayons d'exclusion)"),CT_FileChoiceButton::OneExistingFile , "Fichier de paramètres (*.*)", _fileName);
 
     configDialog->addEmpty();
     configDialog->addBool(tr("Mode Debug Clusters"), "", "", _clusterDebugMode);
 }
 
-
-
 void ONF_StepDetectVerticalAlignments06::compute()
 {
     QList<CT_ResultGroup*> outResultList = getOutResultList();
     CT_ResultGroup* res = outResultList.at(0);
+
+    // Create exlusion radii list
+    if (_fileName.size() > 0)
+    {
+        QFile parameterFile(_fileName.first());
+        if (parameterFile.exists() && parameterFile.open(QIODevice::ReadOnly | QIODevice::Text))
+        {
+            QTextStream stream(&parameterFile);
+
+            while (!stream.atEnd())
+            {
+                QString line = stream.readLine();
+                if (!line.isEmpty())
+                {
+                    QStringList values = line.split("\t");
+
+                    if (values.size() > 1)
+                    {
+                        bool ok1, ok2;
+                        double height = values.at(0).toDouble(&ok1);
+                        double radius = values.at(1).toDouble(&ok2);
+
+                        if (ok1 && ok2)
+                        {
+                            _radii.insert(height, radius);
+                        }
+                    }
+                }
+            }
+            parameterFile.close();
+        }
+    }
+
+    if (!_radii.contains(0)) {_radii.insert(0, _radii.first());}
+    _radii.insert(std::numeric_limits<double>::max(), _radii.last());
+
+
 
     QList<CT_StandardItemGroup*> groups;
     // COPIED results browsing
@@ -229,10 +281,34 @@ void ONF_StepDetectVerticalAlignments06::compute()
 
 }
 
+double ONF_StepDetectVerticalAlignments06::getExclusionRadius(double height)
+{
+    double radius = 0;
+    bool stop = false;
+    QMapIterator<double, double> it(_radii);
+    while (it.hasNext() && !stop)
+    {
+        it.next();
+        double h = it.key();
+        double r = it.value();
+
+        if (height >= h)
+        {
+            radius = r;
+        } else {
+            stop = true;
+        }
+    }
+
+    return radius;
+}
+
+
 void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlignmentsForScene(CT_StandardItemGroup* grp)
 {
     CT_PointAccessor pointAccessor;
     double thresholdZenithalAngleRadians = M_PI * _step->_thresholdZenithalAngle / 180.0;
+    double rangeUnderstorey = _step->_maxDiameterForUnderstorey - _step->_minDiameter;
 
     const CT_AbstractItemDrawableWithPointCloud* sceneStem = (CT_AbstractItemDrawableWithPointCloud*)grp->firstItemByINModelName(_step, DEFin_sceneStem);
     const CT_StdLASPointsAttributesContainer* attributeLAS = (CT_StdLASPointsAttributesContainer*)grp->firstItemByINModelName(_step, DEFin_attLAS);
@@ -241,6 +317,23 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
     if (sceneStem != NULL && attributeLAS != NULL)
     {
+
+        // compute max height raster (all points) => used for types 1 and 2 coherence tests (if failed => type 3 or more)
+        CT_Image2D<float>* maxHeightRaster = NULL;
+        if (sceneStemAll != NULL)
+        {
+            maxHeightRaster = CT_Image2D<float>::createImage2DFromXYCoords(NULL, NULL, sceneStemAll->minX(), sceneStemAll->minY(), sceneStemAll->maxX(), sceneStemAll->maxY(), 0.25, sceneStemAll->minZ(), -9999, 0);
+
+            const CT_AbstractPointCloudIndex* pointCloudIndexAll = sceneStemAll->getPointCloudIndex();
+            CT_PointIterator itP(pointCloudIndexAll);
+            while(itP.hasNext())
+            {
+                const CT_Point& point = itP.next().currentPoint();
+                maxHeightRaster->setMaxValueAtCoords(point(0), point(1), point(2));
+            }
+        }
+
+
         // Retrieve attributes
         QHashIterator<CT_LasDefine::LASPointAttributesType, CT_AbstractPointAttributesScalar *> it(attributeLAS->lasPointsAttributes());
         if (!it.hasNext()) {return;}
@@ -559,6 +652,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
         // Compute diameters using neighbourhoud
         QList<CT_Circle2D*> circles;
+        QList<CT_Circle2D*> allometryCircles;
         while (!keptLinesOfScan.isEmpty() && keptLinesOfScan.last()->size() > 2)
         {
             ScanLineData *mainLine = keptLinesOfScan.takeLast();
@@ -658,7 +752,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                 Eigen::Vector2d circleCenter;
 
                 float resolutionInRadians = M_PI*_step->_resolutionForDiameterEstimation / 180.0;
-                float pi2 = 2.0*M_PI;
+                float pi2 =  2.0*(float)M_PI;
                 // For each direction
                 for (float zenithal = 0 ; zenithal <= thresholdZenithalAngleRadians ; zenithal += resolutionInRadians)
                 {
@@ -669,7 +763,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                         CT_SphericalLine3D::convertToCartesianCoordinates(zenithal, azimut, 1, dx, dy, dz);
                         Eigen::Vector3d direction(dx, dy, dz);
 
-                        Eigen::Hyperplane<double, 3> plane(direction, center);                        
+                        Eigen::Hyperplane<double, 3> plane(direction, center);
 
                         // Compute projected points for main Line
                         for (int i = 0 ; i < mainLinePointsSize ; i++)
@@ -775,8 +869,42 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             double centerY = mainLine->_centerY;
             double centerZ = mainLine->_centerZ;
 
+            // compute Hmax for tree
+            double hmax = 0;
+
+            if (maxHeightRaster != NULL)
+            {
+                size_t indexHmax, colHmax, linHmax;
+                bool okHmax = false;
+                if (maxHeightRaster->indexAtCoords(centerX, centerY, indexHmax))
+                {
+                    okHmax = maxHeightRaster->indexToGrid(indexHmax, colHmax, linHmax);
+                }
+
+                size_t ncells = std::ceil(_step->_radiusHmax / maxHeightRaster->resolution());
+                for (int c = (colHmax - ncells) ; okHmax && c < (colHmax + ncells) ; c++)
+                {
+                    for (int l = (linHmax - ncells) ; l < (linHmax + ncells) ; l++)
+                    {
+                        double dist = sqrt(pow(centerX - maxHeightRaster->getCellCenterColCoord(c), 2) + pow(centerY - maxHeightRaster->getCellCenterLinCoord(l), 2));
+                        if (dist <= _step->_radiusHmax)
+                        {
+                            double hMaxVal = maxHeightRaster->value(c, l);
+                            if (hMaxVal != maxHeightRaster->NA() && hMaxVal > hmax)
+                            {
+                                hmax = hMaxVal;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Reference max diameter from Hmax allometry
+            double refDiameterHight = computeAllometricDFromH(hmax + _step->_deltaHmax);
+            bool allometryCorrection = diameter > refDiameterHight;
+
             // if not valid diameter, compute diameter along first-last points line
-            if (diameter >= _step->_maxDiameter || diameter <= 0 || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
+            if (diameter >= _step->_maxDiameter || diameter <= 0 || (diameter / nbPts) > _step->_ratioDbhNbPtsMax || allometryCorrection)
             {
                 const size_t index1 = mainLine->first();
                 const size_t index2 = mainLine->last();
@@ -826,19 +954,23 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                 }
             }
 
+
+
             nbPts = cluster->getPointCloudIndexSize();
-            if (nbPts == 0 || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
+            if (nbPts == 0 || diameter > _step->_maxDiameter || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
             {
                 CT_PointIterator itP(cluster->getPointCloudIndex());
                 while(itP.hasNext())
                 {
-                   size_t index = itP.next().currentGlobalIndex();
-                   isolatedPointIndices.append(index);
+                    size_t index = itP.next().currentGlobalIndex();
+                    isolatedPointIndices.append(index);
                 }
                 delete cluster;
             } else {
                 // Add to result
-                circles.append(addClusterToResult(grp, cluster, diameter, type, centerX, centerY,  centerZ, mainLine->_length, bestDirection, bestScore));
+                CT_Circle2D* cir = addClusterToResult(grp, cluster, diameter, type, centerX, centerY,  centerZ, mainLine->_length, bestDirection, bestScore);
+                circles.append(cir);
+                if (allometryCorrection) {allometryCircles.append(cir);}
             }
 
             delete mainLine;
@@ -1020,17 +1152,16 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
                         if (okLength)
                         {
-                                const Eigen::Vector3d &center = fittedLineData->getP1();
-                                double diameter = computeDiameterAlongLine(cluster, fittedLineData->getDirection(), center);
+                            int type = 4; // Alignement, ok
+                            const Eigen::Vector3d &center = fittedLineData->getP1();
+                            double diameter = computeDiameterAlongLine(cluster, fittedLineData->getDirection(), center);
 
-                                int nbPts = cluster->getPointCloudIndexSize();
-                                int type = 4; // Alignement, ok
-                                if (nbPts == 0 || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
-                                {
-                                    diameter = _step->_minDiameter;
-                                        type = 5; // Alignement, excessive diameter
-                                }
-                                otherCircles.append(addClusterToResult(grp, cluster, diameter, type, center(0), center(1),  center(2), fittedLineData->length(), fittedLineData->getDirection(), 0));
+                            if (diameter > _step->_maxDiameter || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
+                            {
+                                type = 5; // Alignement, excessive diameter
+                                diameter = (std::rand() / (double)RAND_MAX) * rangeUnderstorey + _step->_minDiameter;
+                            }
+                            otherCircles.append(addClusterToResult(grp, cluster, diameter, type, center(0), center(1),  center(2), fittedLineData->length(), fittedLineData->getDirection(), 0));
                         } else {
                             delete cluster;
                         }
@@ -1069,10 +1200,71 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             }
         }
 
+        // Apply exclusion radii using heights
+        QMultiMap<double, int> sortedHeightIndices;
+        for (int i = 0 ; i < circles.size() ; i++)
+        {
+            sortedHeightIndices.insert(heights[i], i);
+        }
+
+        QMapIterator<double, int> itSortedHeightIndices(sortedHeightIndices);
+        itSortedHeightIndices.toBack();
+        while (itSortedHeightIndices.hasPrevious())
+        {
+            itSortedHeightIndices.previous();
+            double height = itSortedHeightIndices.key();
+            int ii = itSortedHeightIndices.value();
+            CT_Circle2D* circle = circles.at(ii);
+
+            double distThreshold = _step->getExclusionRadius(height);
+
+            for (int i = 0 ; i < circles.size() ; i++)
+            {
+                if (i != ii)
+                {
+                    CT_Circle2D* otherCircle = circles.at(i);
+
+                    double dist = sqrt(pow(circle->getCenterX() - otherCircle->getCenterX(), 2) + pow(circle->getCenterY() - otherCircle->getCenterY(), 2));
+                    if (dist < distThreshold)
+                    {
+                        heights[i] = 0;
+                    }
+                }
+            }
+        }
+        sortedHeightIndices.clear();
+
+        // Register heights as attribute and correct excessively low or high diameters using allometry
         for (int i = 0 ; i < circles.size() ; i++)
         {
             CT_Circle2D* circle = circles.at(i);
-            circle->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMaxHeight_ModelName.completeName(), CT_AbstractCategory::DATA_HEIGHT, _res, heights[i]));
+            circle->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attMaxHeight_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, heights[i]));
+
+            double correctedDbh = circle->getRadius() * 2.0;
+
+            int flag = 0;
+            if (heights[i] > 0)
+            {
+                double refDiamLow = computeAllometricDFromH(heights[i] - _step->_deltaHmax);
+                double refDiamHigh = computeAllometricDFromH(heights[i] + _step->_deltaHmax);
+
+                if (correctedDbh < refDiamLow || correctedDbh > refDiamHigh)
+                {
+                    flag = 1;
+                    // Allometric correction
+                    correctedDbh = computeAllometricDFromH(heights[i]);
+                }
+            } else if (correctedDbh < _step->_minDiameter) {
+                flag = 2;
+                // random correction because no height is available, and diameter is untrustable
+                correctedDbh = (std::rand() / (double)RAND_MAX) * rangeUnderstorey + _step->_minDiameter;
+            }
+
+            if (allometryCircles.contains(circle)) {flag += 10;}
+            circle->addItemAttribute(new CT_StdItemAttributeT<int>(_step->_attCorrectedFlag_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, flag));
+
+            circle->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attCorrectedDiameter_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, correctedDbh * 100.0));
+            ((CT_Circle2DData*) (circle->getPointerData()))->setRadius(correctedDbh / 2.0);
         }
 
         qDeleteAll(candidateLines);
@@ -1107,9 +1299,6 @@ double ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeDi
             if (dist > maxDist) {maxDist = dist;}
         }
     }
-
-    if (maxDist < _step->_minDiameter) {maxDist = _step->_minDiameter;}
-    if (maxDist > _step->_maxDiameter) {maxDist = _step->_maxDiameter;}
 
     return maxDist;
 }
@@ -1175,3 +1364,11 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::findNeighbo
         }
     }
 }
+
+double ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeAllometricDFromH(double h)
+{
+    if (h <= 0.0) {return 0.0;}
+    return (_step->_param_a*(h - 1.3) - _step->_param_m / (h - _step->_param_Hmax)) / 100.0;
+}
+
+

@@ -81,7 +81,12 @@ public:
      */
     CT_VirtualAbstractStep* createNewInstance(CT_StepInitializeData &dataInit);
 
+
+
 protected:
+    QMap<double, double> _radii;
+    double getExclusionRadius(double height);
+
 
     /*! \brief Input results specification
      *
@@ -258,7 +263,7 @@ protected:
         double computeDiameterAlongLine(CT_PointCluster *cluster, const Eigen::Vector3d &direction, const Eigen::Vector3d &origin);
         CT_Circle2D *addClusterToResult(CT_StandardItemGroup* grp, CT_PointCluster* cluster, double diameter, int type, double centerX, double centerY, double centerZ, double length, const Eigen::Vector3d &direction, double score);
         void findNeighborLines(QList<ONF_StepDetectVerticalAlignments06::LineData*> candidateLines, double distThreshold);
-
+        double computeAllometricDFromH(double h);
 
     private:
         ONF_StepDetectVerticalAlignments06* _step;
@@ -281,7 +286,9 @@ protected:
     CT_AutoRenameModels    _attMaxDistXY3_ModelName;
     CT_AutoRenameModels    _attScore3_ModelName;
     CT_AutoRenameModels    _attStemType3_ModelName;
-    CT_AutoRenameModels    _attMaxHeight_ModelName;
+    CT_AutoRenameModels    _attMaxHeight_ModelName;    
+    CT_AutoRenameModels    _attCorrectedDiameter_ModelName;
+    CT_AutoRenameModels    _attCorrectedFlag_ModelName;
 
 
     CT_AutoRenameModels    _grpClusterDebug1_ModelName;
@@ -301,6 +308,7 @@ protected:
 
     double      _minDiameter;
     double      _maxDiameter;
+    double      _maxDiameterForUnderstorey;
     double      _maxSearchRadius;
     double      _maxLineSpacing;
     double      _resolutionForDiameterEstimation;
@@ -321,6 +329,11 @@ protected:
     double      _exclusionRadiusSmall;
 
     double      _radiusHmax;
+    double      _param_Hmax;
+    double      _param_a;
+    double      _param_m;
+    double      _deltaHmax;
+    QStringList _fileName;
 
     bool      _clusterDebugMode;
 
