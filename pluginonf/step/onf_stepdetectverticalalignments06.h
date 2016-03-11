@@ -25,6 +25,8 @@
 #ifndef ONF_STEPDETECTVERTICALALIGNMENTS06_H
 #define ONF_STEPDETECTVERTICALALIGNMENTS06_H
 
+#ifdef USE_OPENCV
+
 #include "ct_step/abstract/ct_abstractstep.h"
 
 #include "ct_itemdrawable/ct_standarditemgroup.h"
@@ -338,5 +340,7 @@ protected:
     bool      _clusterDebugMode;
 
 };
+
+#endif
 
 #endif // ONF_STEPDETECTVERTICALALIGNMENTS06_H

@@ -24,6 +24,8 @@
 
 #include "onf_stepdetectverticalalignments06.h"
 
+#ifdef USE_OPENCV
+
 #include "ct_itemdrawable/abstract/ct_abstractitemdrawablewithpointcloud.h"
 #include "ct_itemdrawable/ct_polygon2d.h"
 #include "ct_itemdrawable/ct_line.h"
@@ -1371,4 +1373,4 @@ double ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeAl
     return (_step->_param_a*(h - 1.3) - _step->_param_m / (h - _step->_param_Hmax)) / 100.0;
 }
 
-
+#endif
