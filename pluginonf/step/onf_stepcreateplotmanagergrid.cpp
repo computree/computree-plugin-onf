@@ -100,7 +100,7 @@ void ONF_StepCreatePlotManagerGrid::createOutResultModelListProtected()
 
     if(res != NULL) {
         //res->addItemModel(DEFin_grpRoot, _outPlotManagerGrid_ModelName, new CT_PlotGridManager(), tr("Gestionnaire de placettes (grille)"));
-        res->addItemModel(DEFin_grpShape2D, _outPlotList_ModelName, new CT_PlotListInGrid(), tr("Liste de Placettes"));
+        res->addItemModel(DEFin_grpShape2D, _outPlotList_ModelName, new CT_PlotListInGrid(), tr("Grille de Placettes"));
     }
 }
 
