@@ -91,7 +91,7 @@ CT_AbstractConfigurableWidget* ONF_FilterByReturnType::createConfigurationWidget
 
     _typeAsString = getStringForType(_type);
 
-    configDialog->addStringChoice(tr("Type de retours à conserver"), "", typesList, _typeAsString);
+    configDialog->addStringChoice(tr("Type de retours à conserver"), "", typesList, _typeAsString, getDetailledDescription());
     configDialog->addEmpty();
     configDialog->addBool(tr("Filter selon la classification"), "", tr("Conserver les classifications suivantes :"), _filterByClassif);
     configDialog->addBool("", "", tr("Végétation (3,4,5)"), _keepVegetation);
