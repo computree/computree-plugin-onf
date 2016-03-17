@@ -25,7 +25,7 @@
 #ifndef ONF_FILTERBYRETURNTYPE_H
 #define ONF_FILTERBYRETURNTYPE_H
 
-#include "ctlibio/filters/las/abstract/ct_abstractfilter_las.h"
+#include "ctliblas/filters/abstract/ct_abstractfilter_las.h"
 
 class ONF_FilterByReturnType : public CT_AbstractFilter_LAS
 {
@@ -44,24 +44,22 @@ public:
     };
 
     ONF_FilterByReturnType();
-    ONF_FilterByReturnType(const ONF_FilterByReturnType* other);
+    ONF_FilterByReturnType(const ONF_FilterByReturnType &other);
 
-    QString getName();
-    QString getCompleteName();
+    QString getDetailledDisplayableName();
 
-    void createConfigurationDialog();
-    void updateParamtersAfterConfiguration();
+    CT_AbstractConfigurableWidget* createConfigurationWidget();
+    void postConfigure();
 
     QString getShortDescription() const;
     QString getDetailledDescription() const;
 
-    QString getParametersAsString() const;
-    virtual bool setParametersFromString(QString parameters);
+    SettingsNodeGroup* getAllSettings() const;
+    bool setAllSettings(const SettingsNodeGroup *settings);
 
     CT_AbstractConfigurableElement* copy() const;
 
-    void validatePoint(CT_PointIterator& pointIt, CT_LASData &LADData) const;
-
+    bool validatePoint(const CT_PointIterator &pointIt, const CT_LASData &LASData);
 
 private:
 

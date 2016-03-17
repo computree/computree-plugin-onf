@@ -25,40 +25,47 @@
 #ifndef ONF_METRICCOMPUTESTATS_H
 #define ONF_METRICCOMPUTESTATS_H
 
-
-#include "ct_metric/abstract/ct_abstractmetric_xyz.h"
+#include "ctlibmetrics/ct_metric/abstract/ct_abstractmetric_xyz.h"
 
 class ONF_MetricComputeStats : public CT_AbstractMetric_XYZ
 {
     Q_OBJECT
 public:
 
+    struct Config {
+        VaB<double> valHmean;
+        VaB<double> valHsd;
+        VaB<double> valHskew;
+        VaB<double> valHkurt;
+        VaB<double> valHcv;
+        size_t      n;
+    };
+
     ONF_MetricComputeStats();
-    ONF_MetricComputeStats(const ONF_MetricComputeStats* other);
-
-    QString getName();
-
-    void createConfigurationDialog();
-    void updateParamtersAfterConfiguration();
+    ONF_MetricComputeStats(const ONF_MetricComputeStats &other);
 
     QString getShortDescription() const;
     QString getDetailledDescription() const;
 
-    QString getParametersAsString() const;
-    virtual bool setParametersFromString(QString parameters);
+    /**
+     * @brief Returns the metric configuration
+     */
+    ONF_MetricComputeStats::Config metricConfiguration() const;
 
-    void createAttributes();
-    void computeMetric();
-
+    /**
+     * @brief Change the configuration of this metric
+     */
+    void setMetricConfiguration(const ONF_MetricComputeStats::Config &conf);
 
     CT_AbstractConfigurableElement* copy() const;
 
+protected:
+    void declareAttributes();
+    void createAttributes();
+    void computeMetric();
+
 private:
-    bool _computeHmean;
-    bool _computeHsd;
-    bool _computeHskew;
-    bool _computeHkurt;
-    bool _computeHcv;
+    Config  m_configAndResults;
 };
 
 

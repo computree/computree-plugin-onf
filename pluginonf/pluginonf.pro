@@ -3,7 +3,7 @@ CT_PREFIX = ../../computreev3
 include($${CT_PREFIX}/shared.pri)
 include($${PLUGIN_SHARED_DIR}/include.pri)
 
-COMPUTREE += ctlibio
+COMPUTREE += ctliblas ctlibfilters ctlibmetrics
 
 include($${CT_PREFIX}/include_ct_library.pri)
 

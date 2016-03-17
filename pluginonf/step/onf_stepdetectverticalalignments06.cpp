@@ -31,7 +31,7 @@
 #include "ct_itemdrawable/ct_line.h"
 #include "ct_itemdrawable/ct_pointcluster.h"
 #include "ct_itemdrawable/abstract/ct_abstractpointattributesscalar.h"
-#include "ctlibio/itemdrawable/las/ct_stdlaspointsattributescontainer.h"
+#include "ctliblas/itemdrawable/las/ct_stdlaspointsattributescontainer.h"
 #include "ct_itemdrawable/ct_standarditemgroup.h"
 #include "ct_itemdrawable/ct_image2d.h"
 

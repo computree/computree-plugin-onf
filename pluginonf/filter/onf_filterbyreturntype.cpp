@@ -25,6 +25,11 @@
 #include "onf_filterbyreturntype.h"
 #include "ct_pointcloudindex/ct_pointcloudindexvector.h"
 #include "ct_iterator/ct_pointiterator.h"
+#include "ct_view/ct_genericconfigurablewidget.h"
+
+#define checkAndSetValue(ATT, NAME, TYPE) if((value = settings->firstValueByTagName(NAME)) == NULL) { return false; } else { ATT = value->value().value<TYPE>(); }
+#define checkAndSetValueSpecial(ATT, NAME, TYPE, STYPE) if((value = settings->firstValueByTagName(NAME)) == NULL) { return false; } else { ATT = (STYPE)value->value().value<TYPE>(); }
+#define checkAndInsertValue(ATT, NAME, TYPE) if((value = group->firstValueByTagName(NAME)) == NULL) { return false; } else { ATT.insert(value->value().value<TYPE>()); }
 
 ONF_FilterByReturnType::ONF_FilterByReturnType() : CT_AbstractFilter_LAS()
 {
@@ -40,18 +45,22 @@ ONF_FilterByReturnType::ONF_FilterByReturnType() : CT_AbstractFilter_LAS()
     _keepValues = "";
 }
 
-ONF_FilterByReturnType::ONF_FilterByReturnType(const ONF_FilterByReturnType *other) : CT_AbstractFilter_LAS(other)
+ONF_FilterByReturnType::ONF_FilterByReturnType(const ONF_FilterByReturnType &other) : CT_AbstractFilter_LAS(other)
 {
-    _type = other->_type;
+    _type = other._type;
     _typeAsString = getStringForType(_type);
+
+    _classifToKeep = other._classifToKeep;
+    _filterByClassif = other._filterByClassif;
+    _keepVegetation = other._keepVegetation;
+    _keepGround = other._keepGround;
+    _keepNotClassified = other._keepNotClassified;
+    _keepBuldings = other._keepBuldings;
+    _keepWater = other._keepWater;
+    _keepValues = other._keepValues;
 }
 
-QString ONF_FilterByReturnType::getName()
-{
-    return QString("PBF_ReturnType");
-}
-
-QString ONF_FilterByReturnType::getCompleteName()
+QString ONF_FilterByReturnType::getDetailledDisplayableName()
 {
     QString result = getStringForType(_type);
     if (_filterByClassif)
@@ -71,15 +80,14 @@ QString ONF_FilterByReturnType::getCompleteName()
     return result;
 }
 
-void ONF_FilterByReturnType::createConfigurationDialog()
+CT_AbstractConfigurableWidget* ONF_FilterByReturnType::createConfigurationWidget()
 {
-    CT_StepConfigurableDialog* configDialog = addConfigurationDialog();
+    CT_GenericConfigurableWidget* configDialog = new CT_GenericConfigurableWidget();
 
     QStringList typesList;
+
     for (int type = ONF_FilterByReturnType::ReturnType_begin ; type <= ONF_FilterByReturnType::ReturnType_end ; type++)
-    {
         typesList.append(getStringForType((ONF_FilterByReturnType::ReturnType) type));
-    }
 
     _typeAsString = getStringForType(_type);
 
@@ -92,9 +100,37 @@ void ONF_FilterByReturnType::createConfigurationDialog()
     configDialog->addBool("", "", tr("Constructions (6)"), _keepBuldings);
     configDialog->addBool("", "", tr("Eau (9)"), _keepWater);
     configDialog->addString(tr("Autres valeurs à conserver (séparées par des ;)"), "", _keepValues);
+
+    return configDialog;
 }
 
-void ONF_FilterByReturnType::updateParamtersAfterConfiguration()
+void ONF_FilterByReturnType::postConfigure()
+{
+    _type = getTypeForString(_typeAsString);
+
+    _classifToKeep.clear();
+
+    if (_filterByClassif)
+    {
+        if (_keepNotClassified) {_classifToKeep.insert(0);_classifToKeep.insert(1);}
+        if (_keepGround) {_classifToKeep.insert(2);}
+        if (_keepVegetation) {_classifToKeep.insert(3); _classifToKeep.insert(4); _classifToKeep.insert(5);}
+        if (_keepBuldings) {_classifToKeep.insert(6);}
+        if (_keepWater) {_classifToKeep.insert(9);}
+
+        QStringList vals = _keepValues.split(";", QString::SkipEmptyParts);
+        for (int i =  0 ; i < vals.size() ; i++)
+        {
+            bool ok = false;
+            int val = vals.at(i).toInt(&ok);
+
+            if (ok && val >=0 && val <= 255)
+                _classifToKeep.insert(val);
+        }
+    }
+}
+
+/*void ONF_FilterByReturnType::updateParamtersAfterConfiguration()
 {
     _type = getTypeForString(_typeAsString);
 
@@ -183,6 +219,41 @@ bool ONF_FilterByReturnType::setParametersFromString(QString parameters)
     }
 
     return true;
+}*/
+
+SettingsNodeGroup *ONF_FilterByReturnType::getAllSettings() const
+{
+    SettingsNodeGroup *root = new SettingsNodeGroup("ONF_FilterByReturnType");
+    root->addValue(new SettingsNodeValue("type", (int)_type));
+    root->addValue(new SettingsNodeValue("filterByClassif", _filterByClassif));
+    root->addValue(new SettingsNodeValue("keepVegetation", _keepVegetation));
+    root->addValue(new SettingsNodeValue("keepGround", _keepGround));
+    root->addValue(new SettingsNodeValue("keepNotClassified", _keepNotClassified));
+    root->addValue(new SettingsNodeValue("keepBuldings", _keepBuldings));
+    root->addValue(new SettingsNodeValue("keepWater", _keepWater));
+    root->addValue(new SettingsNodeValue("keepValues", _keepValues));
+
+    return root;
+}
+
+bool ONF_FilterByReturnType::setAllSettings(const SettingsNodeGroup *settings)
+{
+    if((settings == NULL) || (settings->name() != "ONF_FilterByReturnType"))
+        return false;
+
+    SettingsNodeValue *value = NULL;
+
+    checkAndSetValueSpecial(_type, "type", int, ONF_FilterByReturnType::ReturnType);
+    _typeAsString = getStringForType(_type);
+    checkAndSetValue(_filterByClassif, "filterByClassif", bool);
+    checkAndSetValue(_keepVegetation, "keepVegetation", bool);
+    checkAndSetValue(_keepGround, "keepGround", bool);
+    checkAndSetValue(_keepNotClassified, "keepNotClassified", bool);
+    checkAndSetValue(_keepBuldings, "keepBuldings", bool);
+    checkAndSetValue(_keepWater, "keepWater", bool);
+    checkAndSetValue(_keepValues, "keepValues", QString);
+
+    return true;
 }
 
 QString ONF_FilterByReturnType::getShortDescription() const
@@ -205,48 +276,35 @@ QString ONF_FilterByReturnType::getDetailledDescription() const
 
 CT_AbstractConfigurableElement *ONF_FilterByReturnType::copy() const
 {
-    ONF_FilterByReturnType* filter = new ONF_FilterByReturnType(this);
-    filter->_type = _type;
-    filter->_typeAsString = _typeAsString;
-
-    filter->_filterByClassif = _filterByClassif;
-
-    if (_filterByClassif)
-    {
-        QSetIterator<quint8> it(_classifToKeep);
-        while (it.hasNext())
-        {
-            filter->_classifToKeep.insert(it.next());
-        }
-    }
-
-    return filter;
+    return new ONF_FilterByReturnType(*this);
 }
 
-void ONF_FilterByReturnType::validatePoint(CT_PointIterator &pointIt, CT_LASData &lasData) const
+bool ONF_FilterByReturnType::validatePoint(const CT_PointIterator &pointIt, const CT_LASData &LASData)
 {   
+    Q_UNUSED(pointIt)
+
     // Test for the type of return
-    if (_type == ONF_FilterByReturnType::First && lasData._Return_Number != 1) {return;}
-    if (_type == ONF_FilterByReturnType::Last && (lasData._Return_Number != lasData._Number_of_Returns || lasData._Return_Number == 1)) {return;}
-    if (_type == ONF_FilterByReturnType::LastAndOnly && lasData._Return_Number != lasData._Number_of_Returns) {return;}
-    if (_type == ONF_FilterByReturnType::Intermediate && (lasData._Return_Number == 1 || lasData._Return_Number == lasData._Number_of_Returns)) {return;}
-    if (_type == ONF_FilterByReturnType::Only && (lasData._Return_Number != 1 || lasData._Number_of_Returns != 1)) {return;}
+    if (_type == ONF_FilterByReturnType::First && LASData._Return_Number != 1) {return false;}
+    if (_type == ONF_FilterByReturnType::Last && (LASData._Return_Number != LASData._Number_of_Returns || LASData._Return_Number == 1)) {return false;}
+    if (_type == ONF_FilterByReturnType::LastAndOnly && LASData._Return_Number != LASData._Number_of_Returns) {return false;}
+    if (_type == ONF_FilterByReturnType::Intermediate && (LASData._Return_Number == 1 || LASData._Return_Number == LASData._Number_of_Returns)) {return false;}
+    if (_type == ONF_FilterByReturnType::Only && (LASData._Return_Number != 1 || LASData._Number_of_Returns != 1)) {return false;}
 
     // test for classification
-    if (_filterByClassif && !_classifToKeep.contains(lasData._Classification)) {return;}
+    if (_filterByClassif && !_classifToKeep.contains(LASData._Classification)) {return false;}
 
-    _outCloud->addIndex(pointIt.currentGlobalIndex());
+    return true;
 }
 
 QString ONF_FilterByReturnType::getStringForType(ONF_FilterByReturnType::ReturnType returnType) const
 {
     switch (returnType)
     {
-        case ONF_FilterByReturnType::First : return "first";
-        case ONF_FilterByReturnType::Last : return "last";
-        case ONF_FilterByReturnType::LastAndOnly : return "lastAndOnly";
-        case ONF_FilterByReturnType::Intermediate : return "int";
-        case ONF_FilterByReturnType::Only : return "only";
+        case ONF_FilterByReturnType::First : return tr("first");
+        case ONF_FilterByReturnType::Last : return tr("last");
+        case ONF_FilterByReturnType::LastAndOnly : return tr("last and only");
+        case ONF_FilterByReturnType::Intermediate : return tr("intermerdiate");
+        case ONF_FilterByReturnType::Only : return tr("only");
     }
 
     return "all";

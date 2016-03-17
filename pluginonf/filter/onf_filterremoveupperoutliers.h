@@ -26,7 +26,7 @@
 #define ONF_FILTERREMOVEUPPEROUTLIERS_H
 
 
-#include "ct_filter/abstract/ct_abstractfilter_xyz.h"
+#include "ctlibfilters/filters/abstract/ct_abstractfilter_xyz.h"
 #include "ct_iterator/ct_pointiterator.h"
 
 
@@ -36,22 +36,22 @@ class ONF_FilterRemoveUpperOutliers : public CT_AbstractFilter_XYZ
 public:
 
     ONF_FilterRemoveUpperOutliers();
-    ONF_FilterRemoveUpperOutliers(const ONF_FilterRemoveUpperOutliers* other);
+    ONF_FilterRemoveUpperOutliers(const ONF_FilterRemoveUpperOutliers &other);
 
-    QString getName();
-    QString getCompleteName();
-
-    void createConfigurationDialog();
-    void updateParamtersAfterConfiguration();
-
+    QString getDetailledDisplayableName();
     QString getShortDescription() const;
-    QString getDetailledDescription() const;
 
-    QString getParametersAsString() const;
-    virtual bool setParametersFromString(QString parameters);
+    bool filterPointCloudIndex();
 
-    virtual CT_PointCloudIndexVector *filterPointCloudIndex() const;
-    virtual void validatePoint(CT_PointIterator& pointIt) const {Q_UNUSED(pointIt);}
+    /**
+     * @brief TODO : Cannot be used ?!
+     */
+    bool validatePoint(const CT_PointIterator& pointIt) { Q_UNUSED(pointIt); return false; }
+
+    CT_AbstractConfigurableWidget* createConfigurationWidget();
+
+    SettingsNodeGroup* getAllSettings() const;
+    bool setAllSettings(const SettingsNodeGroup *settings);
 
     CT_AbstractConfigurableElement* copy() const;
 
@@ -60,13 +60,9 @@ private:
     int     _threshold;
     int     _dc;
 
-    double  mutable _minx;
-    double  mutable _miny;
-    double  mutable _minz;
-    size_t  mutable _dimx;
-    size_t  mutable _dimy;
-    size_t  mutable _dimz;
-
+    size_t  _dimx;
+    size_t  _dimy;
+    size_t  _dimz;
 
     size_t gridIndex(const double &x, const double &y, const double &z) const;
     size_t gridIndex(const size_t &colx, const size_t &liny, const size_t &levz) const;

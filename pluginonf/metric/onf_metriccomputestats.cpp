@@ -28,149 +28,13 @@
 
 ONF_MetricComputeStats::ONF_MetricComputeStats() : CT_AbstractMetric_XYZ()
 {
-    _computeHmean = true;
-    _computeHsd = true;
-    _computeHskew = true;
-    _computeHkurt = true;
-    _computeHcv  = true;
+    declareAttributes();
 }
 
-ONF_MetricComputeStats::ONF_MetricComputeStats(const ONF_MetricComputeStats *other) : CT_AbstractMetric_XYZ(other)
+ONF_MetricComputeStats::ONF_MetricComputeStats(const ONF_MetricComputeStats &other) : CT_AbstractMetric_XYZ(other)
 {
-}
-
-QString ONF_MetricComputeStats::getName()
-{
-    return QString("ONF_Stats");
-}
-
-void ONF_MetricComputeStats::createConfigurationDialog()
-{
-    CT_StepConfigurableDialog* configDialog = addConfigurationDialog();
-
-    configDialog->addBool("Hmean", "", "", _computeHmean);
-    configDialog->addBool("Hsd"  , "", "", _computeHsd);
-    configDialog->addBool("Hskew", "", "", _computeHskew);
-    configDialog->addBool("Hkurt", "", "", _computeHkurt);
-    configDialog->addBool("HCV"  , "", "", _computeHcv);
-}
-
-void ONF_MetricComputeStats::updateParamtersAfterConfiguration()
-{
-}
-
-QString ONF_MetricComputeStats::getParametersAsString() const
-{
-    QString result = "";
-    return result;
-}
-
-bool ONF_MetricComputeStats::setParametersFromString(QString parameters)
-{
-    return true;
-}
-
-void ONF_MetricComputeStats::createAttributes()
-{
-    addAttribute("N", CT_AbstractMetric::AT_size_t, CT_AbstractCategory::DATA_NUMBER);
-    if (_computeHmean) {addAttribute("Hmean", CT_AbstractMetric::AT_double, CT_AbstractCategory::DATA_Z);}
-    if (_computeHsd)   {addAttribute("Hsd", CT_AbstractMetric::AT_double, CT_AbstractCategory::DATA_Z);}
-    if (_computeHskew) {addAttribute("Hskew", CT_AbstractMetric::AT_double, CT_AbstractCategory::DATA_Z);}
-    if (_computeHkurt) {addAttribute("Hkurt", CT_AbstractMetric::AT_double, CT_AbstractCategory::DATA_Z);}
-    if (_computeHcv)   {addAttribute("Hcv", CT_AbstractMetric::AT_double, CT_AbstractCategory::DATA_NUMBER);}
-}
-
-void ONF_MetricComputeStats::computeMetric()
-{    
-    double valHmean = 0;
-    double valHsd = 0;
-    double valHskew = 0;
-    double valHkurt = 0;
-    double valHcv = 0;
-    double m2 = 0;
-    double m3 = 0;
-    double m4 = 0;
-    size_t n = 0;
-
-    CT_PointIterator itP(_inCloud);
-    while(itP.hasNext())
-    {
-        const CT_Point& point = itP.next().currentPoint();
-
-        if (_plotArea->contains(point(0), point(1)))
-        {
-            n++;
-            if (_computeHmean || _computeHsd   || _computeHskew || _computeHkurt || _computeHcv) {valHmean += point(2);}
-        }
-    }
-
-    if (n > 1)
-    {
-        double nd = (double)n;
-        if (_computeHmean || _computeHsd   || _computeHskew || _computeHkurt || _computeHcv)
-        {
-            valHmean /= nd;
-        }
-
-
-        if (_computeHskew || _computeHkurt)
-        {
-            CT_PointIterator itP2(_inCloud);
-            while(itP2.hasNext())
-            {
-                const CT_Point& point = itP2.next().currentPoint();
-
-                if (_plotArea->contains(point(0), point(1)))
-                {
-                    double val = point(2) - valHmean;
-                    if (_computeHsd || _computeHskew || _computeHkurt) {m2 += pow(val, 2.0);}
-                    if (_computeHskew)                                 {m3 += pow(val, 3.0);}
-                    if (_computeHkurt)                                 {m4 += pow(val, 4.0);}
-                }
-            }
-            m2 /= nd;
-            m3 /= nd;
-            m4 /= nd;
-
-            if (_computeHsd || _computeHcv)
-            {
-                valHsd = sqrt((nd/(nd-1))*m2);
-            }
-
-            if (_computeHcv)
-            {
-                valHcv = valHsd / valHmean;
-            }
-
-            if (_computeHskew)
-            {
-                valHskew = m3 / pow(m2, 3.0/2.0);
-                valHskew *= sqrt(nd*(nd-1.0))/(nd-2.0); // SAS & SPSS
-                //valHskew *= pow((nd-1.0)/nd, 3.0/2.0); // R package e1071
-
-            }
-
-            if (_computeHkurt)
-            {
-                valHkurt = m4 / pow(m2, 2.0) - 3.0;
-                valHkurt = ((nd+1.0)*valHkurt + 6.0)*(nd-1.0)/((nd-2.0)*(nd-3.0)); // SAS & SPSS
-                //valHkurt = (valHkurt + 3)*pow(1.0-1.0/nd, 2.0) - 3.0; // R package e1071
-            }
-        }
-    } else {
-        valHsd = 0;
-        valHskew = 0;
-        valHkurt = 0;
-        valHcv = 0;
-    }
-
-
-    setAttributeValue("N", n);
-    if (_computeHmean) {setAttributeValue("Hmean", valHmean);}
-    if (_computeHsd)   {setAttributeValue("Hsd", valHsd);}
-    if (_computeHskew) {setAttributeValue("Hskew", valHskew);}
-    if (_computeHkurt) {setAttributeValue("Hkurt", valHkurt);}
-    if (_computeHcv)   {setAttributeValue("Hcv", valHcv);}
+    declareAttributes();
+    m_configAndResults = other.m_configAndResults;
 }
 
 QString ONF_MetricComputeStats::getShortDescription() const
@@ -189,14 +53,104 @@ QString ONF_MetricComputeStats::getDetailledDescription() const
               "<em>N.B. : Les formules du Skewness et du Kurtosis sont issues du package e1071 de R (versions SAS).</em>");
 }
 
+ONF_MetricComputeStats::Config ONF_MetricComputeStats::metricConfiguration() const
+{
+    return m_configAndResults;
+}
+
+void ONF_MetricComputeStats::setMetricConfiguration(const ONF_MetricComputeStats::Config &conf)
+{
+    m_configAndResults = conf;
+}
+
 CT_AbstractConfigurableElement *ONF_MetricComputeStats::copy() const
 {
-    ONF_MetricComputeStats* metric = new ONF_MetricComputeStats(this);
-    metric->_computeHmean = _computeHmean;
-    metric->_computeHsd   = _computeHsd;
-    metric->_computeHskew = _computeHskew;
-    metric->_computeHkurt = _computeHkurt;
-    metric->_computeHcv   = _computeHcv;
+    return new ONF_MetricComputeStats(*this);
+}
 
-    return metric;
+void ONF_MetricComputeStats::declareAttributes()
+{
+    registerAttributeVaB(m_configAndResults.valHmean, CT_AbstractCategory::DATA_Z, tr("H mean"));
+    registerAttributeVaB(m_configAndResults.valHsd, CT_AbstractCategory::DATA_Z, tr("H sd"));
+    registerAttributeVaB(m_configAndResults.valHskew, CT_AbstractCategory::DATA_Z, tr("H skew"));
+    registerAttributeVaB(m_configAndResults.valHkurt, CT_AbstractCategory::DATA_Z, tr("H kurt"));
+    registerAttributeVaB(m_configAndResults.valHcv, CT_AbstractCategory::DATA_Z, tr("H cv"));
+}
+
+void ONF_MetricComputeStats::createAttributes()
+{
+    addAttribute<size_t>(m_configAndResults.n, CT_AbstractCategory::DATA_NUMBER, tr("N"));
+
+    CT_AbstractMetric_XYZ::createAttributes();
+}
+
+void ONF_MetricComputeStats::computeMetric()
+{    
+    m_configAndResults.valHmean.value = 0;
+    m_configAndResults.valHsd.value = 0;
+    m_configAndResults.valHskew.value = 0;
+    m_configAndResults.valHkurt.value = 0;
+    m_configAndResults.valHcv.value = 0;
+    m_configAndResults.n = 0;
+    double m2 = 0;
+    double m3 = 0;
+    double m4 = 0;
+
+    CT_PointIterator itP(pointCloud());
+    std::vector<double> zValues(pointCloud()->size());
+    double zValue;
+    while(itP.hasNext())
+    {
+        const CT_Point& point = itP.next().currentPoint();
+
+        if ((plotArea() == NULL) || plotArea()->contains(point(0), point(1)))
+        {
+            zValue = point(CT_Point::Z);
+            zValues[m_configAndResults.n] = zValue;
+            m_configAndResults.valHmean.value += zValue;
+            ++m_configAndResults.n;
+        }
+    }
+
+    zValues.resize(m_configAndResults.n);
+
+    if (m_configAndResults.n > 1)
+    {
+        double nd = (double)m_configAndResults.n;
+
+        m_configAndResults.valHmean.value /= nd;
+
+        if (m_configAndResults.valHskew.used || m_configAndResults.valHkurt.used)
+        {
+            for(size_t i=0; i<m_configAndResults.n; ++i) {
+                zValue = zValues[i] - m_configAndResults.valHmean.value;
+                m2 += pow(zValue, 2.0);
+                m3 += pow(zValue, 3.0);
+                m4 += pow(zValue, 4.0);
+            }
+
+            m2 /= nd;
+            m3 /= nd;
+            m4 /= nd;
+
+            m_configAndResults.valHsd.value = sqrt((nd/(nd-1))*m2);
+
+            m_configAndResults.valHcv.value = m_configAndResults.valHsd.value / m_configAndResults.valHmean.value;
+
+            m_configAndResults.valHskew.value = m3 / pow(m2, 3.0/2.0);
+            m_configAndResults.valHskew.value *= sqrt(nd*(nd-1.0))/(nd-2.0); // SAS & SPSS
+            //valHskew *= pow((nd-1.0)/nd, 3.0/2.0); // R package e1071
+
+            m_configAndResults.valHkurt.value = m4 / pow(m2, 2.0) - 3.0;
+            m_configAndResults.valHkurt.value = ((nd+1.0)*m_configAndResults.valHkurt.value + 6.0)*(nd-1.0)/((nd-2.0)*(nd-3.0)); // SAS & SPSS
+            //valHkurt = (valHkurt + 3)*pow(1.0-1.0/nd, 2.0) - 3.0; // R package e1071
+        }
+    }
+
+    setAttributeValue(m_configAndResults.n);
+    setAttributeValueVaB(m_configAndResults.valHmean);
+    setAttributeValueVaB(m_configAndResults.valHsd);
+    setAttributeValueVaB(m_configAndResults.valHskew);
+    setAttributeValueVaB(m_configAndResults.valHkurt);
+    setAttributeValueVaB(m_configAndResults.valHcv);
 }

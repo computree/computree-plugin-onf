@@ -25,30 +25,24 @@
 #ifndef ONF_METRICQUANTILES_H
 #define ONF_METRICQUANTILES_H
 
-#include "ct_metric/abstract/ct_abstractmetric_xyz.h"
+#include "ctlibmetrics/ct_metric/abstract/ct_abstractmetric_xyz.h"
 
 class ONF_MetricQuantiles : public CT_AbstractMetric_XYZ
 {
     Q_OBJECT
 public:
-
     ONF_MetricQuantiles();
-    ONF_MetricQuantiles(const ONF_MetricQuantiles* other);
-
-    QString getName();
-
-    void createConfigurationDialog();
-    void updateParamtersAfterConfiguration();
+    ONF_MetricQuantiles(const ONF_MetricQuantiles &other);
 
     QString getShortDescription() const;
-    QString getDetailledDescription() const;
 
-    QString getParametersAsString() const;
-    virtual bool setParametersFromString(QString parameters);
+    SettingsNodeGroup* getAllSettings() const;
+    bool setAllSettings(const SettingsNodeGroup *settings);
 
     void createAttributes();
     void computeMetric();
 
+    CT_AbstractConfigurableWidget* createConfigurationWidget();
 
     CT_AbstractConfigurableElement* copy() const;
 
@@ -56,12 +50,16 @@ private:
     double _quantMin;
     double _quantMax;
     double _quantStep;
-    QString _prefix;
-    bool _hmin;
-    bool _hmed;
-    bool _h99;
-    bool _hmax;
 
+    std::vector<double> _quantile;
+
+    QString _prefix;
+    VaB<double> _hmin;
+    VaB<double> _hmed;
+    VaB<double> _h99;
+    VaB<double> _hmax;
+
+    void declareAttributesVaB();
 
     QString getQuantileString(double quantile);
 };

@@ -24,6 +24,9 @@
 
 #include "filter/onf_filterremoveupperoutliers.h"
 #include "ct_pointcloudindex/ct_pointcloudindexvector.h"
+#include "ct_view/ct_genericconfigurablewidget.h"
+
+#define checkAndSetValue(ATT, NAME, TYPE) if((value = settings->firstValueByTagName(NAME)) == NULL) { return false; } else { ATT = value->value().value<TYPE>(); }
 
 ONF_FilterRemoveUpperOutliers::ONF_FilterRemoveUpperOutliers() : CT_AbstractFilter_XYZ()
 {
@@ -32,65 +35,77 @@ ONF_FilterRemoveUpperOutliers::ONF_FilterRemoveUpperOutliers() : CT_AbstractFilt
     _dc = 1;
 }
 
-ONF_FilterRemoveUpperOutliers::ONF_FilterRemoveUpperOutliers(const ONF_FilterRemoveUpperOutliers *other) : CT_AbstractFilter_XYZ(other)
+ONF_FilterRemoveUpperOutliers::ONF_FilterRemoveUpperOutliers(const ONF_FilterRemoveUpperOutliers &other) : CT_AbstractFilter_XYZ(other)
 {
-    _resolution = 1.0;
-    _threshold = 2.0;
-    _dc = 1;
+    _resolution = other._resolution;
+    _threshold = other._threshold;
+    _dc = other._dc;
 }
 
-QString ONF_FilterRemoveUpperOutliers::getName()
-{
-    return QString("ONF_RemoveUpperOutliers");
-}
-
-QString ONF_FilterRemoveUpperOutliers::getCompleteName()
+QString ONF_FilterRemoveUpperOutliers::getDetailledDisplayableName()
 {
     return QString("Filtered");
 }
 
-void ONF_FilterRemoveUpperOutliers::createConfigurationDialog()
+CT_AbstractConfigurableWidget *ONF_FilterRemoveUpperOutliers::createConfigurationWidget()
 {
-    CT_StepConfigurableDialog* configDialog = addConfigurationDialog();
+    CT_GenericConfigurableWidget* configDialog = new CT_GenericConfigurableWidget();
     configDialog->addDouble(tr("Résolution de la grille de filtrage"), "m", 0.01, 1000, 2, _resolution);
     configDialog->addInt(tr("Nombre de points maximum d'une cellule éliminée"), "", 1, 1000, _threshold);
     configDialog->addInt(tr("Nombre de cases verticales autorisées entre la case filtrée et le voisinnage inférieur"), "", 0, 1000, _dc);
+
+    return configDialog;
 }
 
-void ONF_FilterRemoveUpperOutliers::updateParamtersAfterConfiguration()
+SettingsNodeGroup *ONF_FilterRemoveUpperOutliers::getAllSettings() const
 {
+    SettingsNodeGroup *root = new SettingsNodeGroup("ONF_FilterRemoveUpperOutliers");
+
+    root->addValue(new SettingsNodeValue("resolution", _resolution));
+    root->addValue(new SettingsNodeValue("threshold", _threshold));
+    root->addValue(new SettingsNodeValue("dc", _dc));
+
+    return root;
 }
 
-QString ONF_FilterRemoveUpperOutliers::getParametersAsString() const
+bool ONF_FilterRemoveUpperOutliers::setAllSettings(const SettingsNodeGroup *settings)
 {
-    QString result = "";
-    return result;
-}
+    if((settings == NULL) || (settings->name() != "ONF_FilterRemoveUpperOutliers"))
+        return false;
 
-bool ONF_FilterRemoveUpperOutliers::setParametersFromString(QString parameters)
-{
+    SettingsNodeValue *value = NULL;
+
+    checkAndSetValue(_resolution, "resolution", double);
+    checkAndSetValue(_threshold, "threshold", int);
+    checkAndSetValue(_dc, "dc", int);
+
     return true;
 }
 
-CT_PointCloudIndexVector *ONF_FilterRemoveUpperOutliers::filterPointCloudIndex() const
+bool ONF_FilterRemoveUpperOutliers::filterPointCloudIndex()
 {
-    _minx = _inItem->minX();
-    _miny = _inItem->minY();
-    _minz = _inItem->minZ();
+    if(inputPointCloudIndex() == NULL)
+        return false;
 
-    _dimx = ceil((_inItem->maxX() - _minx)/_resolution);
-    _dimy = ceil((_inItem->maxY() - _miny)/_resolution);
-    _dimz = ceil((_inItem->maxZ() - _minz)/_resolution);
+    if(!updateMinMax())
+        return false;
+
+    _dimx = ceil((maxBBox()[0] - minBBox()[0])/_resolution);
+    _dimy = ceil((maxBBox()[1] - minBBox()[1])/_resolution);
+    _dimz = ceil((maxBBox()[2] - minBBox()[2])/_resolution);
 
     QMap<size_t, QList<size_t>* > indexMap;
 
-    CT_PointIterator itP(_inCloud);
+    CT_PointCloudIndexVector *outCloud = outputPointCloudIndex();
+
+    CT_PointIterator itP(inputPointCloudIndex());
+
     while(itP.hasNext())
     {
         const CT_Point &point = itP.next().currentPoint();
         size_t pointIndex = itP.currentGlobalIndex();
 
-        _outCloud->addIndex(pointIndex);
+        outCloud->addIndex(pointIndex);
 
         size_t grdIndex = gridIndex(point(0), point(1), point(2));
 
@@ -132,10 +147,10 @@ CT_PointCloudIndexVector *ONF_FilterRemoveUpperOutliers::filterPointCloudIndex()
                         if (toremove)
                         {
                             QListIterator<size_t> it(*points);
+
                             while (it.hasNext())
-                            {
-                                _outCloud->removeIndex(it.next());
-                            }
+                                outCloud->removeIndex(it.next());
+
                         } else {
                             goDown = false;
                         }
@@ -148,7 +163,7 @@ CT_PointCloudIndexVector *ONF_FilterRemoveUpperOutliers::filterPointCloudIndex()
     }
     qDeleteAll(indexMap.values());
 
-    return _outCloud;
+    return true;
 }
 
 
@@ -157,28 +172,16 @@ QString ONF_FilterRemoveUpperOutliers::getShortDescription() const
     return tr("Elimine les points au dessus de la canopée");
 }
 
-QString ONF_FilterRemoveUpperOutliers::getDetailledDescription() const
-{
-    return tr("");
-}
-
 CT_AbstractConfigurableElement *ONF_FilterRemoveUpperOutliers::copy() const
 {
-    ONF_FilterRemoveUpperOutliers* filter = new ONF_FilterRemoveUpperOutliers(this);
-    filter->_resolution = _resolution;
-    filter->_threshold  = _threshold;
-    filter->_dc         = _dc;
-    return filter;
+    return new ONF_FilterRemoveUpperOutliers(*this);
 }
-
-
-
 
 size_t ONF_FilterRemoveUpperOutliers::gridIndex(const double &x, const double &y, const double &z) const
 {
-    size_t colx = (size_t) floor((x - _minx) / _resolution);
-    size_t liny = (size_t) floor((y - _miny) / _resolution);
-    size_t levz = (size_t) floor((z - _minz) / _resolution);
+    size_t colx = (size_t) floor((x - minBBox()[0]) / _resolution);
+    size_t liny = (size_t) floor((y - minBBox()[1]) / _resolution);
+    size_t levz = (size_t) floor((z - minBBox()[2]) / _resolution);
 
     return gridIndex(colx, liny, levz);
 }
