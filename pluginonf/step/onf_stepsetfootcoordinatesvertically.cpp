@@ -109,7 +109,7 @@ void ONF_StepSetFootCoordinatesVertically::compute()
     // Modéles pour récupérer les MNT
     CT_ResultGroup* inMNTResult = inResultList.first();
 
-    CT_ResultItemIterator itMNT(inMNTResult);
+    CT_ResultItemIterator itMNT(inMNTResult, this, DEF_SearchInMNT);
     // on demande si on peut commencer à parcourir les groupes
     if(itMNT.hasNext())
     {
