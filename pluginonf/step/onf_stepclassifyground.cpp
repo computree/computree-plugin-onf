@@ -71,7 +71,9 @@ ONF_StepClassifyGround::ONF_StepClassifyGround(CT_StepInitializeData &dataInit) 
     _soilwidth = 0.32;
     _min_density = 200;
     _dist = 3;
-    _filter = true;
+    _filterByDensity = true;
+    _filterByNeighourhoud = true;
+
 }
 
 QString ONF_StepClassifyGround::getStepDescription() const
@@ -113,8 +115,9 @@ void ONF_StepClassifyGround::createPostConfigurationDialog()
 
     configDialog->addDouble(tr("Résolution de la grille :"), "cm", 1, 1000, 0, _gridsize, 100);
     configDialog->addDouble(tr("Epaisseur du sol :"), "cm", 1, 100, 0, _soilwidth, 100);
-    configDialog->addBool(tr("Filtrage selon la densité et le voisinnage"), "", "", _filter);
+    configDialog->addBool(tr("Filtrage selon la densité"), "", "", _filterByDensity);
     configDialog->addDouble(tr("Densité minimum :"), "pts/m2", 0, 99999999, 2, _min_density);
+    configDialog->addBool(tr("Filtrage selon le voisinnage"), "", "", _filterByNeighourhoud);
     configDialog->addDouble(tr("Voisinage (points isolés) :"), "Cases", 1, 99999999, 0, _dist);
 }
 
@@ -231,7 +234,7 @@ void ONF_StepClassifyGround::compute()
         double min_density = _min_density * (_gridsize*_gridsize);
 
 
-        if (_filter)
+        if (_filterByDensity || _filterByNeighourhoud)
         {
             // Test de cohérence de voisinnage
             for (xx=0 ; xx<n_mntX ; ++xx) {
@@ -239,10 +242,10 @@ void ONF_StepClassifyGround::compute()
                     float value = mnt->value(xx, yy);
                     if (value != mnt->NA())
                     {
-                        if (densite->value(xx,yy) < min_density)
+                        if (_filterByDensity && densite->value(xx,yy) < min_density)
                         {
                             mnt->setValue(xx, yy, mnt->NA());
-                        } else {
+                        } else if (_filterByNeighourhoud) {
                             QList<float> neighbours = mnt->neighboursValues(xx, yy, _dist, false, CT_Image2D<float>::CM_DropCenter);
                             qSort(neighbours.begin(), neighbours.end());
                             int size_neighbours = neighbours.size();

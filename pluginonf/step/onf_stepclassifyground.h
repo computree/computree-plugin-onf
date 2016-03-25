@@ -94,8 +94,9 @@ private:
 
     double  _min_density;                       /*!< Densite minimum pour considerer que c'est du sol*/
     double  _gridsize;                          /*!< Taille de  la grille MNT en m*/
-    bool    _filter;
+    bool    _filterByDensity;
     double  _soilwidth;                         /*!< Epaisseur du sol en m*/
+    bool    _filterByNeighourhoud;
     double  _dist;
 
 };
