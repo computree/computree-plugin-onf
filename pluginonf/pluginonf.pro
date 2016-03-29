@@ -114,7 +114,8 @@ HEADERS += \
     step/onf_stepdetectverticalalignments05.h \
     step/onf_stepdetectverticalalignments06.h \
     step/onf_stepcreateplotsfromlist.h \
-    step/onf_stepextractpointsforplots.h
+    step/onf_stepextractpointsforplots.h \
+    step/onf_stepcreatetiling.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -218,7 +219,8 @@ SOURCES += \
     step/onf_stepdetectverticalalignments05.cpp \
     step/onf_stepdetectverticalalignments06.cpp \
     step/onf_stepcreateplotsfromlist.cpp \
-    step/onf_stepextractpointsforplots.cpp
+    step/onf_stepextractpointsforplots.cpp \
+    step/onf_stepcreatetiling.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts
