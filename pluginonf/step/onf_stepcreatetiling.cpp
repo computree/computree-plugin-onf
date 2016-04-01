@@ -26,6 +26,9 @@
 #include "onf_stepcreatetiling.h"
 #include "ct_result/model/inModel/ct_inresultmodelgroup.h"
 #include "ct_result/model/outModel/ct_outresultmodelgroup.h"
+#include "ct_result/model/inModel/ct_inresultmodelgrouptocopy.h"
+#include "ct_result/model/outModel/ct_outresultmodelgroupcopy.h"
+
 
 #include "ct_itemdrawable/abstract/ct_abstractitemdrawablewithpointcloud.h"
 #include "ct_itemdrawable/ct_fileheader.h"
@@ -73,7 +76,7 @@ CT_VirtualAbstractStep* ONF_StepCreateTiling::createNewInstance(CT_StepInitializ
 
 void ONF_StepCreateTiling::createInResultModelListProtected()
 {
-    CT_InResultModelGroup * resultModel = createNewInResultModel(DEF_SearchInResult, tr("Dalles"));
+    CT_InResultModelGroupToCopy * resultModel = createNewInResultModelForCopy(DEF_SearchInResult, tr("Dalles"));
     resultModel->setZeroOrMoreRootGroup();
     resultModel->addGroupModel("", DEF_SearchInGroup, CT_AbstractItemGroup::staticGetType(), tr("Grp"));
     resultModel->addItemModel(DEF_SearchInGroup, DEF_SearchInItem, CT_AbstractSingularItemDrawable::staticGetType(), tr("Item (avec BoundingBox)"));
@@ -94,9 +97,11 @@ void ONF_StepCreateTiling::createPostConfigurationDialog()
 
 void ONF_StepCreateTiling::createOutResultModelListProtected()
 {
-    CT_OutResultModelGroup *outRes = createNewOutResultModel(DEFout_result, tr("Emprise"));
+    CT_OutResultModelGroup *outRes = createNewOutResultModel(DEFout_result, tr("Emprise Créée"));
     outRes->setRootGroup(DEFout_grp, new CT_StandardItemGroup(), tr("Groupe"));
-    outRes->addItemModel(DEFout_grp, DEFout_Tile, new CT_Box2D(), tr("Emprise"));
+    outRes->addItemModel(DEFout_grp, DEFout_Tile, new CT_Box2D(), tr("Emprise créée"));
+
+    createNewOutResultModelToCopy(DEF_SearchInResult);
 }
 
 void ONF_StepCreateTiling::compute()
