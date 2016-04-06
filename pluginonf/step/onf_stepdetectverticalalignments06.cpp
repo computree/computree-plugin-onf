@@ -45,6 +45,11 @@
 #include "ct_math/ct_mathstatistics.h"
 #include "ct_math/ct_mathpoint.h"
 
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/core/core.hpp"
+#include "opencv2/imgproc/types_c.h"
+
+
 #include <QtConcurrent>
 
 #include <stdlib.h>
@@ -698,6 +703,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::createCHM(const CT_AbstractItemDrawableWithPointCloud* sceneStemAll,
                                                                                CT_Image2D<float>* maxHeightRaster)
 {
+    // Compute CHM
     maxHeightRaster = CT_Image2D<float>::createImage2DFromXYCoords(NULL, NULL, sceneStemAll->minX(), sceneStemAll->minY(), sceneStemAll->maxX(), sceneStemAll->maxY(), 0.25, sceneStemAll->minZ(), -9999, 0);
 
     const CT_AbstractPointCloudIndex* pointCloudIndexAll = sceneStemAll->getPointCloudIndex();
@@ -707,6 +713,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::createCHM(c
         const CT_Point& point = itP.next().currentPoint();
         maxHeightRaster->setMaxValueAtCoords(point(0), point(1), point(2));
     }
+    maxHeightRaster->computeMinMax();
 }
 
 void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::sortIndicesByGPSTime(const CT_AbstractPointCloudIndex* pointCloudIndexLAS,

@@ -32,6 +32,7 @@
 #ifdef USE_OPENCV
 #include "step/onf_stepclassifyground.h"
 #include "step/onf_stepcomputedsm.h"
+#include "step/onf_stepcomputedsmonly.h"
 #include "step/onf_stepcomputedtm02.h"
 #include "step/onf_stepfiltermaximabyclusterpositions.h"
 #include "step/onf_stepconvertfloatimagetoqint32.h"
@@ -184,6 +185,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewPointsStep<ONF_StepExtractPlotBasedOnDTM>(CT_StepsMenu::LP_Extract);
     addNewRastersStep<ONF_StepComputeDTM02>(CT_StepsMenu::LP_DEM);
     addNewRastersStep<ONF_StepComputeDSM>(CT_StepsMenu::LP_DEM);
+    addNewRastersStep<ONF_StepComputeDSMOnly>(CT_StepsMenu::LP_DEM);
 
     addNewBetaStep<ONF_StepFilterMaximaByClusterPositions>("");
     addNewBetaStep<ONF_StepConvertFloatImageToqint32>(CT_StepsMenu::LP_Transform);
