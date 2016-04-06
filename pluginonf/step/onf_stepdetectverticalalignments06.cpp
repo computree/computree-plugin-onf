@@ -30,10 +30,8 @@
 #include "ct_itemdrawable/ct_polygon2d.h"
 #include "ct_itemdrawable/ct_line.h"
 #include "ct_itemdrawable/ct_pointcluster.h"
-#include "ct_itemdrawable/abstract/ct_abstractpointattributesscalar.h"
 #include "ctliblas/itemdrawable/las/ct_stdlaspointsattributescontainer.h"
 #include "ct_itemdrawable/ct_standarditemgroup.h"
-#include "ct_itemdrawable/ct_image2d.h"
 
 #include "ct_itemdrawable/ct_attributeslist.h"
 #include "ct_itemdrawable/tools/iterator/ct_groupiterator.h"
@@ -306,9 +304,47 @@ double ONF_StepDetectVerticalAlignments06::getExclusionRadius(double height)
 }
 
 
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::applyExclusionRadiiToHeightsVector(const QList<CT_Circle2D*> &circles,
+                                                                                                        QVector<double> &heights)
+{
+    QMultiMap<double, int> sortedHeightIndices;
+    for (int i = 0 ; i < circles.size() ; i++)
+    {
+        sortedHeightIndices.insert(heights[i], i);
+    }
+
+    QMapIterator<double, int> itSortedHeightIndices(sortedHeightIndices);
+    itSortedHeightIndices.toBack();
+    while (itSortedHeightIndices.hasPrevious())
+    {
+        itSortedHeightIndices.previous();
+        double height = itSortedHeightIndices.key();
+        int ii = itSortedHeightIndices.value();
+        CT_Circle2D* circle = circles.at(ii);
+
+        double distThreshold = _step->getExclusionRadius(height);
+
+        for (int i = 0 ; i < circles.size() ; i++)
+        {
+            if (i != ii)
+            {
+                CT_Circle2D* otherCircle = circles.at(i);
+
+                double dist = sqrt(pow(circle->getCenterX() - otherCircle->getCenterX(), 2) + pow(circle->getCenterY() - otherCircle->getCenterY(), 2));
+                if (dist < distThreshold)
+                {
+                    heights[i] = 0;
+                }
+            }
+        }
+    }
+    sortedHeightIndices.clear();
+}
+
+
+
 void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlignmentsForScene(CT_StandardItemGroup* grp)
 {
-    CT_PointAccessor pointAccessor;
     double thresholdZenithalAngleRadians = M_PI * _step->_thresholdZenithalAngle / 180.0;
     double rangeUnderstorey = _step->_maxDiameterForUnderstorey - _step->_minDiameter;
 
@@ -324,17 +360,8 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
         CT_Image2D<float>* maxHeightRaster = NULL;
         if (sceneStemAll != NULL)
         {
-            maxHeightRaster = CT_Image2D<float>::createImage2DFromXYCoords(NULL, NULL, sceneStemAll->minX(), sceneStemAll->minY(), sceneStemAll->maxX(), sceneStemAll->maxY(), 0.25, sceneStemAll->minZ(), -9999, 0);
-
-            const CT_AbstractPointCloudIndex* pointCloudIndexAll = sceneStemAll->getPointCloudIndex();
-            CT_PointIterator itP(pointCloudIndexAll);
-            while(itP.hasNext())
-            {
-                const CT_Point& point = itP.next().currentPoint();
-                maxHeightRaster->setMaxValueAtCoords(point(0), point(1), point(2));
-            }
+            createCHM(sceneStemAll, maxHeightRaster);
         }
-
 
         // Retrieve attributes
         QHashIterator<CT_LasDefine::LASPointAttributesType, CT_AbstractPointAttributesScalar *> it(attributeLAS->lasPointsAttributes());
@@ -360,217 +387,24 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
         // Sort indices by GPS time
         QMultiMap<double, size_t> sortedIndices;
-        CT_PointIterator itP(pointCloudIndex);
-        while(itP.hasNext() && (!_step->isStopped()))
-        {
-            size_t index = itP.next().currentGlobalIndex();
-            size_t localIndex = pointCloudIndexLAS->indexOf(index);
+        sortIndicesByGPSTime(pointCloudIndexLAS, attributeGPS, pointCloudIndex, sortedIndices);
 
-            double gpsTime = 0; // Récupération du temps GPS pour le point 1
-            if (localIndex < pointCloudIndexLAS->size())
-            {
-                gpsTime = attributeGPS->dValueAt(localIndex);
-                sortedIndices.insert(gpsTime, index);
-            }
-        }
 
         // List of not clusterized points
         QList<size_t> isolatedPointIndices;
 
-        QList<size_t> currentIndexList;
-        QList<QList<size_t> > linesOfScan;
 
         // Creation des lignes de scan
-        double lastGPSTime = -std::numeric_limits<double>::max();
-        QMapIterator<double, size_t> itMapSorted(sortedIndices);
-        while (itMapSorted.hasNext())
-        {
-            itMapSorted.next();
-            double gpsTime = itMapSorted.key();
-            size_t index = itMapSorted.value();
-
-            double delta = gpsTime - lastGPSTime;
-            lastGPSTime = gpsTime;
-
-            if (delta < _step->_thresholdGPSTime)
-            {
-                // add point to current line of scan
-                currentIndexList.append(index);
-            } else {
-                // init a new line of scan
-                if (currentIndexList.size() > 1)
-                {
-                    linesOfScan.append(currentIndexList);
-                } else {
-                    if (!currentIndexList.isEmpty()) {isolatedPointIndices.append(currentIndexList.first());}
-                }
-                currentIndexList.clear();
-                // then add the point
-                currentIndexList.append(index);
-            }
-        }
+        QList<QList<size_t> > linesOfScan;
+        createLinesOfScan(sortedIndices, linesOfScan, isolatedPointIndices);
         sortedIndices.clear();
 
 
         // Eliminate noise in lines of scan
         QList<QList<size_t> > simplifiedLinesOfScan;
-        QListIterator<QList<size_t> > itLines(linesOfScan);
-        while (itLines.hasNext())
-        {
-            const QList<size_t> &completeLine = itLines.next();
-
-
-            // Archive detection of lines of scan (all complete)
-            if (_step->_clusterDebugMode)
-            {
-                CT_PointCluster* cluster = new CT_PointCluster(_step->_clusterDebug1_ModelName.completeName(), _res);
-                for (int j = 0 ; j < completeLine.size() ; j++)
-                {
-                    cluster->addPoint(completeLine.at(j));
-                }
-                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpClusterDebug1_ModelName.completeName(), _res);
-                grp->addGroup(grpClKept);
-                grpClKept->addItemDrawable(cluster);
-            }
-
-
-            // Find a reference point on the line of scan (max intensity point)
-            double maxIntensity = -std::numeric_limits<double>::max();
-            int refi = 0;
-            for (int i = 0 ; i < completeLine.size() ; i++)
-            {
-                size_t localIndex = pointCloudIndexLAS->indexOf(completeLine.at(i));
-                double intensity = maxIntensity;
-                if (localIndex < pointCloudIndexLAS->size()) {intensity = attributeIntensity->dValueAt(localIndex);}
-
-                if (intensity > maxIntensity)
-                {
-                    maxIntensity = intensity;
-                    refi = i;
-                }
-            }
-
-            int newRefI = 0;
-            // Test all lines linking reference point to another point, and keep the best one: max number of points, or if equal min length
-            CT_Point p1 = pointAccessor.constPointAt(completeLine.at(refi));
-            QList<size_t> bestSimplifiedLine;
-            double bestSimplifiedLineLength = std::numeric_limits<double>::max();
-            for (int i = 0 ; i < completeLine.size() ; i++)
-            {
-                if (i != refi)
-                {
-                    CT_Point p2 = pointAccessor.constPointAt(completeLine.at(i));
-                    Eigen::Vector3d direction = p2 - p1;
-                    direction.normalize();
-
-                    QList<size_t> simplifiedLine;
-
-                    for (int j = 0 ; j < completeLine.size() ; j++)
-                    {
-                        if (j == refi)
-                        {
-                            simplifiedLine.append(completeLine.at(j));
-                            newRefI = simplifiedLine.size() - 1;
-                        } else if (j == i) {
-                            simplifiedLine.append(completeLine.at(j));
-                        } else {
-                            size_t index = completeLine.at(j);
-                            CT_Point p3 = pointAccessor.constPointAt(index);
-                            double curv = CT_MathPoint::distancePointLine(p3, direction, p1);
-                            if (curv < _step->_maxCurvature)
-                            {
-                                simplifiedLine.append(index);
-                            }
-                        }
-                    }
-
-                    // Compute bestSimplifiedLineLength
-                    const size_t index01 = simplifiedLine.first();
-                    const size_t index02 = simplifiedLine.last();
-
-                    CT_Point p01 = pointAccessor.constPointAt(index01);
-                    CT_Point p02 = pointAccessor.constPointAt(index02);
-
-                    double length = sqrt(pow(p01(0) - p02(0), 2) + pow(p01(1) - p02(1), 2) + pow(p01(2) - p02(2), 2));
-
-                    // Compare with previous best simplified line
-                    if (simplifiedLine.size() > bestSimplifiedLine.size())
-                    {
-                        bestSimplifiedLine = simplifiedLine;
-                        bestSimplifiedLineLength = length;
-                    } else if (simplifiedLine.size() == bestSimplifiedLine.size() && length < bestSimplifiedLineLength)
-                    {
-                        bestSimplifiedLine = simplifiedLine;
-                        bestSimplifiedLineLength = length;
-                    }
-                }
-            }
-
-            QList<size_t> finalSimplifiedLine;
-            if (bestSimplifiedLine.size() > 1)
-            {
-
-                // Delete extremities from reference points, if a distXY between succesive points > threshold
-                int firstI = 0;
-                bool stop = false;
-                for (int i = newRefI - 1 ; !stop && i >= 0 ; i--)
-                {
-                    const size_t index01 = bestSimplifiedLine.at(i);
-                    const size_t index02 = bestSimplifiedLine.at(i+1);
-
-                    CT_Point p01 = pointAccessor.constPointAt(index01);
-                    CT_Point p02 = pointAccessor.constPointAt(index02);
-
-                    double distXY = sqrt(pow(p01(0) - p02(0), 2) + pow(p01(1) - p02(1), 2));
-                    if (distXY > _step->_maxXYDist)
-                    {
-                        firstI = i + 1;
-                        stop = true;
-                    }
-                }
-
-                int lastI = bestSimplifiedLine.size() - 1;
-                stop = false;
-                for (int i = newRefI + 1 ; !stop && i < bestSimplifiedLine.size() ; i++)
-                {
-                    const size_t index01 = bestSimplifiedLine.at(i);
-                    const size_t index02 = bestSimplifiedLine.at(i-1);
-
-                    CT_Point p01 = pointAccessor.constPointAt(index01);
-                    CT_Point p02 = pointAccessor.constPointAt(index02);
-
-                    double distXY = sqrt(pow(p01(0) - p02(0), 2) + pow(p01(1) - p02(1), 2));
-                    if (distXY > _step->_maxXYDist)
-                    {
-                        lastI = i - 1;
-                        stop = true;
-                    }
-                }
-
-                // If it remains points in the line, create cluster
-                if ((lastI - firstI) > 0)
-                {
-                    for (int i = firstI ; i <= lastI ; i++)
-                    {
-                        finalSimplifiedLine.append(bestSimplifiedLine.at(i));
-                    }
-                    simplifiedLinesOfScan.append(finalSimplifiedLine);
-                }
-            }
-
-            // All noise points are added to isolatedPointsIndices
-            for (int i = 0 ; i < completeLine.size() ; i++)
-            {
-                size_t index = completeLine.at(1);
-                if (!finalSimplifiedLine.contains(index))
-                {
-                    isolatedPointIndices.append(index);
-                }
-
-            }
-
-        }
+        denoiseLinesOfScan(linesOfScan, pointCloudIndexLAS, attributeIntensity, grp, simplifiedLinesOfScan, isolatedPointIndices);
         linesOfScan.clear();
+
 
         // Archive detection of lines of scan (all denoised)
         if (_step->_clusterDebugMode)
@@ -589,46 +423,10 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             }
         }
 
+
         // Remove clusters with 1 point or with phi > maxPhi
         QList<ScanLineData*> keptLinesOfScan;
-        for (int i = 0 ; i < simplifiedLinesOfScan.size() ; i++)
-        {
-            QList<size_t> simplifiedLine = simplifiedLinesOfScan.at(i);
-
-            if (simplifiedLine.size() < _step->_minPts)
-            {
-                for (int j = 0 ; j < simplifiedLine.size() ; j++)
-                {
-                    isolatedPointIndices.append(simplifiedLine.at(j));
-                }
-            } else {
-
-                const size_t index1 = simplifiedLine.first();
-                const size_t index2 = simplifiedLine.last();
-
-                CT_Point p1 = pointAccessor.constPointAt(index1);
-                CT_Point p2 = pointAccessor.constPointAt(index2);
-
-                float phi, theta, length;
-                if (p1(2) < p2(2))
-                {
-                    CT_SphericalLine3D::convertToSphericalCoordinates(&p1, &p2, phi, theta, length);
-                } else {
-                    CT_SphericalLine3D::convertToSphericalCoordinates(&p2, &p1, phi, theta, length);
-                }
-
-                if (phi >= thresholdZenithalAngleRadians)
-                {
-                    for (int j = 0 ; j < simplifiedLine.size() ; j++)
-                    {
-                        isolatedPointIndices.append(simplifiedLine.at(j));
-                    }
-                } else {
-                    double length = sqrt(pow(p1(0) - p2(0), 2) + pow(p1(1) - p2(1), 2) + pow(p1(2) - p2(2), 2));
-                    keptLinesOfScan.append(new ScanLineData(simplifiedLine, length, (p1(0) + p2(0)) / 2.0,  (p1(1) + p2(1)) / 2.0, std::min(p1(2), p2(2))));
-                }
-            }
-        }
+        filterLinesOfScan(simplifiedLinesOfScan, thresholdZenithalAngleRadians, keptLinesOfScan, isolatedPointIndices);
         simplifiedLinesOfScan.clear();
 
 
@@ -649,36 +447,22 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             }
         }
 
+
         // Sorting list of lines by point Number and if equals, by length
         qSort(keptLinesOfScan.begin(), keptLinesOfScan.end(), ONF_StepDetectVerticalAlignments06::orderLinesByAscendingNumberAndLength);
+
 
         // Compute diameters using neighbourhoud
         QList<CT_Circle2D*> circles;
         QList<CT_Circle2D*> allometryCircles;
         while (!keptLinesOfScan.isEmpty() && keptLinesOfScan.last()->size() > 2)
         {
+            // Get next MainLine
             ScanLineData *mainLine = keptLinesOfScan.takeLast();
 
             int mainLineOfFlight = -1;
-            QList<CT_Point> mainLinePoints;
-            for (int j = 0 ; j < mainLine->size() ; j++)
-            {
-                size_t index = mainLine->at(j);
-                const CT_Point& point = pointAccessor.constPointAt(index);
-                mainLinePoints.append(point);
-
-                size_t localIndex = pointCloudIndexLAS->indexOf(index);
-                if (localIndex < pointCloudIndexLAS->size())
-                {
-                    mainLineOfFlight = attributeLineOfFlight->dValueAt(localIndex);
-                }
-            }
-
-            int mainLinePointsSize = mainLinePoints.size();
-
-            CT_Point mainLineLowestPoint = pointAccessor.constPointAt(mainLine->at(0));
-            CT_Point mainLineHighestPoint = pointAccessor.constPointAt(mainLine->at(mainLine->size() - 1));
-
+            QList<CT_Point> mainLinePoints;                                
+            getPointsOfMainLine(pointCloudIndexLAS, attributeLineOfFlight, mainLine, mainLinePoints, mainLineOfFlight);
 
             int type = 1; // Multi lines of scans, ok
 
@@ -687,49 +471,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             QList<CT_Point> neighbourPoints;
             QList<int> neighbourPointsToTest;
             QList<int> neighbourPointsToTestIfOnlyOneLineOfFlight;
-            for (int i = 0 ; i < keptLinesOfScan.size() ; i++)
-            {
-                ScanLineData* testedLine = keptLinesOfScan.at(i);
-                double distXY = sqrt(pow(mainLine->_centerX - testedLine->_centerX, 2) + pow(mainLine->_centerY - testedLine->_centerY, 2));
-
-                if (distXY < _step->_maxSearchRadius)
-                {
-                    CT_Point testedLineLowestPoint = pointAccessor.constPointAt(testedLine->at(0));
-                    CT_Point testedLineHighestPoint = pointAccessor.constPointAt(testedLine->at(testedLine->size() - 1));
-
-                    double distLowXY  = sqrt(pow(mainLineLowestPoint(0) - testedLineLowestPoint(0), 2) + pow(mainLineLowestPoint(1) - testedLineLowestPoint(1), 2));
-                    double distHighXY = sqrt(pow(mainLineHighestPoint(0) - testedLineHighestPoint(0), 2) + pow(mainLineHighestPoint(1) - testedLineHighestPoint(1), 2));
-
-                    double delta = distHighXY - distLowXY;
-
-                    if (delta <= _step->_maxLineSpacing)
-                    {
-                        neighbourLines.append(testedLine);
-                        keptLinesOfScan.removeAt(i--);
-
-                        for (int j = 0 ; j < testedLine->size() ; j++)
-                        {
-                            size_t index = testedLine->at(j);
-                            const CT_Point& point = pointAccessor.constPointAt(index);
-                            neighbourPoints.append(point);
-
-                            size_t localIndex = pointCloudIndexLAS->indexOf(index);
-                            int lineOfFlight = 0;
-                            if (localIndex < pointCloudIndexLAS->size())
-                            {
-                                lineOfFlight = attributeLineOfFlight->dValueAt(localIndex);
-                            }
-
-                            if (lineOfFlight != mainLineOfFlight)
-                            {
-                                neighbourPointsToTest.append(neighbourPoints.size() - 1);
-                            } else {
-                                neighbourPointsToTestIfOnlyOneLineOfFlight.append(neighbourPoints.size() - 1);
-                            }
-                        }
-                    }
-                }
-            }
+            findNeighbours(mainLine, pointCloudIndexLAS, attributeLineOfFlight, keptLinesOfScan, neighbourLines, neighbourPoints, neighbourPointsToTest, neighbourPointsToTestIfOnlyOneLineOfFlight, mainLineOfFlight);
 
             if (neighbourPointsToTest.isEmpty())
             {
@@ -741,109 +483,10 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             double diameter = 0.0;
             double bestScore = 0;
             Eigen::Vector3d bestDirection(0, 0, 1);
-            Eigen::Vector3d center(mainLine->_centerX, mainLine->_centerY, mainLine->_centerZ);
 
             if (!neighbourPointsToTest.isEmpty())
             {
-                int neighbourPointsSize = neighbourPoints.size();
-                int neighbourPointsOfDifferentsLinesOfFlightSize = neighbourPointsToTest.size();
-
-                std::vector<Eigen::Vector2d> prjPtsMainLine(mainLinePointsSize);
-                std::vector<Eigen::Vector2d> prjPtsNeighbours(neighbourPointsSize);
-                Eigen::Vector3d projectedPt;
-                Eigen::Vector2d circleCenter;
-
-                float resolutionInRadians = M_PI*_step->_resolutionForDiameterEstimation / 180.0;
-                float pi2 =  2.0*(float)M_PI;
-                // For each direction
-                for (float zenithal = 0 ; zenithal <= thresholdZenithalAngleRadians ; zenithal += resolutionInRadians)
-                {
-                    for (float azimut = 0 ; azimut <= pi2 ; azimut += resolutionInRadians)
-                    {
-                        // Compute projected points
-                        float dx, dy, dz;
-                        CT_SphericalLine3D::convertToCartesianCoordinates(zenithal, azimut, 1, dx, dy, dz);
-                        Eigen::Vector3d direction(dx, dy, dz);
-
-                        Eigen::Hyperplane<double, 3> plane(direction, center);
-
-                        // Compute projected points for main Line
-                        for (int i = 0 ; i < mainLinePointsSize ; i++)
-                        {
-                            projectedPt = plane.projection(mainLinePoints[i]);
-                            prjPtsMainLine[i](0) = projectedPt(0);
-                            prjPtsMainLine[i](1) = projectedPt(1);
-                        }
-
-                        // Compute projected points for neighbours Lines
-                        for (int i = 0 ; i < neighbourPointsSize ; i++)
-                        {
-                            projectedPt = plane.projection(neighbourPoints[i]);
-                            prjPtsNeighbours[i](0) = projectedPt(0);
-                            prjPtsNeighbours[i](1) = projectedPt(1);
-                        }
-
-                        // Test all possibile diameter between one point from the main line, and one point from the neighbours lines
-                        for (int i = 0 ; i < mainLinePointsSize ; i++)
-                        {
-                            const Eigen::Vector2d& projectedPtMain = prjPtsMainLine[i];
-
-                            for (int j = 0 ; j < neighbourPointsOfDifferentsLinesOfFlightSize ; j++)
-                            {
-                                int currentNeighbourIndex = neighbourPointsToTest.at(j);
-                                const Eigen::Vector2d& neighbourProjectedPoint = prjPtsNeighbours[currentNeighbourIndex];
-
-                                double candidateDiameter = sqrt(pow (projectedPtMain(0) - neighbourProjectedPoint(0), 2) + pow (projectedPtMain(1) - neighbourProjectedPoint(1), 2));
-
-                                // If candidate diameter is in the good range
-                                if (candidateDiameter <= _step->_maxDiameter && candidateDiameter >= _step->_minDiameter)
-                                {
-                                    double candidateRadius = candidateDiameter / 2.0;
-                                    double candidateScore = 0;
-                                    circleCenter (0) = (projectedPtMain(0) + neighbourProjectedPoint(0)) / 2.0;
-                                    circleCenter (1) = (projectedPtMain(1) + neighbourProjectedPoint(1)) / 2.0;
-
-                                    // compute score for mainLine points
-                                    for (int k = 0 ; k < mainLinePointsSize ; k++)
-                                    {
-                                        const Eigen::Vector2d& point = prjPtsMainLine[k];
-                                        double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
-
-                                        if (distXY <= candidateRadius)
-                                        {
-                                            candidateScore += weightedScore(_step->_applySigmoid, distXY / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
-                                        } else if (distXY <= candidateDiameter)
-                                        {
-                                            candidateScore += weightedScore(_step->_applySigmoid, (candidateDiameter - distXY) / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
-                                        }
-                                    }
-
-                                    // compute score for neighbour points
-                                    for (int k = 0 ; k < neighbourPointsSize ; k++)
-                                    {
-                                        const Eigen::Vector2d& point = prjPtsNeighbours[k];
-                                        double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
-
-                                        if (distXY <= candidateRadius)
-                                        {
-                                            candidateScore += weightedScore(_step->_applySigmoid, distXY / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
-                                        } else if (distXY <= candidateDiameter)
-                                        {
-                                            candidateScore += weightedScore(_step->_applySigmoid, (candidateDiameter - distXY) / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
-                                        }
-                                    }
-
-                                    if (candidateScore > bestScore)
-                                    {
-                                        bestScore = candidateScore;
-                                        diameter = candidateDiameter;
-                                        bestDirection = direction;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                findBestDirectionAndDiameter(thresholdZenithalAngleRadians, mainLine, mainLinePoints, neighbourPoints, neighbourPointsToTest, bestDirection, diameter, bestScore);
             }
 
             // Create cluster containing mainline and neighbourhood
@@ -872,34 +515,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             double centerZ = mainLine->_centerZ;
 
             // compute Hmax for tree
-            double hmax = 0;
-
-            if (maxHeightRaster != NULL)
-            {
-                size_t indexHmax, colHmax, linHmax;
-                bool okHmax = false;
-                if (maxHeightRaster->indexAtCoords(centerX, centerY, indexHmax))
-                {
-                    okHmax = maxHeightRaster->indexToGrid(indexHmax, colHmax, linHmax);
-                }
-
-                size_t ncells = std::ceil(_step->_radiusHmax / maxHeightRaster->resolution());
-                for (int c = (colHmax - ncells) ; okHmax && c < (colHmax + ncells) ; c++)
-                {
-                    for (int l = (linHmax - ncells) ; l < (linHmax + ncells) ; l++)
-                    {
-                        double dist = sqrt(pow(centerX - maxHeightRaster->getCellCenterColCoord(c), 2) + pow(centerY - maxHeightRaster->getCellCenterLinCoord(l), 2));
-                        if (dist <= _step->_radiusHmax)
-                        {
-                            double hMaxVal = maxHeightRaster->value(c, l);
-                            if (hMaxVal != maxHeightRaster->NA() && hMaxVal > hmax)
-                            {
-                                hmax = hMaxVal;
-                            }
-                        }
-                    }
-                }
-            }
+            double hmax = computeHmaxForTree(centerX, centerY, maxHeightRaster);
 
             // Reference max diameter from Hmax allometry
             double refDiameterHight = computeAllometricDFromH(hmax + _step->_deltaHmax);
@@ -908,56 +524,11 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             // if not valid diameter, compute diameter along first-last points line
             if (diameter >= _step->_maxDiameter || diameter <= 0 || (diameter / nbPts) > _step->_ratioDbhNbPtsMax || allometryCorrection)
             {
-                const size_t index1 = mainLine->first();
-                const size_t index2 = mainLine->last();
-
-                CT_Point p1 = pointAccessor.constPointAt(index1);
-                CT_Point p2 = pointAccessor.constPointAt(index2);
-
-                Eigen::Vector3d direction;
-                direction = p2 - p1;
-                direction.normalize();
-
-                diameter = _step->_monoLineMult * computeDiameterAlongLine(cluster, direction, p1);
-
+                computeDiameterAlongFirstLastLine(centerX, centerY, centerZ, mainLine, neighbourLines, bestDirection, diameter, isolatedPointIndices, cluster);
                 type = 3; // Mono line of scan or excessive diameter
-                bestDirection = direction;
-
-                centerX = p1(0);
-                centerY = p1(1);
-                centerZ = p1(2);
-
-                if (bestDirection(2) < 0)
-                {
-                    bestDirection = -bestDirection;
-                    centerX = p2(0);
-                    centerY = p2(1);
-                    centerZ = p2(2);
-                }
-
-                // If we have only kept main line, reconstruct the cluster only with it and put meighbourhood to isolatedpoints list
-                delete cluster;
-                cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
-                // Add points of the main line
-                for (int j = 0 ; j < mainLine->size() ; j++)
-                {
-                    size_t index = mainLine->at(j);
-                    cluster->addPoint(index);
-                }
-                // Add points of the neighbours lines
-                for (int i = 0 ; i < neighbourLines.size() ; i++)
-                {
-                    ScanLineData* testedLine = neighbourLines.at(i);
-                    for (int j = 0 ; j < testedLine->size() ; j++)
-                    {
-                        size_t index = testedLine->at(j);
-                        isolatedPointIndices.append(index);
-                    }
-                }
             }
 
-
-
+            // If not valid daimeter, put points in isolated Points
             nbPts = cluster->getPointCloudIndexSize();
             if (nbPts == 0 || diameter > _step->_maxDiameter || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
             {
@@ -992,78 +563,25 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
         /// Detection of small stems: points alignements ///
         ////////////////////////////////////////////////////
 
-        double maxPhiRadians = M_PI*_step->_maxPhiAngleSmall/180.0;
-
         // Eliminate isolated point to close from already deteted diameters
-        for (int iso = 0 ; iso < isolatedPointIndices.size(); iso++)
-        {
-            size_t index = isolatedPointIndices.at(iso);
-            CT_Point point = pointAccessor.constPointAt(index);
-
-            bool removed = false;
-            for (int i = 0 ; i < circles.size() && !removed; i++)
-            {
-                CT_Circle2D* circle = circles.at(i);
-                double dist = sqrt(pow(circle->getCenterX() - point(0), 2) + pow(circle->getCenterY() - point(1), 2));
-                if (dist < _step->_maxSearchRadius)
-                {
-                    isolatedPointIndices.removeAt(iso--);
-                    removed = true;
-                }
-            }
-        }
+        removePointsToCloseFromDetectedDiameters(circles, isolatedPointIndices);
 
 
         QList<ONF_StepDetectVerticalAlignments06::LineData*> candidateLines;
-        // Parcours tous les couples de points 2 à deux
-        for (int iso1 = 0 ; iso1 < isolatedPointIndices.size() && (!_step->isStopped()); iso1++)
-        {
-            size_t index1 = isolatedPointIndices.at(iso1);
-            CT_Point point1 = pointAccessor.constPointAt(index1);
+        // Test all lines 2 by 2
+        findCandidateLines(sceneStem, candidateLines, isolatedPointIndices);
 
-            for (int iso2 = iso1 + 1 ; iso2 < isolatedPointIndices.size() && (!_step->isStopped()); iso2++)
-            {
-                size_t index2 = isolatedPointIndices.at(iso2);
-                CT_Point point2 = pointAccessor.constPointAt(index2);
 
-                // Les deux points doivent être disctinct dans l'espace
-                if ((point1(0) != point2(0) || point1(1) != point2(1) || point1(2) != point2(2)))
-                {
-                    // Les deux points doivent être à moins de _distThreshold
-                    double dist = sqrt(pow(point1(0) - point2(0), 2) + pow(point1(1) - point2(1), 2) + pow(point1(2) - point2(2), 2));
-                    if (dist < _step->_pointDistThresholdSmall)
-                    {
-                        Eigen::Vector3d pointLow  = point1;
-                        Eigen::Vector3d pointHigh = point2;
-
-                        if (point2(2) < point1(2))
-                        {
-                            pointLow  = point2;
-                            pointHigh = point1;
-                        }
-
-                        float phi, theta, length;
-                        CT_SphericalLine3D::convertToSphericalCoordinates(&pointLow, &pointHigh, phi, theta, length);
-
-                        if (phi < maxPhiRadians)
-                        {
-                            candidateLines.append(new ONF_StepDetectVerticalAlignments06::LineData(pointLow, pointHigh, index1, index2, phi, sceneStem->minZ(), sceneStem->maxZ()));
-                        }
-                    }
-                }
-            }
-        }
-
-        // Affiliation des lignes proches
+        // Put together near lines
         findNeighborLines(candidateLines, _step->_lineDistThresholdSmall);
 
-        // Tri par NeighborCount descendant
+        // Sort by descending NeighborCount
         qSort(candidateLines.begin(), candidateLines.end(), ONF_StepDetectVerticalAlignments06::orderByDescendingNeighborCount);
 
-        // Constitution des clusters de points alignés
+
+        // Create clusters of aligned points
         QList<size_t> insertedPoints;
         QList<CT_Circle2D*> otherCircles;
-
 
         for (int i = 0 ; i < candidateLines.size() ; i++)
         {
@@ -1072,37 +590,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
             if (!candidateLine->_processed)
             {
-                if (!insertedPoints.contains(candidateLine->_index1))
-                {
-                    cluster->addPoint(candidateLine->_index1);
-                    insertedPoints.append(candidateLine->_index1);
-                }
-                if (!insertedPoints.contains(candidateLine->_index2))
-                {
-                    cluster->addPoint(candidateLine->_index2);
-                    insertedPoints.append(candidateLine->_index2);
-                }
-                candidateLine->_processed = true;
-
-                QList<ONF_StepDetectVerticalAlignments06::LineData*> &neighborLines = candidateLine->_neighbors;
-                for (int j = 0 ; j < neighborLines.size() ; j++)
-                {
-                    ONF_StepDetectVerticalAlignments06::LineData* neighborLine = neighborLines.at(j);
-                    if (!neighborLine->_processed)
-                    {
-                        if (!insertedPoints.contains(neighborLine->_index1))
-                        {
-                            cluster->addPoint(neighborLine->_index1);
-                            insertedPoints.append(neighborLine->_index1);
-                        }
-                        if (!insertedPoints.contains(neighborLine->_index2))
-                        {
-                            cluster->addPoint(neighborLine->_index2);
-                            insertedPoints.append(neighborLine->_index2);
-                        }
-                        neighborLine->_processed = true;
-                    }
-                }
+                createClusterFromCandidateLines(candidateLine, cluster, insertedPoints);
 
                 const CT_AbstractPointCloudIndex* cloudIndex = cluster->getPointCloudIndex();
                 size_t nbPts = cloudIndex->size();
@@ -1123,6 +611,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                     float phi, theta, length;
                     CT_SphericalLine3D::convertToSphericalCoordinates(&pointLow, &pointHigh, phi, theta, length);
 
+                    double maxPhiRadians = M_PI*_step->_maxPhiAngleSmall/180.0;
                     if (phi > maxPhiRadians)
                     {
                         delete cluster;
@@ -1130,29 +619,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
                     } else {
 
-                        QList<double> dists;
-
-                        CT_PointIterator itP(cloudIndex);
-                        while(itP.hasNext())
-                        {
-                            const CT_Point &point = itP.next().currentPoint();
-
-                            Eigen::Vector3d projPoint;
-                            dists.append(CT_MathPoint::distanceOnLineForPointProjection(fittedLineData->getP1(), fittedLineData->getDirection(), point, projPoint));
-                        }
-
-                        qSort(dists);
-
-                        bool okLength = true;
-                        double maxLength = _step->_lineLengthRatioSmall * fittedLineData->length();
-                        for (int dd = 1 ; dd < dists.size() && okLength; dd++)
-                        {
-                            double currentDist = dists.at(dd) - dists.at(dd - 1);
-                            if (currentDist > maxLength) {okLength = false;}
-                        }
-                        dists.clear();
-
-                        if (okLength)
+                        if (testLengthBetweenPoints(cloudIndex, fittedLineData))
                         {
                             int type = 4; // Alignement, ok
                             const Eigen::Vector3d &center = fittedLineData->getP1();
@@ -1172,6 +639,8 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                 } else {
                     delete cluster;
                 }
+            } else {
+                delete cluster;
             }
         }
 
@@ -1179,62 +648,10 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
         circles.append(otherCircles);
         QVector<double> heights(circles.size());
         heights.fill(0);
-
-        if (sceneStemAll != NULL)
-        {
-
-            const CT_AbstractPointCloudIndex* pointCloudIndexAll = sceneStemAll->getPointCloudIndex();
-            CT_PointIterator itP(pointCloudIndexAll);
-            while(itP.hasNext())
-            {
-                const CT_Point& point = itP.next().currentPoint();
-
-                for (int i = 0 ; i < circles.size() ; i++)
-                {
-                    CT_Circle2D* circle = circles.at(i);
-
-                    double dist = sqrt(pow(circle->getCenterX() - point(0), 2) + pow(circle->getCenterY() - point(1), 2));
-                    if (dist < _step->_radiusHmax && point(2) > heights[i])
-                    {
-                        heights[i] = point(2);
-                    }
-                }
-            }
-        }
+        computeHmaxForEachDetectedStem(sceneStemAll, circles, heights);
 
         // Apply exclusion radii using heights
-        QMultiMap<double, int> sortedHeightIndices;
-        for (int i = 0 ; i < circles.size() ; i++)
-        {
-            sortedHeightIndices.insert(heights[i], i);
-        }
-
-        QMapIterator<double, int> itSortedHeightIndices(sortedHeightIndices);
-        itSortedHeightIndices.toBack();
-        while (itSortedHeightIndices.hasPrevious())
-        {
-            itSortedHeightIndices.previous();
-            double height = itSortedHeightIndices.key();
-            int ii = itSortedHeightIndices.value();
-            CT_Circle2D* circle = circles.at(ii);
-
-            double distThreshold = _step->getExclusionRadius(height);
-
-            for (int i = 0 ; i < circles.size() ; i++)
-            {
-                if (i != ii)
-                {
-                    CT_Circle2D* otherCircle = circles.at(i);
-
-                    double dist = sqrt(pow(circle->getCenterX() - otherCircle->getCenterX(), 2) + pow(circle->getCenterY() - otherCircle->getCenterY(), 2));
-                    if (dist < distThreshold)
-                    {
-                        heights[i] = 0;
-                    }
-                }
-            }
-        }
-        sortedHeightIndices.clear();
+        applyExclusionRadiiToHeightsVector(circles, heights);
 
         // Register heights as attribute and correct excessively low or high diameters using allometry
         for (int i = 0 ; i < circles.size() ; i++)
@@ -1277,7 +694,689 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
     }
 }
 
-double ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeDiameterAlongLine(CT_PointCluster* cluster, const Eigen::Vector3d& direction, const Eigen::Vector3d& origin)
+
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::createCHM(const CT_AbstractItemDrawableWithPointCloud* sceneStemAll,
+                                                                               CT_Image2D<float>* maxHeightRaster)
+{
+    maxHeightRaster = CT_Image2D<float>::createImage2DFromXYCoords(NULL, NULL, sceneStemAll->minX(), sceneStemAll->minY(), sceneStemAll->maxX(), sceneStemAll->maxY(), 0.25, sceneStemAll->minZ(), -9999, 0);
+
+    const CT_AbstractPointCloudIndex* pointCloudIndexAll = sceneStemAll->getPointCloudIndex();
+    CT_PointIterator itP(pointCloudIndexAll);
+    while(itP.hasNext())
+    {
+        const CT_Point& point = itP.next().currentPoint();
+        maxHeightRaster->setMaxValueAtCoords(point(0), point(1), point(2));
+    }
+}
+
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::sortIndicesByGPSTime(const CT_AbstractPointCloudIndex* pointCloudIndexLAS,
+                                                                                          const CT_AbstractPointAttributesScalar* attributeGPS,
+                                                                                          const CT_AbstractPointCloudIndex* pointCloudIndex,
+                                                                                          QMultiMap<double, size_t> &sortedIndices)
+{
+    CT_PointIterator itP(pointCloudIndex);
+    while(itP.hasNext() && (!_step->isStopped()))
+    {
+        size_t index = itP.next().currentGlobalIndex();
+        size_t localIndex = pointCloudIndexLAS->indexOf(index);
+
+        double gpsTime = 0; // Récupération du temps GPS pour le point 1
+        if (localIndex < pointCloudIndexLAS->size())
+        {
+            gpsTime = attributeGPS->dValueAt(localIndex);
+            sortedIndices.insert(gpsTime, index);
+        }
+    }
+}
+
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::createLinesOfScan(const QMultiMap<double, size_t> &sortedIndices,
+                                                                                       QList<QList<size_t> > &linesOfScan,
+                                                                                       QList<size_t> &isolatedPointIndices)
+{
+    QList<size_t> currentIndexList;
+
+    double lastGPSTime = -std::numeric_limits<double>::max();
+    QMapIterator<double, size_t> itMapSorted(sortedIndices);
+    while (itMapSorted.hasNext())
+    {
+        itMapSorted.next();
+        double gpsTime = itMapSorted.key();
+        size_t index = itMapSorted.value();
+
+        double delta = gpsTime - lastGPSTime;
+        lastGPSTime = gpsTime;
+
+        if (delta < _step->_thresholdGPSTime)
+        {
+            // add point to current line of scan
+            currentIndexList.append(index);
+        } else {
+            // init a new line of scan
+            if (currentIndexList.size() > 1)
+            {
+                linesOfScan.append(currentIndexList);
+            } else {
+                if (!currentIndexList.isEmpty()) {isolatedPointIndices.append(currentIndexList.first());}
+            }
+            currentIndexList.clear();
+            // then add the point
+            currentIndexList.append(index);
+        }
+    }
+}
+
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::denoiseLinesOfScan(const QList<QList<size_t> > &linesOfScan,
+                                                                                        const CT_AbstractPointCloudIndex* pointCloudIndexLAS,
+                                                                                        const CT_AbstractPointAttributesScalar* attributeIntensity,
+                                                                                        CT_StandardItemGroup* grp,
+                                                                                        QList<QList<size_t> > &simplifiedLinesOfScan,
+                                                                                        QList<size_t> &isolatedPointIndices)
+{
+    CT_PointAccessor pointAccessor;
+
+    QListIterator<QList<size_t> > itLines(linesOfScan);
+    while (itLines.hasNext())
+    {
+        const QList<size_t> &completeLine = itLines.next();
+
+
+        // Archive detection of lines of scan (all complete)
+        if (_step->_clusterDebugMode)
+        {
+            CT_PointCluster* cluster = new CT_PointCluster(_step->_clusterDebug1_ModelName.completeName(), _res);
+            for (int j = 0 ; j < completeLine.size() ; j++)
+            {
+                cluster->addPoint(completeLine.at(j));
+            }
+            CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpClusterDebug1_ModelName.completeName(), _res);
+            grp->addGroup(grpClKept);
+            grpClKept->addItemDrawable(cluster);
+        }
+
+
+        // Find a reference point on the line of scan (max intensity point)
+        double maxIntensity = -std::numeric_limits<double>::max();
+        int refi = 0;
+        for (int i = 0 ; i < completeLine.size() ; i++)
+        {
+            size_t localIndex = pointCloudIndexLAS->indexOf(completeLine.at(i));
+            double intensity = maxIntensity;
+            if (localIndex < pointCloudIndexLAS->size()) {intensity = attributeIntensity->dValueAt(localIndex);}
+
+            if (intensity > maxIntensity)
+            {
+                maxIntensity = intensity;
+                refi = i;
+            }
+        }
+
+        int newRefI = 0;
+        // Test all lines linking reference point to another point, and keep the best one: max number of points, or if equal min length
+        CT_Point p1 = pointAccessor.constPointAt(completeLine.at(refi));
+        QList<size_t> bestSimplifiedLine;
+        double bestSimplifiedLineLength = std::numeric_limits<double>::max();
+        for (int i = 0 ; i < completeLine.size() ; i++)
+        {
+            if (i != refi)
+            {
+                CT_Point p2 = pointAccessor.constPointAt(completeLine.at(i));
+                Eigen::Vector3d direction = p2 - p1;
+                direction.normalize();
+
+                QList<size_t> simplifiedLine;
+
+                for (int j = 0 ; j < completeLine.size() ; j++)
+                {
+                    if (j == refi)
+                    {
+                        simplifiedLine.append(completeLine.at(j));
+                        newRefI = simplifiedLine.size() - 1;
+                    } else if (j == i) {
+                        simplifiedLine.append(completeLine.at(j));
+                    } else {
+                        size_t index = completeLine.at(j);
+                        CT_Point p3 = pointAccessor.constPointAt(index);
+                        double curv = CT_MathPoint::distancePointLine(p3, direction, p1);
+                        if (curv < _step->_maxCurvature)
+                        {
+                            simplifiedLine.append(index);
+                        }
+                    }
+                }
+
+                // Compute bestSimplifiedLineLength
+                const size_t index01 = simplifiedLine.first();
+                const size_t index02 = simplifiedLine.last();
+
+                CT_Point p01 = pointAccessor.constPointAt(index01);
+                CT_Point p02 = pointAccessor.constPointAt(index02);
+
+                double length = sqrt(pow(p01(0) - p02(0), 2) + pow(p01(1) - p02(1), 2) + pow(p01(2) - p02(2), 2));
+
+                // Compare with previous best simplified line
+                if (simplifiedLine.size() > bestSimplifiedLine.size())
+                {
+                    bestSimplifiedLine = simplifiedLine;
+                    bestSimplifiedLineLength = length;
+                } else if (simplifiedLine.size() == bestSimplifiedLine.size() && length < bestSimplifiedLineLength)
+                {
+                    bestSimplifiedLine = simplifiedLine;
+                    bestSimplifiedLineLength = length;
+                }
+            }
+        }
+
+        QList<size_t> finalSimplifiedLine;
+        if (bestSimplifiedLine.size() > 1)
+        {
+
+            // Delete extremities from reference points, if a distXY between succesive points > threshold
+            int firstI = 0;
+            bool stop = false;
+            for (int i = newRefI - 1 ; !stop && i >= 0 ; i--)
+            {
+                const size_t index01 = bestSimplifiedLine.at(i);
+                const size_t index02 = bestSimplifiedLine.at(i+1);
+
+                CT_Point p01 = pointAccessor.constPointAt(index01);
+                CT_Point p02 = pointAccessor.constPointAt(index02);
+
+                double distXY = sqrt(pow(p01(0) - p02(0), 2) + pow(p01(1) - p02(1), 2));
+                if (distXY > _step->_maxXYDist)
+                {
+                    firstI = i + 1;
+                    stop = true;
+                }
+            }
+
+            int lastI = bestSimplifiedLine.size() - 1;
+            stop = false;
+            for (int i = newRefI + 1 ; !stop && i < bestSimplifiedLine.size() ; i++)
+            {
+                const size_t index01 = bestSimplifiedLine.at(i);
+                const size_t index02 = bestSimplifiedLine.at(i-1);
+
+                CT_Point p01 = pointAccessor.constPointAt(index01);
+                CT_Point p02 = pointAccessor.constPointAt(index02);
+
+                double distXY = sqrt(pow(p01(0) - p02(0), 2) + pow(p01(1) - p02(1), 2));
+                if (distXY > _step->_maxXYDist)
+                {
+                    lastI = i - 1;
+                    stop = true;
+                }
+            }
+
+            // If it remains points in the line, create cluster
+            if ((lastI - firstI) > 0)
+            {
+                for (int i = firstI ; i <= lastI ; i++)
+                {
+                    finalSimplifiedLine.append(bestSimplifiedLine.at(i));
+                }
+                simplifiedLinesOfScan.append(finalSimplifiedLine);
+            }
+        }
+
+        // All noise points are added to isolatedPointsIndices
+        for (int i = 0 ; i < completeLine.size() ; i++)
+        {
+            size_t index = completeLine.at(1);
+            if (!finalSimplifiedLine.contains(index))
+            {
+                isolatedPointIndices.append(index);
+            }
+
+        }
+
+    }
+}
+
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::filterLinesOfScan(QList<QList<size_t> > &simplifiedLinesOfScan,
+                                                                                       double thresholdZenithalAngleRadians,
+                                                                                       QList<ScanLineData*> &keptLinesOfScan,
+                                                                                       QList<size_t> &isolatedPointIndices)
+{
+    CT_PointAccessor pointAccessor;
+
+    for (int i = 0 ; i < simplifiedLinesOfScan.size() ; i++)
+    {
+        QList<size_t> simplifiedLine = simplifiedLinesOfScan.at(i);
+
+        if (simplifiedLine.size() < _step->_minPts)
+        {
+            for (int j = 0 ; j < simplifiedLine.size() ; j++)
+            {
+                isolatedPointIndices.append(simplifiedLine.at(j));
+            }
+        } else {
+
+            const size_t index1 = simplifiedLine.first();
+            const size_t index2 = simplifiedLine.last();
+
+            CT_Point p1 = pointAccessor.constPointAt(index1);
+            CT_Point p2 = pointAccessor.constPointAt(index2);
+
+            float phi, theta, length;
+            if (p1(2) < p2(2))
+            {
+                CT_SphericalLine3D::convertToSphericalCoordinates(&p1, &p2, phi, theta, length);
+            } else {
+                CT_SphericalLine3D::convertToSphericalCoordinates(&p2, &p1, phi, theta, length);
+            }
+
+            if (phi >= thresholdZenithalAngleRadians)
+            {
+                for (int j = 0 ; j < simplifiedLine.size() ; j++)
+                {
+                    isolatedPointIndices.append(simplifiedLine.at(j));
+                }
+            } else {
+                double length = sqrt(pow(p1(0) - p2(0), 2) + pow(p1(1) - p2(1), 2) + pow(p1(2) - p2(2), 2));
+                keptLinesOfScan.append(new ScanLineData(simplifiedLine, length, (p1(0) + p2(0)) / 2.0,  (p1(1) + p2(1)) / 2.0, std::min(p1(2), p2(2))));
+            }
+        }
+    }
+}
+
+
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::getPointsOfMainLine(const CT_AbstractPointCloudIndex* pointCloudIndexLAS,
+                                                                                         const CT_AbstractPointAttributesScalar* attributeLineOfFlight,
+                                                                                         const ScanLineData *mainLine,
+                                                                                         QList<CT_Point> &mainLinePoints,
+                                                                                         int &mainLineOfFlight)
+{
+    CT_PointAccessor pointAccessor;
+
+    for (int j = 0 ; j < mainLine->size() ; j++)
+    {
+        size_t index = mainLine->at(j);
+        const CT_Point& point = pointAccessor.constPointAt(index);
+        mainLinePoints.append(point);
+
+        size_t localIndex = pointCloudIndexLAS->indexOf(index);
+        if (localIndex < pointCloudIndexLAS->size())
+        {
+            mainLineOfFlight = attributeLineOfFlight->dValueAt(localIndex);
+        }
+    }
+}
+
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::findNeighbours(const ScanLineData *mainLine,
+                                                                                    const CT_AbstractPointCloudIndex* pointCloudIndexLAS,
+                                                                                    const CT_AbstractPointAttributesScalar* attributeLineOfFlight,
+                                                                                    QList<ScanLineData*> &keptLinesOfScan,
+                                                                                    QList<ScanLineData*> &neighbourLines,
+                                                                                    QList<CT_Point> &neighbourPoints,
+                                                                                    QList<int> &neighbourPointsToTest,
+                                                                                    QList<int> &neighbourPointsToTestIfOnlyOneLineOfFlight,
+                                                                                    int &mainLineOfFlight)
+{
+    CT_PointAccessor pointAccessor;
+    CT_Point mainLineLowestPoint = pointAccessor.constPointAt(mainLine->at(0));
+    CT_Point mainLineHighestPoint = pointAccessor.constPointAt(mainLine->at(mainLine->size() - 1));
+
+
+    for (int i = 0 ; i < keptLinesOfScan.size() ; i++)
+    {
+        ScanLineData* testedLine = keptLinesOfScan.at(i);
+        double distXY = sqrt(pow(mainLine->_centerX - testedLine->_centerX, 2) + pow(mainLine->_centerY - testedLine->_centerY, 2));
+
+        if (distXY < _step->_maxSearchRadius)
+        {
+            CT_Point testedLineLowestPoint = pointAccessor.constPointAt(testedLine->at(0));
+            CT_Point testedLineHighestPoint = pointAccessor.constPointAt(testedLine->at(testedLine->size() - 1));
+
+            double distLowXY  = sqrt(pow(mainLineLowestPoint(0) - testedLineLowestPoint(0), 2) + pow(mainLineLowestPoint(1) - testedLineLowestPoint(1), 2));
+            double distHighXY = sqrt(pow(mainLineHighestPoint(0) - testedLineHighestPoint(0), 2) + pow(mainLineHighestPoint(1) - testedLineHighestPoint(1), 2));
+
+            double delta = distHighXY - distLowXY;
+
+            if (delta <= _step->_maxLineSpacing)
+            {
+                neighbourLines.append(testedLine);
+                keptLinesOfScan.removeAt(i--);
+
+                for (int j = 0 ; j < testedLine->size() ; j++)
+                {
+                    size_t index = testedLine->at(j);
+                    const CT_Point& point = pointAccessor.constPointAt(index);
+                    neighbourPoints.append(point);
+
+                    size_t localIndex = pointCloudIndexLAS->indexOf(index);
+                    int lineOfFlight = 0;
+                    if (localIndex < pointCloudIndexLAS->size())
+                    {
+                        lineOfFlight = attributeLineOfFlight->dValueAt(localIndex);
+                    }
+
+                    if (lineOfFlight != mainLineOfFlight)
+                    {
+                        neighbourPointsToTest.append(neighbourPoints.size() - 1);
+                    } else {
+                        neighbourPointsToTestIfOnlyOneLineOfFlight.append(neighbourPoints.size() - 1);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::findBestDirectionAndDiameter(double thresholdZenithalAngleRadians,
+                                                                                                  const ScanLineData *mainLine,
+                                                                                                  const QList<CT_Point> &mainLinePoints,
+                                                                                                  const QList<CT_Point> &neighbourPoints,
+                                                                                                  const QList<int> &neighbourPointsToTest,
+                                                                                                  Eigen::Vector3d &bestDirection,
+                                                                                                  double &diameter,
+                                                                                                  double &bestScore)
+{
+    int mainLinePointsSize = mainLinePoints.size();
+    int neighbourPointsSize = neighbourPoints.size();
+    int neighbourPointsOfDifferentsLinesOfFlightSize = neighbourPointsToTest.size();
+    Eigen::Vector3d center(mainLine->_centerX, mainLine->_centerY, mainLine->_centerZ);
+
+
+    std::vector<Eigen::Vector2d> prjPtsMainLine(mainLinePointsSize);
+    std::vector<Eigen::Vector2d> prjPtsNeighbours(neighbourPointsSize);
+    Eigen::Vector3d projectedPt;
+    Eigen::Vector2d circleCenter;
+
+    float resolutionInRadians = M_PI*_step->_resolutionForDiameterEstimation / 180.0;
+    float pi2 =  2.0*(float)M_PI;
+    // For each direction
+    for (float zenithal = 0 ; zenithal <= thresholdZenithalAngleRadians ; zenithal += resolutionInRadians)
+    {
+        for (float azimut = 0 ; azimut <= pi2 ; azimut += resolutionInRadians)
+        {
+            // Compute projected points
+            float dx, dy, dz;
+            CT_SphericalLine3D::convertToCartesianCoordinates(zenithal, azimut, 1, dx, dy, dz);
+            Eigen::Vector3d direction(dx, dy, dz);
+
+            Eigen::Hyperplane<double, 3> plane(direction, center);
+
+            // Compute projected points for main Line
+            for (int i = 0 ; i < mainLinePointsSize ; i++)
+            {
+                projectedPt = plane.projection(mainLinePoints[i]);
+                prjPtsMainLine[i](0) = projectedPt(0);
+                prjPtsMainLine[i](1) = projectedPt(1);
+            }
+
+            // Compute projected points for neighbours Lines
+            for (int i = 0 ; i < neighbourPointsSize ; i++)
+            {
+                projectedPt = plane.projection(neighbourPoints[i]);
+                prjPtsNeighbours[i](0) = projectedPt(0);
+                prjPtsNeighbours[i](1) = projectedPt(1);
+            }
+
+            // Test all possibile diameter between one point from the main line, and one point from the neighbours lines
+            for (int i = 0 ; i < mainLinePointsSize ; i++)
+            {
+                const Eigen::Vector2d& projectedPtMain = prjPtsMainLine[i];
+
+                for (int j = 0 ; j < neighbourPointsOfDifferentsLinesOfFlightSize ; j++)
+                {
+                    int currentNeighbourIndex = neighbourPointsToTest.at(j);
+                    const Eigen::Vector2d& neighbourProjectedPoint = prjPtsNeighbours[currentNeighbourIndex];
+
+                    double candidateDiameter = sqrt(pow (projectedPtMain(0) - neighbourProjectedPoint(0), 2) + pow (projectedPtMain(1) - neighbourProjectedPoint(1), 2));
+
+                    // If candidate diameter is in the good range
+                    if (candidateDiameter <= _step->_maxDiameter && candidateDiameter >= _step->_minDiameter)
+                    {
+                        double candidateRadius = candidateDiameter / 2.0;
+                        double candidateScore = 0;
+                        circleCenter (0) = (projectedPtMain(0) + neighbourProjectedPoint(0)) / 2.0;
+                        circleCenter (1) = (projectedPtMain(1) + neighbourProjectedPoint(1)) / 2.0;
+
+                        // compute score for mainLine points
+                        for (int k = 0 ; k < mainLinePointsSize ; k++)
+                        {
+                            const Eigen::Vector2d& point = prjPtsMainLine[k];
+                            double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
+
+                            if (distXY <= candidateRadius)
+                            {
+                                candidateScore += weightedScore(_step->_applySigmoid, distXY / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
+                            } else if (distXY <= candidateDiameter)
+                            {
+                                candidateScore += weightedScore(_step->_applySigmoid, (candidateDiameter - distXY) / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
+                            }
+                        }
+
+                        // compute score for neighbour points
+                        for (int k = 0 ; k < neighbourPointsSize ; k++)
+                        {
+                            const Eigen::Vector2d& point = prjPtsNeighbours[k];
+                            double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
+
+                            if (distXY <= candidateRadius)
+                            {
+                                candidateScore += weightedScore(_step->_applySigmoid, distXY / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
+                            } else if (distXY <= candidateDiameter)
+                            {
+                                candidateScore += weightedScore(_step->_applySigmoid, (candidateDiameter - distXY) / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
+                            }
+                        }
+
+                        if (candidateScore > bestScore)
+                        {
+                            bestScore = candidateScore;
+                            diameter = candidateDiameter;
+                            bestDirection = direction;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::createClusterFromCandidateLines(ONF_StepDetectVerticalAlignments06::LineData* candidateLine,
+                                                                                                     CT_PointCluster* cluster,
+                                                                                                     QList<size_t> &insertedPoints)
+{
+    if (!insertedPoints.contains(candidateLine->_index1))
+    {
+        cluster->addPoint(candidateLine->_index1);
+        insertedPoints.append(candidateLine->_index1);
+    }
+    if (!insertedPoints.contains(candidateLine->_index2))
+    {
+        cluster->addPoint(candidateLine->_index2);
+        insertedPoints.append(candidateLine->_index2);
+    }
+    candidateLine->_processed = true;
+
+    QList<ONF_StepDetectVerticalAlignments06::LineData*> &neighborLines = candidateLine->_neighbors;
+    for (int j = 0 ; j < neighborLines.size() ; j++)
+    {
+        ONF_StepDetectVerticalAlignments06::LineData* neighborLine = neighborLines.at(j);
+        if (!neighborLine->_processed)
+        {
+            if (!insertedPoints.contains(neighborLine->_index1))
+            {
+                cluster->addPoint(neighborLine->_index1);
+                insertedPoints.append(neighborLine->_index1);
+            }
+            if (!insertedPoints.contains(neighborLine->_index2))
+            {
+                cluster->addPoint(neighborLine->_index2);
+                insertedPoints.append(neighborLine->_index2);
+            }
+            neighborLine->_processed = true;
+        }
+    }
+}
+
+double ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeHmaxForTree(double centerX, double centerY, const CT_Image2D<float>* maxHeightRaster)
+{
+    double hmax = 0;
+    if (maxHeightRaster != NULL)
+    {
+        size_t indexHmax, colHmax, linHmax;
+        bool okHmax = false;
+        if (maxHeightRaster->indexAtCoords(centerX, centerY, indexHmax))
+        {
+            okHmax = maxHeightRaster->indexToGrid(indexHmax, colHmax, linHmax);
+        }
+
+        size_t ncells = std::ceil(_step->_radiusHmax / maxHeightRaster->resolution());
+        for (int c = (colHmax - ncells) ; okHmax && c < (colHmax + ncells) ; c++)
+        {
+            for (int l = (linHmax - ncells) ; l < (linHmax + ncells) ; l++)
+            {
+                double dist = sqrt(pow(centerX - maxHeightRaster->getCellCenterColCoord(c), 2) + pow(centerY - maxHeightRaster->getCellCenterLinCoord(l), 2));
+                if (dist <= _step->_radiusHmax)
+                {
+                    double hMaxVal = maxHeightRaster->value(c, l);
+                    if (hMaxVal != maxHeightRaster->NA() && hMaxVal > hmax)
+                    {
+                        hmax = hMaxVal;
+                    }
+                }
+            }
+        }
+    }
+    return hmax;
+}
+
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeDiameterAlongFirstLastLine(double centerX,
+                                                                                                       double centerY,
+                                                                                                       double centerZ,
+                                                                                                       const ScanLineData *mainLine,
+                                                                                                       const QList<ScanLineData*> &neighbourLines,
+                                                                                                       Eigen::Vector3d &bestDirection,
+                                                                                                       double &diameter,
+                                                                                                       QList<size_t> &isolatedPointIndices,
+                                                                                                       CT_PointCluster* cluster)
+{
+    CT_PointAccessor pointAccessor;
+
+    const size_t index1 = mainLine->first();
+    const size_t index2 = mainLine->last();
+
+    CT_Point p1 = pointAccessor.constPointAt(index1);
+    CT_Point p2 = pointAccessor.constPointAt(index2);
+
+    Eigen::Vector3d direction;
+    direction = p2 - p1;
+    direction.normalize();
+
+    diameter = _step->_monoLineMult * computeDiameterAlongLine(cluster, direction, p1);
+
+    bestDirection = direction;
+
+    centerX = p1(0);
+    centerY = p1(1);
+    centerZ = p1(2);
+
+    if (bestDirection(2) < 0)
+    {
+        bestDirection = -bestDirection;
+        centerX = p2(0);
+        centerY = p2(1);
+        centerZ = p2(2);
+    }
+
+    // If we have only kept main line, reconstruct the cluster only with it and put meighbourhood to isolatedpoints list
+    delete cluster;
+    cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
+    // Add points of the main line
+    for (int j = 0 ; j < mainLine->size() ; j++)
+    {
+        size_t index = mainLine->at(j);
+        cluster->addPoint(index);
+    }
+    // Add points of the neighbours lines
+    for (int i = 0 ; i < neighbourLines.size() ; i++)
+    {
+        ScanLineData* testedLine = neighbourLines.at(i);
+        for (int j = 0 ; j < testedLine->size() ; j++)
+        {
+            size_t index = testedLine->at(j);
+            isolatedPointIndices.append(index);
+        }
+    }
+}
+
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::removePointsToCloseFromDetectedDiameters(const QList<CT_Circle2D*> &circles,
+                                                                                                              QList<size_t> &isolatedPointIndices)
+{
+    CT_PointAccessor pointAccessor;
+
+    for (int iso = 0 ; iso < isolatedPointIndices.size(); iso++)
+    {
+        size_t index = isolatedPointIndices.at(iso);
+        CT_Point point = pointAccessor.constPointAt(index);
+
+        bool removed = false;
+        for (int i = 0 ; i < circles.size() && !removed; i++)
+        {
+            CT_Circle2D* circle = circles.at(i);
+            double dist = sqrt(pow(circle->getCenterX() - point(0), 2) + pow(circle->getCenterY() - point(1), 2));
+            if (dist < _step->_maxSearchRadius)
+            {
+                isolatedPointIndices.removeAt(iso--);
+                removed = true;
+            }
+        }
+    }
+}
+
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::findCandidateLines(const CT_AbstractItemDrawableWithPointCloud* sceneStem,
+                                                                                        QList<ONF_StepDetectVerticalAlignments06::LineData*> &candidateLines,
+                                                                                        QList<size_t> &isolatedPointIndices)
+{
+    CT_PointAccessor pointAccessor;
+
+    double maxPhiRadians = M_PI*_step->_maxPhiAngleSmall/180.0;
+
+    for (int iso1 = 0 ; iso1 < isolatedPointIndices.size() && (!_step->isStopped()); iso1++)
+    {
+        size_t index1 = isolatedPointIndices.at(iso1);
+        CT_Point point1 = pointAccessor.constPointAt(index1);
+
+        for (int iso2 = iso1 + 1 ; iso2 < isolatedPointIndices.size() && (!_step->isStopped()); iso2++)
+        {
+            size_t index2 = isolatedPointIndices.at(iso2);
+            CT_Point point2 = pointAccessor.constPointAt(index2);
+
+            // Les deux points doivent être disctinct dans l'espace
+            if ((point1(0) != point2(0) || point1(1) != point2(1) || point1(2) != point2(2)))
+            {
+                // Les deux points doivent être à moins de _distThreshold
+                double dist = sqrt(pow(point1(0) - point2(0), 2) + pow(point1(1) - point2(1), 2) + pow(point1(2) - point2(2), 2));
+                if (dist < _step->_pointDistThresholdSmall)
+                {
+                    Eigen::Vector3d pointLow  = point1;
+                    Eigen::Vector3d pointHigh = point2;
+
+                    if (point2(2) < point1(2))
+                    {
+                        pointLow  = point2;
+                        pointHigh = point1;
+                    }
+
+                    float phi, theta, length;
+                    CT_SphericalLine3D::convertToSphericalCoordinates(&pointLow, &pointHigh, phi, theta, length);
+
+                    if (phi < maxPhiRadians)
+                    {
+                        candidateLines.append(new ONF_StepDetectVerticalAlignments06::LineData(pointLow, pointHigh, index1, index2, phi, sceneStem->minZ(), sceneStem->maxZ()));
+                    }
+                }
+            }
+        }
+    }
+}
+
+double ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeDiameterAlongLine(const CT_PointCluster* cluster,
+                                                                                                const Eigen::Vector3d& direction,
+                                                                                                const Eigen::Vector3d& origin)
 {
     QList<Eigen::Vector2d> projPts;
     Eigen::Hyperplane<double, 3> plane(direction, origin);
@@ -1306,7 +1405,16 @@ double ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeDi
 }
 
 
-CT_Circle2D *ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::addClusterToResult(CT_StandardItemGroup* grp, CT_PointCluster* cluster, double diameter, int type, double centerX, double centerY, double centerZ, double length, const Eigen::Vector3d& direction, double score)
+CT_Circle2D *ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::addClusterToResult(CT_StandardItemGroup* grp,
+                                                                                                CT_PointCluster* cluster,
+                                                                                                double diameter,
+                                                                                                int type,
+                                                                                                double centerX,
+                                                                                                double centerY,
+                                                                                                double centerZ,
+                                                                                                double length,
+                                                                                                const Eigen::Vector3d& direction,
+                                                                                                double score)
 {
     Eigen::Vector2d center2D(centerX, centerY);
     Eigen::Vector3d center3D(centerX, centerY, centerZ);
@@ -1336,7 +1444,8 @@ CT_Circle2D *ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::add
 }
 
 
-void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::findNeighborLines(QList<ONF_StepDetectVerticalAlignments06::LineData*> candidateLines, double distThreshold)
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::findNeighborLines(QList<ONF_StepDetectVerticalAlignments06::LineData*> candidateLines,
+                                                                                       double distThreshold)
 {
     for (int i1 = 0 ; i1 < candidateLines.size() ; i1++)
     {
@@ -1365,6 +1474,61 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::findNeighbo
             }
         }
     }
+}
+
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeHmaxForEachDetectedStem(const CT_AbstractItemDrawableWithPointCloud* sceneStemAll,
+                                                                                                    const QList<CT_Circle2D*> &circles,
+                                                                                                    QVector<double> &heights)
+{
+    if (sceneStemAll != NULL)
+    {
+
+        const CT_AbstractPointCloudIndex* pointCloudIndexAll = sceneStemAll->getPointCloudIndex();
+        CT_PointIterator itP(pointCloudIndexAll);
+        while(itP.hasNext())
+        {
+            const CT_Point& point = itP.next().currentPoint();
+
+            for (int i = 0 ; i < circles.size() ; i++)
+            {
+                CT_Circle2D* circle = circles.at(i);
+
+                double dist = sqrt(pow(circle->getCenterX() - point(0), 2) + pow(circle->getCenterY() - point(1), 2));
+                if (dist < _step->_radiusHmax && point(2) > heights[i])
+                {
+                    heights[i] = point(2);
+                }
+            }
+        }
+    }
+}
+
+bool ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::testLengthBetweenPoints(const CT_AbstractPointCloudIndex* cloudIndex,
+                                                                                             const CT_LineData* fittedLineData)
+{
+    QList<double> dists;
+
+    CT_PointIterator itP(cloudIndex);
+    while(itP.hasNext())
+    {
+        const CT_Point &point = itP.next().currentPoint();
+
+        Eigen::Vector3d projPoint;
+        dists.append(CT_MathPoint::distanceOnLineForPointProjection(fittedLineData->getP1(), fittedLineData->getDirection(), point, projPoint));
+    }
+
+    qSort(dists);
+
+    bool okLength = true;
+    double maxLength = _step->_lineLengthRatioSmall * fittedLineData->length();
+    for (int dd = 1 ; dd < dists.size() && okLength; dd++)
+    {
+        double currentDist = dists.at(dd) - dists.at(dd - 1);
+        if (currentDist > maxLength) {okLength = false;}
+    }
+    dists.clear();
+
+    return okLength;
 }
 
 double ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeAllometricDFromH(double h)

@@ -32,6 +32,7 @@
 #include "ct_itemdrawable/ct_standarditemgroup.h"
 #include "ct_itemdrawable/ct_line.h"
 #include "ct_itemdrawable/ct_circle2d.h"
+#include "ct_itemdrawable/ct_image2d.h"
 
 
 // Inclusion of auto-indexation system
@@ -39,6 +40,7 @@
 #include "ct_point.h"
 #include "ct_itemdrawable/ct_pointcluster.h"
 #include "ct_accessor/ct_pointaccessor.h"
+#include "ct_itemdrawable/abstract/ct_abstractpointattributesscalar.h"
 
 #include "eigen/Eigen/Core"
 
@@ -261,11 +263,111 @@ protected:
             }
             return val;
         }
+        
+        void createCHM(const CT_AbstractItemDrawableWithPointCloud* sceneStemAll,
+                       CT_Image2D<float>* maxHeightRaster);
 
-        double computeDiameterAlongLine(CT_PointCluster *cluster, const Eigen::Vector3d &direction, const Eigen::Vector3d &origin);
-        CT_Circle2D *addClusterToResult(CT_StandardItemGroup* grp, CT_PointCluster* cluster, double diameter, int type, double centerX, double centerY, double centerZ, double length, const Eigen::Vector3d &direction, double score);
-        void findNeighborLines(QList<ONF_StepDetectVerticalAlignments06::LineData*> candidateLines, double distThreshold);
+        void sortIndicesByGPSTime(const CT_AbstractPointCloudIndex* pointCloudIndexLAS,
+                                  const CT_AbstractPointAttributesScalar* attributeGPS,
+                                  const CT_AbstractPointCloudIndex* pointCloudIndex,
+                                  QMultiMap<double, size_t> &sortedIndices);
+
+        void createLinesOfScan(const QMultiMap<double, size_t> &sortedIndices,
+                               QList<QList<size_t> > &linesOfScan,
+                               QList<size_t> &isolatedPointIndices);
+
+        void filterLinesOfScan(QList<QList<size_t> > &simplifiedLinesOfScan,
+                               double thresholdZenithalAngleRadians,
+                               QList<ScanLineData *> &keptLinesOfScan,
+                               QList<size_t> &isolatedPointIndices);
+
+        void denoiseLinesOfScan(const QList<QList<size_t> > &linesOfScan,
+                                const CT_AbstractPointCloudIndex* pointCloudIndexLAS,
+                                const CT_AbstractPointAttributesScalar* attributeIntensity,
+                                CT_StandardItemGroup* grp,
+                                QList<QList<size_t> > &simplifiedLinesOfScan,
+                                QList<size_t> &isolatedPointIndices);
+
+        void getPointsOfMainLine(const CT_AbstractPointCloudIndex* pointCloudIndexLAS,
+                                 const CT_AbstractPointAttributesScalar* attributeLineOfFlight,
+                                 const ScanLineData *mainLine,
+                                 QList<CT_Point> &mainLinePoints,
+                                 int &mainLineOfFlight);
+
+        void findNeighbours(const ScanLineData *mainLine,
+                            const CT_AbstractPointCloudIndex* pointCloudIndexLAS,
+                            const CT_AbstractPointAttributesScalar* attributeLineOfFlight,
+                            QList<ScanLineData *> &keptLinesOfScan,
+                            QList<ScanLineData *> &neighbourLines,
+                            QList<CT_Point> &neighbourPoints,
+                            QList<int> &neighbourPointsToTest,
+                            QList<int> &neighbourPointsToTestIfOnlyOneLineOfFlight,
+                            int &mainLineOfFlight);
+
+        void findBestDirectionAndDiameter(double thresholdZenithalAngleRadians,
+                                          const ScanLineData *mainLine,
+                                          const QList<CT_Point> &mainLinePoints,
+                                          const QList<CT_Point> &neighbourPoints,
+                                          const QList<int> &neighbourPointsToTest,
+                                          Eigen::Vector3d &bestDirection,
+                                          double &diameter,
+                                          double &bestScore);
+
+        double computeHmaxForTree(double centerX,
+                                  double centerY,
+                                  const CT_Image2D<float>* maxHeightRaster);
+
+        void computeDiameterAlongFirstLastLine(double centerX,
+                                               double centerY,
+                                               double centerZ,
+                                               const ScanLineData *mainLine,
+                                               const QList<ScanLineData *> &neighbourLines,
+                                               Eigen::Vector3d &bestDirection,
+                                               double &diameter,
+                                               QList<size_t> &isolatedPointIndices,
+                                               CT_PointCluster* cluster);
+
+        void removePointsToCloseFromDetectedDiameters(const QList<CT_Circle2D *> &circles,
+                                                      QList<size_t> &isolatedPointIndices);
+
+        double computeDiameterAlongLine(const CT_PointCluster *cluster,
+                                        const Eigen::Vector3d &direction,
+                                        const Eigen::Vector3d &origin);
+
+        CT_Circle2D *addClusterToResult(CT_StandardItemGroup* grp,
+                                        CT_PointCluster* cluster,
+                                        double diameter,
+                                        int type,
+                                        double centerX,
+                                        double centerY,
+                                        double centerZ,
+                                        double length,
+                                        const Eigen::Vector3d &direction,
+                                        double score);
+
+        void findNeighborLines(QList<ONF_StepDetectVerticalAlignments06::LineData*> candidateLines,
+                               double distThreshold);
+
+        void findCandidateLines(const CT_AbstractItemDrawableWithPointCloud* sceneStem,
+                                QList<LineData *> &candidateLines,
+                                QList<size_t> &isolatedPointIndices);
+
+        void createClusterFromCandidateLines(ONF_StepDetectVerticalAlignments06::LineData* candidateLine,
+                                             CT_PointCluster* cluster,
+                                             QList<size_t> &insertedPoints);
+
+        void computeHmaxForEachDetectedStem(const CT_AbstractItemDrawableWithPointCloud* sceneStemAll,
+                                            const QList<CT_Circle2D *> &circles,
+                                            QVector<double> &heights);
+
         double computeAllometricDFromH(double h);
+
+        void applyExclusionRadiiToHeightsVector(const QList<CT_Circle2D *> &circles,
+                                                QVector<double> &heights);
+
+        bool testLengthBetweenPoints(const CT_AbstractPointCloudIndex* cloudIndex,
+                                     const CT_LineData* fittedLineData);
+
 
     private:
         ONF_StepDetectVerticalAlignments06* _step;
