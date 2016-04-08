@@ -60,7 +60,7 @@ ONF_FilterByReturnType::ONF_FilterByReturnType(const ONF_FilterByReturnType &oth
     _keepValues = other._keepValues;
 }
 
-QString ONF_FilterByReturnType::getDetailledDisplayableName()
+QString ONF_FilterByReturnType::getDetailledDisplayableName() const
 {
     QString result = getStringForType(_type);
     if (_filterByClassif)
@@ -72,8 +72,9 @@ QString ONF_FilterByReturnType::getDetailledDisplayableName()
         if (_keepWater) {result.append("Wat");}
         if (!_keepValues.isEmpty())
         {
+            QString str = _keepValues;
             result.append("Clas");
-            result.append(_keepValues.replace(";", "."));
+            result.append(str.replace(";", "."));
         }
     }
 
@@ -300,11 +301,11 @@ QString ONF_FilterByReturnType::getStringForType(ONF_FilterByReturnType::ReturnT
 {
     switch (returnType)
     {
-        case ONF_FilterByReturnType::First : return tr("first");
-        case ONF_FilterByReturnType::Last : return tr("last");
-        case ONF_FilterByReturnType::LastAndOnly : return tr("last and only");
-        case ONF_FilterByReturnType::Intermediate : return tr("intermerdiate");
-        case ONF_FilterByReturnType::Only : return tr("only");
+        case ONF_FilterByReturnType::First : return "first";
+        case ONF_FilterByReturnType::Last : return "last";
+        case ONF_FilterByReturnType::LastAndOnly : return "lastAndOnly";
+        case ONF_FilterByReturnType::Intermediate : return "intermediate";
+        case ONF_FilterByReturnType::Only : return "only";
     }
 
     return "all";
@@ -315,7 +316,7 @@ ONF_FilterByReturnType::ReturnType ONF_FilterByReturnType::getTypeForString(QStr
     if (returnTypeAsString == "first") {return ONF_FilterByReturnType::First;}
     if (returnTypeAsString == "last") {return ONF_FilterByReturnType::Last;}
     if (returnTypeAsString == "lastAndOnly") {return ONF_FilterByReturnType::LastAndOnly;}
-    if (returnTypeAsString == "int") {return ONF_FilterByReturnType::Intermediate;}
+    if (returnTypeAsString == "intermediate") {return ONF_FilterByReturnType::Intermediate;}
     if (returnTypeAsString == "only") {return ONF_FilterByReturnType::Only;}
 
     return ONF_FilterByReturnType::All;

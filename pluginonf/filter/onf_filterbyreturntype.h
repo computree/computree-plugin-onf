@@ -46,7 +46,7 @@ public:
     ONF_FilterByReturnType();
     ONF_FilterByReturnType(const ONF_FilterByReturnType &other);
 
-    QString getDetailledDisplayableName();
+    QString getDetailledDisplayableName() const;
 
     CT_AbstractConfigurableWidget* createConfigurationWidget();
     void postConfigure();
