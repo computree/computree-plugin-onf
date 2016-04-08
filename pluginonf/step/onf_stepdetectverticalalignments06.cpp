@@ -132,10 +132,10 @@ void ONF_StepDetectVerticalAlignments06::createInResultModelListProtected()
     CT_InResultModelGroupToCopy *resIn_res = createNewInResultModelForCopy(DEFin_res, tr("Scènes"));
     resIn_res->setZeroOrMoreRootGroup();
     resIn_res->addGroupModel("", DEFin_grp, CT_AbstractItemGroup::staticGetType(), tr("Scènes (grp)"));
-    resIn_res->addItemModel(DEFin_grp, DEFin_sceneStem, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène (tiges)"));
-    resIn_res->addItemModel(DEFin_grp, DEFin_attLAS, CT_StdLASPointsAttributesContainer::staticGetType(), tr("Attributs LAS"), tr("Attribut LAS"));
-
     resIn_res->addItemModel(DEFin_grp, DEFin_sceneAll, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène (complète)"));
+    resIn_res->addItemModel(DEFin_grp, DEFin_attLAS, CT_StdLASPointsAttributesContainer::staticGetType(), tr("Attributs LAS"), tr("Attribut LAS"));
+    resIn_res->addItemModel(DEFin_grp, DEFin_sceneStem, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène (tiges)"));
+
 }
 
 // Creation and affiliation of OUT models
@@ -394,7 +394,6 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
         QMultiMap<double, size_t> sortedIndices;
         sortIndicesByGPSTime(pointCloudIndexLAS, attributeGPS, pointCloudIndex, sortedIndices);
 
-
         // List of not clusterized points
         QList<size_t> isolatedPointIndices;
 
@@ -433,6 +432,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
         QList<ScanLineData*> keptLinesOfScan;
         filterLinesOfScan(simplifiedLinesOfScan, thresholdZenithalAngleRadians, keptLinesOfScan, isolatedPointIndices);
         simplifiedLinesOfScan.clear();
+
 
 
         // Archive detection of lines of scan (conserved)
@@ -554,6 +554,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             delete mainLine;
             qDeleteAll(neighbourLines);
         }
+
 
         // Put all point from not merged 2 points lines in isolated points
         while (!keptLinesOfScan.isEmpty())
@@ -697,6 +698,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
         circles.clear();
         otherCircles.clear();
     }
+
 }
 
 
@@ -1451,14 +1453,15 @@ CT_Circle2D *ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::add
 }
 
 
-void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::findNeighborLines(QList<ONF_StepDetectVerticalAlignments06::LineData*> candidateLines,
+void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::findNeighborLines(QList<ONF_StepDetectVerticalAlignments06::LineData*> &candidateLines,
                                                                                        double distThreshold)
 {
-    for (int i1 = 0 ; i1 < candidateLines.size() ; i1++)
+    int size = candidateLines.size();
+    for (int i1 = 0 ; i1 < size ; i1++)
     {
         ONF_StepDetectVerticalAlignments06::LineData* line1 = candidateLines.at(i1);
 
-        for (int i2 = i1+1 ; i2 < candidateLines.size() ; i2++)
+        for (int i2 = i1+1 ; i2 < size ; i2++)
         {
             ONF_StepDetectVerticalAlignments06::LineData* line2 = candidateLines.at(i2);
 
@@ -1467,7 +1470,6 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::findNeighbo
             if (distLow < distThreshold)
             {
                 double distHigh = sqrt(pow(line1->_highCoord(0) - line2->_highCoord(0), 2) + pow(line1->_highCoord(1) - line2->_highCoord(1), 2));
-                //double spacing = fabs(distHigh - distLow);
 
                 if (distHigh < distThreshold)
                 {

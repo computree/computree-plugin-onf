@@ -345,7 +345,7 @@ protected:
                                         const Eigen::Vector3d &direction,
                                         double score);
 
-        void findNeighborLines(QList<ONF_StepDetectVerticalAlignments06::LineData*> candidateLines,
+        void findNeighborLines(QList<LineData *> &candidateLines,
                                double distThreshold);
 
         void findCandidateLines(const CT_AbstractItemDrawableWithPointCloud* sceneStem,
