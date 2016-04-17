@@ -116,7 +116,9 @@ HEADERS += \
     step/onf_stepcreateplotsfromlist.h \
     step/onf_stepextractpointsforplots.h \
     step/onf_stepcreatetiling.h \
-    step/onf_stepcomputedsmonly.h
+    step/onf_stepcomputedsmonly.h \
+    step/onf_stepcomputeedbhfromheightallometry.h \
+    step/onf_stepdetectverticalalignments07.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -222,7 +224,9 @@ SOURCES += \
     step/onf_stepcreateplotsfromlist.cpp \
     step/onf_stepextractpointsforplots.cpp \
     step/onf_stepcreatetiling.cpp \
-    step/onf_stepcomputedsmonly.cpp
+    step/onf_stepcomputedsmonly.cpp \
+    step/onf_stepcomputeedbhfromheightallometry.cpp \
+    step/onf_stepdetectverticalalignments07.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts

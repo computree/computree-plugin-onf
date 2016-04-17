@@ -74,6 +74,7 @@
 #include "step/onf_stepcreateplotsfromlist.h"
 #include "step/onf_stepextractpointsforplots.h"
 #include "step/onf_stepdetectverticalalignments06.h"
+#include "step/onf_stepdetectverticalalignments07.h"
 #include "step/onf_stepextractlogbuffer.h"
 #include "step/onf_stepfilteritemsbyposition.h"
 #include "step/onf_stepfilterpointsbyboolgrid.h"
@@ -98,6 +99,7 @@
 #include "step/onf_stepextractpointsinverticalcylinders.h"
 #include "step/onf_stepaddtilexyareas.h"
 #include "step/onf_stepcreatetiling.h"
+#include "step/onf_stepcomputeedbhfromheightallometry.h"
 
 #include "filter/onf_filterbyreturntype.h"
 #include "filter/onf_filterremoveupperoutliers.h"
@@ -173,9 +175,12 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewWorkflowStep<ONF_StepSelectBBoxByFileName>("");
     addNewWorkflowStep<ONF_StepSelectGroupsByReferenceHeight>(CT_StepsMenu::LP_Filter);
     addNewWorkflowStep<ONF_StepSetAffiliationIDFromReference>("");
+    addNewGeometricalShapesStep<ONF_StepComputeDBHFromHeightAllometry>(CT_StepsMenu::LP_Stems);
+
 
 #ifdef USE_OPENCV
     addNewBetaStep<ONF_StepDetectVerticalAlignments06>(CT_StepsMenu::LP_Stems);
+    addNewBetaStep<ONF_StepDetectVerticalAlignments07>(CT_StepsMenu::LP_Stems);
 
     addNewGeometricalShapesStep<ONF_StepSetFootCoordinatesVertically>(QObject::tr("Détéction tiges (ONF 2013)"));
     addNewGeometricalShapesStep<ONF_StepExtractPositionsFromDensity>(CT_StepsMenu::LP_Stems);
