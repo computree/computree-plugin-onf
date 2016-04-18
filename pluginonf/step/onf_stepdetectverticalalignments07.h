@@ -309,7 +309,7 @@ protected:
                                           double &diameter,
                                           double &bestScore);
 
-        void computeDiameterAlongFirstLastLine(double centerX,
+        CT_PointCluster *computeDiameterAlongFirstLastLine(double centerX,
                                                double centerY,
                                                double centerZ,
                                                const ScanLineData *mainLine,

@@ -442,11 +442,11 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
             // if not valid diameter, compute diameter along first-last points line
             if (diameter >= _step->_maxDiameter || diameter <= 0 || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
             {
-                computeDiameterAlongFirstLastLine(centerX, centerY, centerZ, mainLine, neighbourLines, bestDirection, diameter, isolatedPointIndices, cluster);
+                cluster = computeDiameterAlongFirstLastLine(centerX, centerY, centerZ, mainLine, neighbourLines, bestDirection, diameter, isolatedPointIndices, cluster);
                 type = 3; // Mono line of scan or excessive diameter
             }
 
-            // If not valid daimeter, put points in isolated Points
+            // If not valid diameter, put points in isolated Points
             nbPts = cluster->getPointCloudIndexSize();
             if (nbPts == 0 || diameter > _step->_maxDiameter || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
             {
@@ -1093,7 +1093,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::createClust
 }
 
 
-void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::computeDiameterAlongFirstLastLine(double centerX,
+CT_PointCluster* ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::computeDiameterAlongFirstLastLine(double centerX,
                                                                                                        double centerY,
                                                                                                        double centerZ,
                                                                                                        const ScanLineData *mainLine,
@@ -1103,6 +1103,16 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::computeDiam
                                                                                                        QList<size_t> &isolatedPointIndices,
                                                                                                        CT_PointCluster* cluster)
 {
+    // If we have only kept main line, reconstruct the cluster only with it and put meighbourhood to isolatedpoints list
+    delete cluster;
+    cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
+    // Add points of the main line
+    for (int j = 0 ; j < mainLine->size() ; j++)
+    {
+        size_t index = mainLine->at(j);
+        cluster->addPoint(index);
+    }
+
     CT_PointAccessor pointAccessor;
 
     const size_t index1 = mainLine->first();
@@ -1131,15 +1141,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::computeDiam
         centerZ = p2(2);
     }
 
-    // If we have only kept main line, reconstruct the cluster only with it and put meighbourhood to isolatedpoints list
-    delete cluster;
-    cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
-    // Add points of the main line
-    for (int j = 0 ; j < mainLine->size() ; j++)
-    {
-        size_t index = mainLine->at(j);
-        cluster->addPoint(index);
-    }
+
     // Add points of the neighbours lines
     for (int i = 0 ; i < neighbourLines.size() ; i++)
     {
@@ -1150,6 +1152,8 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::computeDiam
             isolatedPointIndices.append(index);
         }
     }
+
+    return cluster;
 }
 
 void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::removePointsToCloseFromDetectedDiameters(const QList<CT_Circle2D*> &circles,

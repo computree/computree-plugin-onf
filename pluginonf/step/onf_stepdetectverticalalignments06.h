@@ -317,7 +317,7 @@ protected:
                                   double centerY,
                                   const CT_Image2D<float>* maxHeightRaster);
 
-        void computeDiameterAlongFirstLastLine(double centerX,
+        CT_PointCluster *computeDiameterAlongFirstLastLine(double centerX,
                                                double centerY,
                                                double centerZ,
                                                const ScanLineData *mainLine,

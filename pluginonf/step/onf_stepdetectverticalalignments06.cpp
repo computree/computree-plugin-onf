@@ -226,7 +226,6 @@ void ONF_StepDetectVerticalAlignments06::createPostConfigurationDialog()
 
 void ONF_StepDetectVerticalAlignments06::compute()
 {
-    qDebug() << "01";
     QList<CT_ResultGroup*> outResultList = getOutResultList();
     CT_ResultGroup* res = outResultList.at(0);
 
@@ -265,8 +264,6 @@ void ONF_StepDetectVerticalAlignments06::compute()
     if (!_radii.contains(0)) {_radii.insert(0, _radii.first());}
     _radii.insert(std::numeric_limits<double>::max(), _radii.last());
 
-    qDebug() << "02";
-
 
     QList<CT_StandardItemGroup*> groups;
     // COPIED results browsing
@@ -276,7 +273,7 @@ void ONF_StepDetectVerticalAlignments06::compute()
         CT_StandardItemGroup* grp = (CT_StandardItemGroup*) itCpy_grp.next();
         groups.append(grp);
     }
-    qDebug() << "03";
+
 
     QFuture<void> futur = QtConcurrent::map(groups, AlignmentsDetectorForScene(this, res));
 
@@ -286,7 +283,6 @@ void ONF_StepDetectVerticalAlignments06::compute()
     {
         setProgress(100.0*(futur.progressValue() - progressMin)/progressTotal);
     }
-    qDebug() << "04";
 
 }
 
@@ -354,7 +350,6 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::applyExclus
 
 void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlignmentsForScene(CT_StandardItemGroup* grp)
 {
-    qDebug() << "aa";
     double thresholdZenithalAngleRadians = M_PI * _step->_thresholdZenithalAngle / 180.0;
     double rangeUnderstorey = _step->_maxDiameterForUnderstorey - _step->_minDiameter;
 
@@ -365,15 +360,13 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
 
     if (sceneStem != NULL && attributeLAS != NULL)
     {
-
-        qDebug() << "bb";
         // compute max height raster (all points) => used for types 1 and 2 coherence tests (if failed => type 3 or more)
         CT_Image2D<float>* maxHeightRaster = NULL;
         if (sceneStemAll != NULL)
         {
             createCHM(sceneStemAll, maxHeightRaster);
         }
-        qDebug() << "cc";
+
 
         // Retrieve attributes
         QHashIterator<CT_LasDefine::LASPointAttributesType, CT_AbstractPointAttributesScalar *> it(attributeLAS->lasPointsAttributes());
@@ -396,23 +389,20 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
         ////////////////////////////////////////////////////
         /// Detection of big stems: lines of scan        ///
         ////////////////////////////////////////////////////
-        qDebug() << "dd";
 
         // Sort indices by GPS time
         QMultiMap<double, size_t> sortedIndices;
         sortIndicesByGPSTime(pointCloudIndexLAS, attributeGPS, pointCloudIndex, sortedIndices);
-        qDebug() << "ee";
+
 
         // List of not clusterized points
         QList<size_t> isolatedPointIndices;
-        qDebug() << "ff";
 
 
         // Creation des lignes de scan
         QList<QList<size_t> > linesOfScan;
         createLinesOfScan(sortedIndices, linesOfScan, isolatedPointIndices);
         sortedIndices.clear();
-        qDebug() << "gg";
 
 
         // Eliminate noise in lines of scan
@@ -420,7 +410,6 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
         denoiseLinesOfScan(linesOfScan, pointCloudIndexLAS, attributeIntensity, grp, simplifiedLinesOfScan, isolatedPointIndices);
         linesOfScan.clear();
 
-        qDebug() << "hh";
 
         // Archive detection of lines of scan (all denoised)
         if (_step->_clusterDebugMode)
@@ -439,14 +428,12 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             }
         }
 
-        qDebug() << "ii";
 
         // Remove clusters with 1 point or with phi > maxPhi
         QList<ScanLineData*> keptLinesOfScan;
         filterLinesOfScan(simplifiedLinesOfScan, thresholdZenithalAngleRadians, keptLinesOfScan, isolatedPointIndices);
         simplifiedLinesOfScan.clear();
 
-        qDebug() << "jj";
 
 
         // Archive detection of lines of scan (conserved)
@@ -466,11 +453,9 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             }
         }
 
-        qDebug() << "kk";
 
         // Sorting list of lines by point Number and if equals, by length
         qSort(keptLinesOfScan.begin(), keptLinesOfScan.end(), ONF_StepDetectVerticalAlignments06::orderLinesByAscendingNumberAndLength);
-        qDebug() << "ll";
 
 
         // Compute diameters using neighbourhoud
@@ -478,17 +463,14 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
         QList<CT_Circle2D*> allometryCircles;
         while (!keptLinesOfScan.isEmpty() && keptLinesOfScan.last()->size() > 2)
         {
-            qDebug() << "a";
             // Get next MainLine
             ScanLineData *mainLine = keptLinesOfScan.takeLast();
-            qDebug() << "b";
 
             int mainLineOfFlight = -1;
             QList<CT_Point> mainLinePoints;                                
             getPointsOfMainLine(pointCloudIndexLAS, attributeLineOfFlight, mainLine, mainLinePoints, mainLineOfFlight);
 
             int type = 1; // Multi lines of scans, ok
-            qDebug() << "c";
 
             // Search for neighbours
             QList<ScanLineData*> neighbourLines;
@@ -496,7 +478,6 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             QList<int> neighbourPointsToTest;
             QList<int> neighbourPointsToTestIfOnlyOneLineOfFlight;
             findNeighbours(mainLine, pointCloudIndexLAS, attributeLineOfFlight, keptLinesOfScan, neighbourLines, neighbourPoints, neighbourPointsToTest, neighbourPointsToTestIfOnlyOneLineOfFlight, mainLineOfFlight);
-            qDebug() << "d";
 
             if (neighbourPointsToTest.isEmpty())
             {
@@ -504,18 +485,15 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                 neighbourPointsToTestIfOnlyOneLineOfFlight.clear();
                 type = 2;
             }
-            qDebug() << "e";
 
             double diameter = 0.0;
             double bestScore = 0;
             Eigen::Vector3d bestDirection(0, 0, 1);
-            qDebug() << "f";
 
             if (!neighbourPointsToTest.isEmpty())
             {
                 findBestDirectionAndDiameter(thresholdZenithalAngleRadians, mainLine, mainLinePoints, neighbourPoints, neighbourPointsToTest, bestDirection, diameter, bestScore);
             }
-            qDebug() << "h";
 
             // Create cluster containing mainline and neighbourhood
             CT_PointCluster* cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
@@ -525,7 +503,6 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                 size_t index = mainLine->at(j);
                 cluster->addPoint(index);
             }
-            qDebug() << "i";
 
             // Add points of the neighbours lines
             for (int i = 0 ; i < neighbourLines.size() ; i++)
@@ -537,7 +514,6 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                     cluster->addPoint(index);
                 }
             }
-            qDebug() << "j";
 
             int nbPts = cluster->getPointCloudIndexSize();
 
@@ -551,48 +527,35 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             // Reference max diameter from Hmax allometry
             double refDiameterHight = computeAllometricDFromH(hmax + _step->_deltaHmax);
             bool allometryCorrection = diameter > refDiameterHight;
-            qDebug() << "k";
 
             // if not valid diameter, compute diameter along first-last points line
             if (diameter >= _step->_maxDiameter || diameter <= 0 || (diameter / nbPts) > _step->_ratioDbhNbPtsMax || allometryCorrection)
             {
-                qDebug() << "xxx";
-                computeDiameterAlongFirstLastLine(centerX, centerY, centerZ, mainLine, neighbourLines, bestDirection, diameter, isolatedPointIndices, cluster);
+                cluster = computeDiameterAlongFirstLastLine(centerX, centerY, centerZ, mainLine, neighbourLines, bestDirection, diameter, isolatedPointIndices, cluster);
                 type = 3; // Mono line of scan or excessive diameter
             }
-            qDebug() << "l";
-            qDebug() << cluster;
-            qDebug() << cluster->getPointCloudIndex();
 
             // If not valid daimeter, put points in isolated Points
             nbPts = cluster->getPointCloudIndexSize();
-            qDebug() << "l2";
             if (nbPts == 0 || diameter > _step->_maxDiameter || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
             {
-                qDebug() << "l3";
                 CT_PointIterator itP(cluster->getPointCloudIndex());
                 while(itP.hasNext())
                 {
                     size_t index = itP.next().currentGlobalIndex();
                     isolatedPointIndices.append(index);
                 }
-                qDebug() << "l4";
                 delete cluster;
-                qDebug() << "l5";
             } else {
-                qDebug() << "l6";
                 // Add to result
                 CT_Circle2D* cir = addClusterToResult(grp, cluster, diameter, type, centerX, centerY,  centerZ, mainLine->_length, bestDirection, bestScore);
                 circles.append(cir);
                 if (allometryCorrection) {allometryCircles.append(cir);}
-                qDebug() << "l7";
             }
-            qDebug() << "m";
 
             delete mainLine;
             qDeleteAll(neighbourLines);
         }
-        qDebug() << "mm";
 
 
         // Put all point from not merged 2 points lines in isolated points
@@ -603,7 +566,6 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             if (line->size() > 1) {isolatedPointIndices.append(line->at(1));}
         }
 
-        qDebug() << "nn";
 
         ////////////////////////////////////////////////////
         /// Detection of small stems: points alignements ///
@@ -612,21 +574,18 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
         // Eliminate isolated point to close from already deteted diameters
         removePointsToCloseFromDetectedDiameters(circles, isolatedPointIndices);
 
-        qDebug() << "oo";
 
         QList<ONF_StepDetectVerticalAlignments06::LineData*> candidateLines;
         // Test all lines 2 by 2
         findCandidateLines(sceneStem, candidateLines, isolatedPointIndices);
-        qDebug() << "pp";
 
 
         // Put together near lines
         findNeighborLines(candidateLines, _step->_lineDistThresholdSmall);
-        qDebug() << "qq";
+
 
         // Sort by descending NeighborCount
         qSort(candidateLines.begin(), candidateLines.end(), ONF_StepDetectVerticalAlignments06::orderByDescendingNeighborCount);
-        qDebug() << "rr";
 
 
         // Create clusters of aligned points
@@ -693,18 +652,17 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
                 delete cluster;
             }
         }
-        qDebug() << "ss";
 
         // Compute max height (all points) for each detected stem
         circles.append(otherCircles);
         QVector<double> heights(circles.size());
         heights.fill(0);
         computeHmaxForEachDetectedStem(sceneStemAll, circles, heights);
-        qDebug() << "tt";
+
 
         // Apply exclusion radii using heights
         applyExclusionRadiiToHeightsVector(circles, heights);
-        qDebug() << "uu";
+
 
         // Register heights as attribute and correct excessively low or high diameters using allometry
         for (int i = 0 ; i < circles.size() ; i++)
@@ -738,7 +696,6 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
             circle->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attCorrectedDiameter_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, correctedDbh * 100.0));
             ((CT_Circle2DData*) (circle->getPointerData()))->setRadius(correctedDbh / 2.0);
         }
-        qDebug() << "vv";
 
         qDeleteAll(candidateLines);
         candidateLines.clear();
@@ -746,7 +703,6 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::detectAlign
         circles.clear();
         otherCircles.clear();
     }
-    qDebug() << "ww";
 
 }
 
@@ -1302,7 +1258,7 @@ double ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeHm
     return hmax;
 }
 
-void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeDiameterAlongFirstLastLine(double centerX,
+CT_PointCluster* ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeDiameterAlongFirstLastLine(double centerX,
                                                                                                        double centerY,
                                                                                                        double centerZ,
                                                                                                        const ScanLineData *mainLine,
@@ -1320,7 +1276,6 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeDiam
     {
         size_t index = mainLine->at(j);
         cluster->addPoint(index);
-        qDebug() << "aaaaa";
     }
 
     CT_PointAccessor pointAccessor;
@@ -1362,6 +1317,7 @@ void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::computeDiam
             isolatedPointIndices.append(index);
         }
     }
+    return cluster;
 }
 
 void ONF_StepDetectVerticalAlignments06::AlignmentsDetectorForScene::removePointsToCloseFromDetectedDiameters(const QList<CT_Circle2D*> &circles,
