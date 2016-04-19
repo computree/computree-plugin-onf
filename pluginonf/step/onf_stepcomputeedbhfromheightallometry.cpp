@@ -91,7 +91,7 @@ void ONF_StepComputeDBHFromHeightAllometry::createOutResultModelListProtected()
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
 
     if(res != NULL)
-        res->addItemModel(DEF_SearchInGroup, _outDBHModelName, new CT_Circle2D(), tr("DBH)"));
+        res->addItemModel(DEF_SearchInGroup, _outDBHModelName, new CT_Circle2D(), tr("DBH"));
 }
 
 void ONF_StepComputeDBHFromHeightAllometry::compute()

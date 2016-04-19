@@ -352,6 +352,8 @@ protected:
                                      const CT_LineData* fittedLineData);
 
 
+        void computeCorrectedDiameters(const CT_Image2D<qint32>* clusters, const QList<CT_Circle2D*> &allometryDBHs, const QList<CT_Circle2D*> &circles, QMap<CT_Circle2D*, double> &correctedDiameters);
+
     private:
         ONF_StepDetectVerticalAlignments07* _step;
         CT_ResultGroup* _res;
@@ -416,8 +418,7 @@ protected:
     double      _lineLengthRatioSmall;
     double      _exclusionRadiusSmall;
 
-    double      _radiusHmax;
-    double      _deltaHmax;
+    double      _deltaDmax;
 
     bool      _clusterDebugMode;
 

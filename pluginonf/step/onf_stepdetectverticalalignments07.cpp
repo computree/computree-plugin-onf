@@ -60,6 +60,7 @@
 #define DEFin_grp "grp"
 #define DEFin_sceneStem "sceneStem"
 #define DEFin_attLAS "attLAS"
+#define DEFin_clusters "clusters"
 #define DEFin_grpAllometry "grpAllo"
 #define DEFin_circleAllometry "circleAllo"
 
@@ -95,8 +96,7 @@ ONF_StepDetectVerticalAlignments07::ONF_StepDetectVerticalAlignments07(CT_StepIn
     _minPtsSmall = 3;
     _lineLengthRatioSmall = 0.8;
 
-    _radiusHmax = 1.5;
-    _deltaHmax = 5.0;
+    _deltaDmax = 0.25;
 
     _clusterDebugMode = false;
 }
@@ -139,6 +139,7 @@ void ONF_StepDetectVerticalAlignments07::createInResultModelListProtected()
 
     if (_useAllometry)
     {
+        resIn_res->addItemModel(DEFin_grp, DEFin_clusters, CT_Image2D<qint32>::staticGetType(), tr("Clusters"));
         resIn_res->addGroupModel(DEFin_grp, DEFin_grpAllometry, CT_AbstractItemGroup::staticGetType(), tr("Dbh allométrie (grp)"));
         resIn_res->addItemModel(DEFin_grpAllometry, DEFin_circleAllometry, CT_Circle2D::staticGetType(), tr("Dbh allométrie"));
     }
@@ -224,8 +225,7 @@ void ONF_StepDetectVerticalAlignments07::createPostConfigurationDialog()
     configDialog->addDouble(tr("Pourcentage maximum de la longueur de segment sans points"), "%", 0, 100, 0, _lineLengthRatioSmall, 100);
 
     configDialog->addEmpty();
-    configDialog->addDouble(tr("Rayon de recherche pour Hmax"), "m", 0, 1000, 2, _radiusHmax);
-    configDialog->addDouble(tr("Tolérance sur H (+/-)"), "m", 0, 1000, 2, _deltaHmax);
+    configDialog->addDouble(tr("Tolérance sur le diamètre (+/-)"), "cm", 0, 1000, 2, _deltaDmax, 100);
 
     configDialog->addEmpty();
     configDialog->addBool(tr("Mode Debug Clusters"), "", "", _clusterDebugMode);
@@ -260,6 +260,7 @@ void ONF_StepDetectVerticalAlignments07::compute()
 
 
 
+
 void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlignmentsForScene(CT_StandardItemGroup* grp)
 {
     double thresholdZenithalAngleRadians = M_PI * _step->_thresholdZenithalAngle / 180.0;
@@ -267,6 +268,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
 
     const CT_AbstractItemDrawableWithPointCloud* sceneStem = (CT_AbstractItemDrawableWithPointCloud*)grp->firstItemByINModelName(_step, DEFin_sceneStem);
     const CT_StdLASPointsAttributesContainer* attributeLAS = (CT_StdLASPointsAttributesContainer*)grp->firstItemByINModelName(_step, DEFin_attLAS);
+    const CT_Image2D<qint32>* clusters = (CT_Image2D<qint32>*)grp->firstItemByINModelName(_step, DEFin_clusters);
 
     if (sceneStem != NULL && attributeLAS != NULL)
     {
@@ -565,13 +567,29 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
         // Test consistency with allometrical circles obtained from apex(input)
         circles.append(otherCircles);
 
+        QMap<CT_Circle2D*, double> correctedDiameters;
+        if (clusters != NULL)
+        {
+            computeCorrectedDiameters(clusters, allometryDBHs, circles, correctedDiameters);
+        }
+
+
         for (int i = 0 ; i < circles.size() ; i++)
         {
             CT_Circle2D* circle = circles.at(i);
-
+            int flag = 0; // no allometric correction
             double correctedDbh = circle->getRadius() * 2.0;
 
-            int flag = 0; // no allometric correction
+            if (correctedDiameters.contains(circle))
+            {
+                flag = 1;
+                correctedDbh = correctedDiameters.value(circle);
+                if (correctedDbh < 0)
+                {
+                    flag = 2;
+                    correctedDbh = (std::rand() / (double)RAND_MAX) * rangeUnderstorey + _step->_minDiameter;
+                }
+            }
 
             circle->addItemAttribute(new CT_StdItemAttributeT<int>(_step->_attCorrectedFlag_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, flag));
 
@@ -1356,5 +1374,67 @@ bool ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::testLengthB
 
     return okLength;
 }
+
+void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::computeCorrectedDiameters(const CT_Image2D<qint32>* clusters, const QList<CT_Circle2D*> &allometryDBHs, const QList<CT_Circle2D*> &circles, QMap<CT_Circle2D*, double> &correctedDiameters)
+{
+    for (int a = 0 ; a < allometryDBHs.size() ; a++)
+    {
+        const CT_Circle2D* alloCircle = allometryDBHs.at(a);
+        qDebug() << "______________________";
+        qDebug() << "idAllo=" << alloCircle->id();
+        qint32 alloId = clusters->valueAtCoords(alloCircle->getCenterX(), alloCircle->getCenterY());
+        double alloDiameter = alloCircle->getRadius() * 2.0;
+        double alloDiameterMin = alloDiameter - _step->_deltaDmax;
+        double alloDiameterMax = alloDiameter + _step->_deltaDmax;
+
+        QMap<double, CT_Circle2D*> clusterCircles;
+        for (int i = 0 ; i < circles.size() ; i++)
+        {
+            CT_Circle2D* circle = circles.at(i);
+            qint32 id = clusters->valueAtCoords(circle->getCenterX(), circle->getCenterY());
+
+            if (id != 0 && id != clusters->NA() && id == alloId)
+            {
+                double dist = sqrt(pow(circle->getCenterX() - alloCircle->getCenterX(), 2) + pow(circle->getCenterY() - alloCircle->getCenterY(), 2));
+                clusterCircles.insert(dist, circle);
+            }
+        }
+
+        if (clusterCircles.size() > 0)
+        {
+            QMapIterator<double, CT_Circle2D*> itClCir(clusterCircles);
+            if (itClCir.hasNext())
+            {
+                itClCir.next();
+                CT_Circle2D* firstCircle = itClCir.value();
+                double firstDiameter = firstCircle->getRadius() * 2.0;
+
+                qDebug() << "idFirst=" << firstCircle->id();
+                if (firstDiameter < alloDiameterMin || firstDiameter > alloDiameterMax)
+                {
+                    qDebug() << "first corrected";
+                    firstDiameter = alloDiameter;
+                    correctedDiameters.insert(firstCircle, alloDiameter);
+                }
+
+                while (itClCir.hasNext())
+                {
+                    itClCir.next();
+                    CT_Circle2D* circle = itClCir.value();
+                    double diameter = circle->getRadius()*2.0;
+                    qDebug() << "id=" << circle->id();
+
+                    if (diameter > firstDiameter)
+                    {
+                        qDebug() << "corrected";
+                        correctedDiameters.insert(circle, -1);
+                    }
+                }
+            }
+        }
+        clusterCircles.clear();
+    }
+}
+
 
 #endif
