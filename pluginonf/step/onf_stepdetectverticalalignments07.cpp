@@ -69,7 +69,7 @@
 // Constructor : initialization of parameters
 ONF_StepDetectVerticalAlignments07::ONF_StepDetectVerticalAlignments07(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
-    _useAllometry = true;
+//    _useAllometry = true;
 
     _thresholdGPSTime = 1e-5;
     _maxCurvature = 0.25;
@@ -83,6 +83,7 @@ ONF_StepDetectVerticalAlignments07::ONF_StepDetectVerticalAlignments07(CT_StepIn
     _maxSearchRadius = 1.2;
     _maxLineSpacing = 0.15;
     _resolutionForDiameterEstimation = 1;
+    _zenithalAngleMax = 15;
     _applySigmoid = true;
     _sigmoidCoefK = 10.0;
     _sigmoidX0 = 0.75;
@@ -96,7 +97,7 @@ ONF_StepDetectVerticalAlignments07::ONF_StepDetectVerticalAlignments07(CT_StepIn
     _minPtsSmall = 3;
     _lineLengthRatioSmall = 0.8;
 
-    _deltaDmax = 0.25;
+//    _deltaDmax = 0.25; // allométrie
 
     _clusterDebugMode = false;
 }
@@ -137,12 +138,12 @@ void ONF_StepDetectVerticalAlignments07::createInResultModelListProtected()
     resIn_res->addItemModel(DEFin_grp, DEFin_attLAS, CT_StdLASPointsAttributesContainer::staticGetType(), tr("Attributs LAS"), tr("Attribut LAS"));
     resIn_res->addItemModel(DEFin_grp, DEFin_sceneStem, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène (tiges)"));
 
-    if (_useAllometry)
-    {
-        resIn_res->addItemModel(DEFin_grp, DEFin_clusters, CT_Image2D<qint32>::staticGetType(), tr("Clusters"));
-        resIn_res->addGroupModel(DEFin_grp, DEFin_grpAllometry, CT_AbstractItemGroup::staticGetType(), tr("Dbh allométrie (grp)"));
-        resIn_res->addItemModel(DEFin_grpAllometry, DEFin_circleAllometry, CT_Circle2D::staticGetType(), tr("Dbh allométrie"));
-    }
+//    if (_useAllometry)
+//    {
+//        resIn_res->addItemModel(DEFin_grp, DEFin_clusters, CT_Image2D<qint32>::staticGetType(), tr("Clusters"));
+//        resIn_res->addGroupModel(DEFin_grp, DEFin_grpAllometry, CT_AbstractItemGroup::staticGetType(), tr("Dbh allométrie (grp)"));
+//        resIn_res->addItemModel(DEFin_grpAllometry, DEFin_circleAllometry, CT_Circle2D::staticGetType(), tr("Dbh allométrie"));
+//    }
 }
 
 void ONF_StepDetectVerticalAlignments07::createPreConfigurationDialog()
@@ -174,8 +175,8 @@ void ONF_StepDetectVerticalAlignments07::createOutResultModelListProtected()
         resCpy->addItemAttributeModel(_circle_ModelName, _attMaxDistXY2_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Diamètre"));
         resCpy->addItemAttributeModel(_circle_ModelName, _attScore2_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Score"));
         resCpy->addItemAttributeModel(_circle_ModelName, _attStemType2_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_VALUE), tr("Type"), tr("0 = petite tige ; 1 = grosse tige"));
-        resCpy->addItemAttributeModel(_circle_ModelName, _attCorrectedDiameter_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Diamètre corrigé"));
-        resCpy->addItemAttributeModel(_circle_ModelName, _attCorrectedFlag_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_VALUE), tr("Flag Allométrie"));
+//        resCpy->addItemAttributeModel(_circle_ModelName, _attCorrectedDiameter_ModelName, new CT_StdItemAttributeT<double>(CT_AbstractCategory::DATA_VALUE), tr("Diamètre corrigé"));
+//        resCpy->addItemAttributeModel(_circle_ModelName, _attCorrectedFlag_ModelName, new CT_StdItemAttributeT<int>(CT_AbstractCategory::DATA_VALUE), tr("Flag Allométrie"));
 
 
         if (_clusterDebugMode)
@@ -210,6 +211,7 @@ void ONF_StepDetectVerticalAlignments07::createPostConfigurationDialog()
     configDialog->addDouble(tr("Distance de recherche des voisins"), "m", 0, 1e+4, 2, _maxSearchRadius);
     configDialog->addDouble(tr("Ecartement maximal des lignes de scan"), "m", 0, 1e+4, 2, _maxLineSpacing);
     configDialog->addDouble(tr("Résolution pour la recherche de tronc"), "°", 0, 1e+4, 2, _resolutionForDiameterEstimation);
+    configDialog->addDouble(tr("Angle zénithal maximal pour la recherche de tronc"), "°", 0, 180, 2, _zenithalAngleMax);
     configDialog->addBool(tr("Appliquer une fonction sigmoide pour le scoring"), "", "", _applySigmoid);
     configDialog->addDouble(tr("Fonction Sigmoide : coefficient K"), "", 0, 1e+4, 2, _sigmoidCoefK);
     configDialog->addDouble(tr("Fonction Sigmoide : coordonnée x0 du point d'inflexion "), "", 0, 1, 2, _sigmoidX0);
@@ -224,8 +226,8 @@ void ONF_StepDetectVerticalAlignments07::createPostConfigurationDialog()
     configDialog->addInt(tr("Nombre de points minimum dans un cluster"), "", 2, 1000, _minPtsSmall);
     configDialog->addDouble(tr("Pourcentage maximum de la longueur de segment sans points"), "%", 0, 100, 0, _lineLengthRatioSmall, 100);
 
-    configDialog->addEmpty();
-    configDialog->addDouble(tr("Tolérance sur le diamètre (+/-)"), "cm", 0, 1000, 2, _deltaDmax, 100);
+//    configDialog->addEmpty();
+//    configDialog->addDouble(tr("Tolérance sur le diamètre (+/-)"), "cm", 0, 1000, 2, _deltaDmax, 100); // Allometry
 
     configDialog->addEmpty();
     configDialog->addBool(tr("Mode Debug Clusters"), "", "", _clusterDebugMode);
@@ -264,32 +266,33 @@ void ONF_StepDetectVerticalAlignments07::compute()
 void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlignmentsForScene(CT_StandardItemGroup* grp)
 {
     double thresholdZenithalAngleRadians = M_PI * _step->_thresholdZenithalAngle / 180.0;
+    double zenithalAngleMaxRadians = M_PI * _step->_zenithalAngleMax / 180.0;
     double rangeUnderstorey = _step->_maxDiameterForUnderstorey - _step->_minDiameter;
 
     const CT_AbstractItemDrawableWithPointCloud* sceneStem = (CT_AbstractItemDrawableWithPointCloud*)grp->firstItemByINModelName(_step, DEFin_sceneStem);
     const CT_StdLASPointsAttributesContainer* attributeLAS = (CT_StdLASPointsAttributesContainer*)grp->firstItemByINModelName(_step, DEFin_attLAS);
-    const CT_Image2D<qint32>* clusters = (CT_Image2D<qint32>*)grp->firstItemByINModelName(_step, DEFin_clusters);
+//    const CT_Image2D<qint32>* clusters = (CT_Image2D<qint32>*)grp->firstItemByINModelName(_step, DEFin_clusters);
 
     if (sceneStem != NULL && attributeLAS != NULL)
     {
         // Retrieve allometry DBHs if they do exist
-        QList<CT_Circle2D*> allometryDBHs;
-        if (_step->_useAllometry)
-        {
-            CT_GroupIterator grpAlloIt(grp, _step, DEFin_grpAllometry);
-            while (grpAlloIt.hasNext())
-            {
-                const CT_AbstractItemGroup* grpAllo = grpAlloIt.next();
-                if (grpAllo != NULL)
-                {
-                    CT_Circle2D* circle  = (CT_Circle2D*) grpAllo->firstItemByINModelName(_step, DEFin_circleAllometry);
-                    if (circle != NULL)
-                    {
-                        allometryDBHs.append(circle);
-                    }
-                }
-            }
-        }
+//        QList<CT_Circle2D*> allometryDBHs;
+//        if (_step->_useAllometry)
+//        {
+//            CT_GroupIterator grpAlloIt(grp, _step, DEFin_grpAllometry);
+//            while (grpAlloIt.hasNext())
+//            {
+//                const CT_AbstractItemGroup* grpAllo = grpAlloIt.next();
+//                if (grpAllo != NULL)
+//                {
+//                    CT_Circle2D* circle  = (CT_Circle2D*) grpAllo->firstItemByINModelName(_step, DEFin_circleAllometry);
+//                    if (circle != NULL)
+//                    {
+//                        allometryDBHs.append(circle);
+//                    }
+//                }
+//            }
+//        }
 
         // Retrieve attributes
         QHashIterator<CT_LasDefine::LASPointAttributesType, CT_AbstractPointAttributesScalar *> it(attributeLAS->lasPointsAttributes());
@@ -382,6 +385,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
 
         // Compute diameters using neighbourhoud
         QList<CT_Circle2D*> circles;
+        QMap<CT_Circle2D*, int> circleTypes;
         while (!keptLinesOfScan.isEmpty() && keptLinesOfScan.last()->size() > 2)
         {
             // Get next MainLine
@@ -413,7 +417,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
 
             if (!neighbourPointsToTest.isEmpty())
             {
-                findBestDirectionAndDiameter(thresholdZenithalAngleRadians, mainLine, mainLinePoints, neighbourPoints, neighbourPointsToTest, bestDirection, diameter, bestScore);
+                findBestDirectionAndDiameter(zenithalAngleMaxRadians, mainLine, mainLinePoints, neighbourPoints, neighbourPointsToTest, bestDirection, diameter, bestScore);
             }
 
             // Create cluster containing mainline and neighbourhood
@@ -462,6 +466,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
             } else {
                 // Add to result
                 CT_Circle2D* cir = addClusterToResult(grp, cluster, diameter, type, centerX, centerY,  centerZ, mainLine->_length, bestDirection, bestScore);
+                circleTypes.insert(cir, type);
                 circles.append(cir);
             }
 
@@ -550,7 +555,9 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
                                 type = 5; // Alignement, excessive diameter
                                 diameter = (std::rand() / (double)RAND_MAX) * rangeUnderstorey + _step->_minDiameter;
                             }
-                            otherCircles.append(addClusterToResult(grp, cluster, diameter, type, center(0), center(1),  center(2), fittedLineData->length(), fittedLineData->getDirection(), 0));
+                            CT_Circle2D* cir = addClusterToResult(grp, cluster, diameter, type, center(0), center(1),  center(2), fittedLineData->length(), fittedLineData->getDirection(), 0);
+                            circleTypes.insert(cir, type);
+                            otherCircles.append(cir);
                         } else {
                             delete cluster;
                         }
@@ -565,37 +572,38 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
         }
 
         // Test consistency with allometrical circles obtained from apex(input)
-        circles.append(otherCircles);
+        // Allometry
+//        circles.append(otherCircles);
 
-        QMap<CT_Circle2D*, double> correctedDiameters;
-        if (clusters != NULL)
-        {
-            computeCorrectedDiameters(clusters, allometryDBHs, circles, correctedDiameters);
-        }
+//        QMap<CT_Circle2D*, double> correctedDiameters;
+//        if (clusters != NULL)
+//        {
+//            computeCorrectedDiameters(clusters, allometryDBHs, circles, correctedDiameters);
+//        }
 
 
-        for (int i = 0 ; i < circles.size() ; i++)
-        {
-            CT_Circle2D* circle = circles.at(i);
-            int flag = 0; // no allometric correction
-            double correctedDbh = circle->getRadius() * 2.0;
+//        for (int i = 0 ; i < circles.size() ; i++)
+//        {
+//            CT_Circle2D* circle = circles.at(i);
+//            int flag = 0; // no allometric correction
+//            double correctedDbh = circle->getRadius() * 2.0;
 
-            if (correctedDiameters.contains(circle))
-            {
-                flag = 1;
-                correctedDbh = correctedDiameters.value(circle);
-                if (correctedDbh < 0)
-                {
-                    flag = 2;
-                    correctedDbh = (std::rand() / (double)RAND_MAX) * rangeUnderstorey + _step->_minDiameter;
-                }
-            }
+//            if (correctedDiameters.contains(circle))
+//            {
+//                flag = 1;
+//                correctedDbh = correctedDiameters.value(circle);
+//                if (correctedDbh < 0)
+//                {
+//                    flag = 2;
+//                    correctedDbh = (std::rand() / (double)RAND_MAX) * rangeUnderstorey + _step->_minDiameter;
+//                }
+//            }
 
-            circle->addItemAttribute(new CT_StdItemAttributeT<int>(_step->_attCorrectedFlag_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, flag));
+//            circle->addItemAttribute(new CT_StdItemAttributeT<int>(_step->_attCorrectedFlag_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, flag));
 
-            circle->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attCorrectedDiameter_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, correctedDbh * 100.0));
-            ((CT_Circle2DData*) (circle->getPointerData()))->setRadius(correctedDbh / 2.0);
-        }
+//            circle->addItemAttribute(new CT_StdItemAttributeT<double>(_step->_attCorrectedDiameter_ModelName.completeName(), CT_AbstractCategory::DATA_VALUE, _res, correctedDbh * 100.0));
+//            ((CT_Circle2DData*) (circle->getPointerData()))->setRadius(correctedDbh / 2.0);
+//        }
 
         qDeleteAll(candidateLines);
         candidateLines.clear();
@@ -960,7 +968,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findNeighbo
     }
 }
 
-void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDirectionAndDiameter(double thresholdZenithalAngleRadians,
+void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDirectionAndDiameter(double zenithalAngleMaxRadians,
                                                                                                   const ScanLineData *mainLine,
                                                                                                   const QList<CT_Point> &mainLinePoints,
                                                                                                   const QList<CT_Point> &neighbourPoints,
@@ -983,7 +991,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
     float resolutionInRadians = M_PI*_step->_resolutionForDiameterEstimation / 180.0;
     float pi2 =  2.0*(float)M_PI;
     // For each direction
-    for (float zenithal = 0 ; zenithal <= thresholdZenithalAngleRadians ; zenithal += resolutionInRadians)
+    for (float zenithal = 0 ; zenithal <= zenithalAngleMaxRadians ; zenithal += resolutionInRadians)
     {
         for (float azimut = 0 ; azimut <= pi2 ; azimut += resolutionInRadians)
         {
@@ -1434,6 +1442,11 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::computeCorr
         }
         clusterCircles.clear();
     }
+}
+
+void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::sortCirclesByTypeScoreAndDiameter(QList<CT_Circle2D*> &circles)
+{
+
 }
 
 
