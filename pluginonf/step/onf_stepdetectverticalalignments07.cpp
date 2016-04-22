@@ -97,10 +97,10 @@ ONF_StepDetectVerticalAlignments07::ONF_StepDetectVerticalAlignments07(CT_StepIn
     _lineLengthRatioSmall = 0.8;
 
     _zMinVerticalContinuity = 5;
-    _zMaxVerticalContinuity = 10;
+    _zMaxVerticalContinuity = 15;
     _radiusRatioForVerticalConstinuity = 1.5;
-    _minRadiusForVerticalConstinuity = 0.5;
-    _maxZDistForVerticalConstinuity = 4.0;
+    _minRadiusForVerticalConstinuity = 1.0;
+    _maxZDistForVerticalConstinuity = 3.0;
 
 
     _clusterDebugMode = false;
