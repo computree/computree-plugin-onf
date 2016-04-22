@@ -95,8 +95,6 @@ protected:
      */
     void createInResultModelListProtected();
 
-    void createPreConfigurationDialog();
-
     /*! \brief Parameters DialogBox
      *
      * DialogBox asking for step parameters
@@ -358,9 +356,9 @@ protected:
 
         void computeCorrectedDiameters(const CT_Image2D<qint32>* clusters, const QList<CT_Circle2D*> &allometryDBHs, const QList<CT_Circle2D*> &circles, QMap<CT_Circle2D*, double> &correctedDiameters);
 
-        void sortCirclesByTypeScoreAndDiameter(QList<CT_Circle2D *> &circles);
+        void createOrderedCircleList(const QMultiMap<int, CT_Circle2D *> &circleTypes, const QMap<CT_Circle2D*, double> &circleScores, QList<CT_Circle2D *> &circles);
 
-            private:
+    private:
         ONF_StepDetectVerticalAlignments07* _step;
         CT_ResultGroup* _res;
     };
@@ -394,8 +392,6 @@ protected:
 
 
     // Step parameters
-//    bool        _useAllometry;
-
     double      _thresholdGPSTime;
     double      _maxCurvature;
     double      _maxXYDist;
@@ -426,6 +422,14 @@ protected:
     double      _exclusionRadiusSmall;
 
     double      _deltaDmax;
+
+    double      _zMinVerticalContinuity;
+    double      _zMaxVerticalContinuity;
+    double      _radiusRatioForVerticalConstinuity;
+    double      _minRadiusForVerticalConstinuity;
+    double      _maxZDistForVerticalConstinuity;
+
+
 
     bool      _clusterDebugMode;
 
