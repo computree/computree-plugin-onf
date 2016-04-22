@@ -290,6 +290,10 @@ protected:
                                  QList<CT_Point> &mainLinePoints,
                                  int &mainLineOfFlight);
 
+        bool getPointOnLineForZ(const ScanLineData *line, double z, Eigen::Vector3d &point);
+
+        double computeSpacing(const ScanLineData *mainLine, ScanLineData* testedLine);
+
         void findNeighbours(const ScanLineData *mainLine,
                             const CT_AbstractPointCloudIndex* pointCloudIndexLAS,
                             const CT_AbstractPointAttributesScalar* attributeLineOfFlight,
@@ -326,8 +330,7 @@ protected:
                                         const Eigen::Vector3d &direction,
                                         const Eigen::Vector3d &origin);
 
-        CT_Circle2D *addClusterToResult(CT_StandardItemGroup* grp,
-                                        CT_PointCluster* cluster,
+        CT_Circle2D *addClusterToResult(CT_PointCluster* cluster,
                                         double diameter,
                                         int type,
                                         double centerX,
@@ -335,7 +338,8 @@ protected:
                                         double centerZ,
                                         double length,
                                         const Eigen::Vector3d &direction,
-                                        double score);
+                                        double score,
+                                        CT_StandardItemGroup *&grpClKept);
 
         void findNeighborLines(QList<LineData *> &candidateLines,
                                double distThreshold);
@@ -356,7 +360,7 @@ protected:
 
         void sortCirclesByTypeScoreAndDiameter(QList<CT_Circle2D *> &circles);
 
-    private:
+            private:
         ONF_StepDetectVerticalAlignments07* _step;
         CT_ResultGroup* _res;
     };
