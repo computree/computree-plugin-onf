@@ -35,6 +35,7 @@
 #include "ct_result/ct_resultgroup.h"
 
 #include "ct_itemdrawable/ct_scene.h"
+#include "ct_itemdrawable/abstract/ct_abstractareashape2d.h"
 #include "ct_itemdrawable/ct_triangulation2d.h"
 #include "ct_triangulation/ct_delaunayt.h"
 #include "ct_triangulation/ct_nodet.h"
@@ -97,7 +98,7 @@ void ONF_StepComputeDSMOnly::createInResultModelListProtected()
     resultModel->setZeroOrMoreRootGroup();
     resultModel->addGroupModel("", DEF_SearchInGroup);
     resultModel->addItemModel(DEF_SearchInGroup, DEF_SearchInScene, CT_Scene::staticGetType(), tr("Points végétation"));
-    resultModel->addItemModel(DEF_SearchInGroup, DEF_SearchInArea, CT_AbstractSingularItemDrawable::staticGetType(),
+    resultModel->addItemModel(DEF_SearchInGroup, DEF_SearchInArea, CT_AbstractAreaShape2D::staticGetType(),
                               tr("Emprise"), "", CT_InAbstractModel::C_ChooseOneIfMultiple, CT_InAbstractModel::F_IsOptional);
 }
 
@@ -138,7 +139,7 @@ void ONF_StepComputeDSMOnly::compute()
             const CT_Scene *scene = (const CT_Scene*)group->firstItemByINModelName(this, DEF_SearchInScene);
             const CT_AbstractPointCloudIndex *pointCloudIndex = scene->getPointCloudIndex();
 
-            const CT_AbstractSingularItemDrawable *emprise = (const CT_AbstractSingularItemDrawable*)group->firstItemByINModelName(this, DEF_SearchInArea);
+            const CT_AbstractAreaShape2D *emprise = (const CT_AbstractAreaShape2D*)group->firstItemByINModelName(this, DEF_SearchInArea);
 
 
             // Creation du raster

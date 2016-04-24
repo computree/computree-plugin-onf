@@ -95,7 +95,7 @@ void ONF_StepSelectBBoxByFileName::createInResultModelListProtected()
     resIn_res->addGroupModel("", DEFin_grpBBox, CT_AbstractItemGroup::staticGetType(), tr("Groupe"));
     resIn_res->addItemModel(DEFin_grpBBox, DEFin_header, CT_AbstractSingularItemDrawable::staticGetType(), tr("Item Nom de fichier"));
     resIn_res->addItemAttributeModel(DEFin_header, DEF_inATT, QList<QString>() << CT_AbstractCategory::DATA_VALUE, CT_AbstractCategory::STRING, tr("Nom de fichier"));
-    resIn_res->addItemModel(DEFin_grpBBox, DEFin_bbox, CT_AbstractSingularItemDrawable::staticGetType(), tr("Emprise correspondante"));
+    resIn_res->addItemModel(DEFin_grpBBox, DEFin_bbox, CT_AbstractAreaShape2D::staticGetType(), tr("Emprise correspondante"));
 
 
     CT_InResultModelGroupToCopy *resIn_resCpy = createNewInResultModelForCopy(DEFin_resHeader, tr("Fichier dont l'emprise doit être chargée"),
@@ -127,7 +127,7 @@ void ONF_StepSelectBBoxByFileName::compute()
     QList<CT_ResultGroup*> inResultList = getInputResults();
     CT_ResultGroup* inRes = inResultList.at(0);
 
-    QMap<QString, CT_AbstractSingularItemDrawable*> corresp;
+    QMap<QString, CT_AbstractAreaShape2D*> corresp;
 
     // Création de la liste des id recherchés
     CT_ResultGroupIterator itGrpIn(inRes, this, DEFin_grpBBox);
@@ -138,7 +138,7 @@ void ONF_StepSelectBBoxByFileName::compute()
         if (group != NULL)
         {
             CT_AbstractSingularItemDrawable* fileHeader  = (CT_AbstractSingularItemDrawable*) group->firstItemByINModelName(this, DEFin_header);
-            CT_AbstractSingularItemDrawable* bbox  = (CT_AbstractSingularItemDrawable*) group->firstItemByINModelName(this, DEFin_bbox);
+            CT_AbstractAreaShape2D* bbox  = (CT_AbstractAreaShape2D*) group->firstItemByINModelName(this, DEFin_bbox);
 
             if (fileHeader != NULL && bbox != NULL)
             {
@@ -174,7 +174,7 @@ void ONF_StepSelectBBoxByFileName::compute()
             if (fileHeader != NULL)
             {
                 QString filename = fileHeader->getFileInfo().fileName();
-                CT_AbstractSingularItemDrawable* bbox = corresp.value(filename.toLower(), NULL);
+                CT_AbstractAreaShape2D* bbox = corresp.value(filename.toLower(), NULL);
 
                 if (!filename.isEmpty() && bbox != NULL)
                 {
