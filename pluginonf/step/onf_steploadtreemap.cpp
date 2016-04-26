@@ -90,6 +90,17 @@ QString ONF_StepLoadTreeMap::getStepURL() const
     return CT_AbstractStepCanBeAddedFirst::getStepURL(); //by default URL of the plugin
 }
 
+bool ONF_StepLoadTreeMap::setAllSettings(const SettingsNodeGroup *settings)
+{
+    if(CT_AbstractStepCanBeAddedFirst::setAllSettings(settings))
+    {
+        fileChanged();
+        return true;
+    }
+
+    return false;
+}
+
 // Step copy method
 CT_VirtualAbstractStep* ONF_StepLoadTreeMap::createNewInstance(CT_StepInitializeData &dataInit)
 {
