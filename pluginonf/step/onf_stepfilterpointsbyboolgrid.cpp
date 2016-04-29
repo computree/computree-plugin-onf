@@ -182,6 +182,7 @@ void ONF_StepFilterPointsByBoolGrid::compute()
                     }
 
                     ++i;
+                    if (i % 1000 == 0) {setProgress(((float)i / (float)n_points) * 99.0);}
                 }
 
                 PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("...%1 points ont été conservés")).arg(nbOfFilteredPoints));
