@@ -298,17 +298,15 @@ protected:
                             QList<ScanLineData *> &keptLinesOfScan,
                             QList<ScanLineData *> &neighbourLines,
                             QList<CT_Point> &neighbourPoints,
-                            QList<int> &neighbourPointsToTest,
-                            QList<int> &neighbourPointsToTestIfOnlyOneLineOfFlight,
-                            QList<CT_Point> &lowestNeighbourPoints,
+                            QList<QList<int> > &neighbourLinesToTest,
+                            QList<QList<int> > &neighbourLinesToTestIfOnlyOneLineOfFlight,
                             int &mainLineOfFlight);
 
         void findBestDirectionAndDiameter(double zenithalAngleMaxRadians,
                                           const ScanLineData *mainLine,
                                           const QList<CT_Point> &mainLinePoints,
                                           const QList<CT_Point> &neighbourPoints,
-                                          const QList<int> &neighbourPointsToTest,
-                                          const QList<CT_Point> &lowestNeighbourPoints,
+                                          const QList<QList<int> > &neighbourLinesToTest,
                                           Eigen::Vector3d &bestDirection,
                                           double &diameter,
                                           double &bestScore);

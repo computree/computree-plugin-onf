@@ -403,15 +403,15 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
             // Search for neighbours
             QList<ScanLineData*> neighbourLines;
             QList<CT_Point> neighbourPoints;
-            QList<int> neighbourPointsToTest;
-            QList<int> neighbourPointsToTestIfOnlyOneLineOfFlight;
-            QList<CT_Point> lowestNeighbourPoints;
-            findNeighbours(mainLine, pointCloudIndexLAS, attributeLineOfFlight, keptLinesOfScan, neighbourLines, neighbourPoints, neighbourPointsToTest, neighbourPointsToTestIfOnlyOneLineOfFlight, lowestNeighbourPoints, mainLineOfFlight);
+            QList<QList<int> > neighbourLinesToTest;
+            QList<QList<int> > neighbourLinesToTestIfOnlyOneLineOfFlight;
+            findNeighbours(mainLine, pointCloudIndexLAS, attributeLineOfFlight, keptLinesOfScan, neighbourLines, neighbourPoints, neighbourLinesToTest, neighbourLinesToTestIfOnlyOneLineOfFlight, mainLineOfFlight);
 
-            if (neighbourPointsToTest.isEmpty())
+
+            if (neighbourLinesToTest.isEmpty())
             {
-                neighbourPointsToTest.append(neighbourPointsToTestIfOnlyOneLineOfFlight);
-                neighbourPointsToTestIfOnlyOneLineOfFlight.clear();
+                neighbourLinesToTest.append(neighbourLinesToTestIfOnlyOneLineOfFlight);
+                neighbourLinesToTestIfOnlyOneLineOfFlight.clear();
                 type = 2;
             }
 
@@ -419,10 +419,11 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
             double bestScore = 0;
             Eigen::Vector3d bestDirection(0, 0, 1);
 
-            if (!neighbourPointsToTest.isEmpty())
+            if (!neighbourLinesToTest.isEmpty())
             {
-                findBestDirectionAndDiameter(zenithalAngleMaxRadians, mainLine, mainLinePoints, neighbourPoints, neighbourPointsToTest, lowestNeighbourPoints, bestDirection, diameter, bestScore);
+                findBestDirectionAndDiameter(zenithalAngleMaxRadians, mainLine, mainLinePoints, neighbourPoints, neighbourLinesToTest, bestDirection, diameter, bestScore);
             }
+
 
             // Create cluster containing mainline and neighbourhood
             CT_PointCluster* cluster = new CT_PointCluster(_step->_cluster_ModelName.completeName(), _res);
@@ -1099,12 +1100,12 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findNeighbo
                                                                                     QList<ScanLineData*> &keptLinesOfScan,
                                                                                     QList<ScanLineData*> &neighbourLines,
                                                                                     QList<CT_Point> &neighbourPoints,
-                                                                                    QList<int> &neighbourPointsToTest,
-                                                                                    QList<int> &neighbourPointsToTestIfOnlyOneLineOfFlight,
-                                                                                    QList<CT_Point> &lowestNeighbourPoints,
+                                                                                    QList<QList<int> > &neighbourLinesToTest,
+                                                                                    QList<QList<int> > &neighbourLinesToTestIfOnlyOneLineOfFlight,
                                                                                     int &mainLineOfFlight)
 {
     CT_PointAccessor pointAccessor;
+    neighbourPoints.clear();
 
     for (int i = 0 ; i < keptLinesOfScan.size() ; i++)
     {
@@ -1113,9 +1114,6 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findNeighbo
 
         if (distXY < _step->_maxDiameter)
         {
-            const CT_Point& pointF = pointAccessor.constPointAt(testedLine->first());
-            lowestNeighbourPoints.append(pointF);
-
             if (distXY < (_step->_maxSearchRadiusByPts * testedLine->size()))
             {
                 double spacing = computeSpacing(mainLine, testedLine);
@@ -1124,6 +1122,9 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findNeighbo
                 {
                     neighbourLines.append(testedLine);
                     keptLinesOfScan.removeAt(i--);
+
+                    QList<int> ranksForLineToTest;
+                    QList<int> ranksForLineToTestIfOnlyOneLineOfFlight;
 
                     for (int j = 0 ; j < testedLine->size() ; j++)
                     {
@@ -1140,11 +1141,14 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findNeighbo
 
                         if (lineOfFlight != mainLineOfFlight)
                         {
-                            neighbourPointsToTest.append(neighbourPoints.size() - 1);
+                            ranksForLineToTest.append(neighbourPoints.size() - 1);
                         } else {
-                            neighbourPointsToTestIfOnlyOneLineOfFlight.append(neighbourPoints.size() - 1);
+                            ranksForLineToTestIfOnlyOneLineOfFlight.append(neighbourPoints.size() - 1);
                         }
                     }
+
+                    if (!ranksForLineToTest.isEmpty()) {neighbourLinesToTest.append(ranksForLineToTest);}
+                    if (!ranksForLineToTestIfOnlyOneLineOfFlight.isEmpty()) {neighbourLinesToTestIfOnlyOneLineOfFlight.append(ranksForLineToTestIfOnlyOneLineOfFlight);}
                 }
             }
         }
@@ -1155,24 +1159,30 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
                                                                                                   const ScanLineData *mainLine,
                                                                                                   const QList<CT_Point> &mainLinePoints,
                                                                                                   const QList<CT_Point> &neighbourPoints,
-                                                                                                  const QList<int> &neighbourPointsToTest,
-                                                                                                  const QList<CT_Point> &lowestNeighbourPoints,
+                                                                                                  const QList<QList<int> > &neighbourLinesToTest,
                                                                                                   Eigen::Vector3d &bestDirection,
                                                                                                   double &diameter,
                                                                                                   double &bestScore)
 {
     int mainLinePointsSize = mainLinePoints.size();
     int neighbourPointsSize = neighbourPoints.size();
-    int lowestNeighbourPointsSize = lowestNeighbourPoints.size();
-    int neighbourPointsOfDifferentsLinesOfFlightSize = neighbourPointsToTest.size();
+    int neighbourLinesToTestSize = neighbourLinesToTest.size();
+
     Eigen::Vector3d center(mainLine->_centerX, mainLine->_centerY, mainLine->_centerZ);
 
 
     std::vector<Eigen::Vector2d> prjPtsMainLine(mainLinePointsSize);
     std::vector<Eigen::Vector2d> prjPtsNeighbours(neighbourPointsSize);
-    std::vector<Eigen::Vector2d> prjLowestPts(lowestNeighbourPointsSize);
     Eigen::Vector3d projectedPt;
     Eigen::Vector2d circleCenter;
+
+    QVector<bool> lowestPointsIncludedForLines(neighbourLinesToTestSize);
+    QVector<double> scoreForLines(neighbourLinesToTestSize);
+    QVector<double> diameterForLines(neighbourLinesToTestSize);
+    QVector<Eigen::Vector3d> directionForLines(neighbourLinesToTestSize);
+    lowestPointsIncludedForLines.fill(false);
+    scoreForLines.fill(0);
+    diameterForLines.fill(0);
 
     float resolutionInRadians = M_PI*_step->_resolutionForDiameterEstimation / 180.0;
     float pi2 =  2.0*(float)M_PI;
@@ -1204,51 +1214,48 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
                 prjPtsNeighbours[i](1) = projectedPt(1);
             }
 
-            // Compute projected points for lowest neighbours points
-            for (int i = 0 ; i < lowestNeighbourPointsSize ; i++)
-            {
-                projectedPt = plane.projection(lowestNeighbourPoints[i]);
-                prjLowestPts[i](0) = projectedPt(0);
-                prjLowestPts[i](1) = projectedPt(1);
-            }
-
-            // Test all possibile diameter between one point from the main line, and one point from the neighbours lines
+            // Test all possible diameter between one point from the main line, and one point from the neighbours lines
             for (int i = 0 ; i < mainLinePointsSize ; i++)
             {
                 const Eigen::Vector2d& projectedPtMain = prjPtsMainLine[i];
 
-                for (int j = 0 ; j < neighbourPointsOfDifferentsLinesOfFlightSize ; j++)
+                for (int j = 0 ; j < neighbourLinesToTestSize ; j++)
                 {
-                    int currentNeighbourIndex = neighbourPointsToTest.at(j);
-                    const Eigen::Vector2d& neighbourProjectedPoint = prjPtsNeighbours[currentNeighbourIndex];
+                    const QList<int> &pointOfTheLine = neighbourLinesToTest.at(j);
 
-                    double candidateDiameter = sqrt(pow (projectedPtMain(0) - neighbourProjectedPoint(0), 2) + pow (projectedPtMain(1) - neighbourProjectedPoint(1), 2));
-
-                    // If candidate diameter is in the good range
-                    if (candidateDiameter <= _step->_maxDiameter && candidateDiameter >= _step->_minDiameter)
+                    for (int k = 0 ; k < pointOfTheLine.size() ; k++)
                     {
+                        int currentNeighbourIndex = pointOfTheLine.at(k);
+                        const Eigen::Vector2d& neighbourProjectedPoint = prjPtsNeighbours[currentNeighbourIndex];
 
+                        double candidateDiameter = sqrt(pow (projectedPtMain(0) - neighbourProjectedPoint(0), 2) + pow (projectedPtMain(1) - neighbourProjectedPoint(1), 2));
 
-                        double candidateRadius = candidateDiameter / 2.0;
-                        double candidateScore = 0;
-                        circleCenter (0) = (projectedPtMain(0) + neighbourProjectedPoint(0)) / 2.0;
-                        circleCenter (1) = (projectedPtMain(1) + neighbourProjectedPoint(1)) / 2.0;
-
-                        // Verifiy if any lowest neighbour point is in the circle
-                        bool lowestPointIncluded = false;
-                        for (int ll = 0 ; !lowestPointIncluded && ll < lowestNeighbourPointsSize ; ll++)
+                        // If candidate diameter is in the good range
+                        if (candidateDiameter <= _step->_maxDiameter && candidateDiameter >= _step->_minDiameter)
                         {
-                            const Eigen::Vector2d& point = prjLowestPts[ll];
-                            double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
+                            double candidateRadius = candidateDiameter / 2.0;
+                            double candidateScore = 0;
+                            circleCenter (0) = (projectedPtMain(0) + neighbourProjectedPoint(0)) / 2.0;
+                            circleCenter (1) = (projectedPtMain(1) + neighbourProjectedPoint(1)) / 2.0;
 
-                            if (distXY < candidateRadius*0.9)
+                            // Verifiy if any lowest neighbour point is in the circle
+                            for (int ll = 0 ; ll < neighbourLinesToTestSize ; ll++)
                             {
-                                lowestPointIncluded = true;
-                            }
-                        }
+                                if (ll != j)
+                                {
+                                    int firstIndex = neighbourLinesToTest.at(ll).first();
+                                    const Eigen::Vector2d& point = prjPtsNeighbours[firstIndex];
+                                    double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
 
-                        if (!lowestPointIncluded)
-                        {
+                                    if (distXY < candidateRadius*0.90)
+                                    {
+                                        lowestPointsIncludedForLines[j] = true;
+                                    } else {
+                                        lowestPointsIncludedForLines[j] = false;
+                                    }
+                                }
+                            }
+
                             // compute score for mainLine points
                             for (int k = 0 ; k < mainLinePointsSize ; k++)
                             {
@@ -1283,11 +1290,11 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
                                 }
                             }
 
-                            if (candidateScore > bestScore)
+                            if (candidateScore > scoreForLines[j])
                             {
-                                bestScore = candidateScore;
-                                diameter = candidateDiameter;
-                                bestDirection = direction;
+                                scoreForLines[j] = candidateScore;
+                                diameterForLines[j] = candidateDiameter;
+                                directionForLines[j] = direction;
                             }
                         }
                     }
@@ -1295,6 +1302,17 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
             }
         }
     }
+
+    for (int j = 0 ; j < neighbourLinesToTestSize ; j++)
+    {
+        if (!lowestPointsIncludedForLines[j] && scoreForLines[j] > bestScore)
+        {
+            bestScore = scoreForLines[j];
+            diameter = diameterForLines[j];
+            bestDirection = directionForLines[j];
+        }
+    }
+
 }
 
 void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::createClusterFromCandidateLines(ONF_StepDetectVerticalAlignments07::LineData* candidateLine,
