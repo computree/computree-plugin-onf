@@ -311,9 +311,7 @@ protected:
                                           const QList<CT_Point> &lowestNeighbourPoints,
                                           Eigen::Vector3d &bestDirection,
                                           double &diameter,
-                                          double &bestScore,
-                                          double &higherScoreIn,
-                                          double &higherScoreOut);
+                                          double &bestScore);
 
         CT_PointCluster *computeDiameterAlongFirstLastLine(double centerX,
                                                double centerY,
@@ -341,8 +339,6 @@ protected:
                                         double length,
                                         const Eigen::Vector3d &direction,
                                         double score,
-                                        double scoreIn,
-                                        double scoreOut,
                                         CT_StandardItemGroup *&grpClKept);
 
         void findNeighborLines(QList<LineData *> &candidateLines,
@@ -376,20 +372,14 @@ protected:
     CT_AutoRenameModels    _cluster_ModelName;
     CT_AutoRenameModels    _attMaxDistXY_ModelName;
     CT_AutoRenameModels    _attScore_ModelName;
-    CT_AutoRenameModels    _attScoreIn_ModelName;
-    CT_AutoRenameModels    _attScoreOut_ModelName;
     CT_AutoRenameModels    _attStemType_ModelName;
     CT_AutoRenameModels    _circle_ModelName;
     CT_AutoRenameModels    _attMaxDistXY2_ModelName;
     CT_AutoRenameModels    _attScore2_ModelName;
-    CT_AutoRenameModels    _attScoreIn2_ModelName;
-    CT_AutoRenameModels    _attScoreOut2_ModelName;
     CT_AutoRenameModels    _attStemType2_ModelName;
     CT_AutoRenameModels    _line_ModelName;
     CT_AutoRenameModels    _attMaxDistXY3_ModelName;
     CT_AutoRenameModels    _attScore3_ModelName;
-    CT_AutoRenameModels    _attScoreIn3_ModelName;
-    CT_AutoRenameModels    _attScoreOut3_ModelName;
     CT_AutoRenameModels    _attStemType3_ModelName;
     CT_AutoRenameModels    _attCorrectedDiameter_ModelName;
     CT_AutoRenameModels    _attCorrectedFlag_ModelName;
