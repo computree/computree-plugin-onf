@@ -30,6 +30,8 @@
 #ifdef USE_OPENCV
 #include "ct_step/abstract/ct_abstractstep.h"
 
+#include "ct_tools/model/ct_autorenamemodels.h"
+
 
 class ONF_StepClassifyGround : public CT_AbstractStep
 {
@@ -95,9 +97,13 @@ private:
     double  _min_density;                       /*!< Densite minimum pour considerer que c'est du sol*/
     double  _gridsize;                          /*!< Taille de  la grille MNT en m*/
     bool    _filterByDensity;
-    double  _soilwidth;                         /*!< Epaisseur du sol en m*/
+    double  _groundwidth;                         /*!< Epaisseur du sol en m*/
     bool    _filterByNeighourhoud;
     double  _dist;
+
+    CT_AutoRenameModels _outSceneVegetation_ModelName;
+    CT_AutoRenameModels _outSceneGround_ModelName;
+
 
 };
 #endif

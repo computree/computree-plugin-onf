@@ -29,19 +29,22 @@
 #ifdef USE_OPENCV
 #include "ct_global/ct_context.h"
 
-#include "ct_result/model/inModel/ct_inresultmodelgroup.h"
+#include "ct_result/model/inModel/ct_inresultmodelgrouptocopy.h"
 #include "ct_result/model/outModel/ct_outresultmodelgroup.h"
+#include "ct_result/model/outModel/tools/ct_outresultmodelgrouptocopypossibilities.h"
 
 #include "ct_result/ct_resultgroup.h"
 
 #include "ct_itemdrawable/ct_scene.h"
 #include "ct_itemdrawable/ct_triangulation2d.h"
+#include "ct_itemdrawable/ct_standarditemgroup.h"
 #include "ct_triangulation/ct_delaunayt.h"
 #include "ct_triangulation/ct_nodet.h"
 #include "ct_triangulation/ct_trianglet.h"
 #include "ct_itemdrawable/ct_image2d.h"
 #include "ct_pointcloudindex/ct_pointcloudindexvector.h"
 #include "ct_iterator/ct_pointiterator.h"
+#include "ct_iterator/ct_resultgroupiterator.h"
 #include "ct_view/ct_stepconfigurabledialog.h"
 
 #include <math.h>
@@ -52,14 +55,8 @@
 #define DEF_SearchInGroup   "igrp"
 #define DEF_SearchInScene   "isc"
 
-#define DEF_SearchOutResultVegetation "rv"
 #define DEF_SearchOutResultMNT "rmnt"
-
-#define DEF_SearchOutGroupVegetation  "gv"
 #define DEF_SearchOutGroupMNT  "gmnt"
-
-#define DEF_SearchOutSceneVegetation  "scv"
-#define DEF_SearchOutSceneSoil  "scs"
 #define DEF_SearchOutMNT  "mnt"
 #define DEF_SearchOutDensite  "dens"
 
@@ -68,7 +65,7 @@
 ONF_StepClassifyGround::ONF_StepClassifyGround(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
     _gridsize   = 0.5;
-    _soilwidth = 0.32;
+    _groundwidth = 0.32;
     _min_density = 200;
     _dist = 3;
     _filterByDensity = true;
@@ -102,7 +99,7 @@ CT_VirtualAbstractStep* ONF_StepClassifyGround::createNewInstance(CT_StepInitial
 
 void ONF_StepClassifyGround::createInResultModelListProtected()
 {  
-    CT_InResultModelGroup *resultModel = createNewInResultModel(DEF_SearchInResult, tr("Scène(s)"));
+    CT_InResultModelGroupToCopy *resultModel = createNewInResultModelForCopy(DEF_SearchInResult, tr("Scène(s)"));
 
     resultModel->setZeroOrMoreRootGroup();
     resultModel->addGroupModel("", DEF_SearchInGroup);
@@ -114,7 +111,7 @@ void ONF_StepClassifyGround::createPostConfigurationDialog()
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
 
     configDialog->addDouble(tr("Résolution de la grille :"), "cm", 1, 1000, 0, _gridsize, 100);
-    configDialog->addDouble(tr("Epaisseur du sol :"), "cm", 1, 100, 0, _soilwidth, 100);
+    configDialog->addDouble(tr("Epaisseur du sol :"), "cm", 1, 100, 0, _groundwidth, 100);
     configDialog->addBool(tr("Filtrage selon la densité"), "", "", _filterByDensity);
     configDialog->addDouble(tr("Densité minimum :"), "pts/m2", 0, 99999999, 2, _min_density);
     configDialog->addBool(tr("Filtrage selon le voisinnage"), "", "", _filterByNeighourhoud);
@@ -123,25 +120,22 @@ void ONF_StepClassifyGround::createPostConfigurationDialog()
 
 void ONF_StepClassifyGround::createOutResultModelListProtected()
 {
-    CT_OutResultModelGroup *resultModel;
+    CT_OutResultModelGroupToCopyPossibilities* resultModel = createNewOutResultModelToCopy(DEF_SearchInResult);
 
-    resultModel = createNewOutResultModel(DEF_SearchOutResultVegetation, tr("Points classifiés"));
-    resultModel->setRootGroup(DEF_SearchOutGroupVegetation);
-    resultModel->addItemModel(DEF_SearchOutGroupVegetation, DEF_SearchOutSceneVegetation, new CT_Scene(), tr("Points végétation"));
-    resultModel->addItemModel(DEF_SearchOutGroupVegetation, DEF_SearchOutSceneSoil, new CT_Scene(), tr("Points sol"));
+    if (resultModel != NULL)
+    {
+        resultModel->addItemModel(DEF_SearchInGroup, _outSceneVegetation_ModelName, new CT_Scene(), tr("Points végétation"));
+        resultModel->addItemModel(DEF_SearchInGroup, _outSceneGround_ModelName, new CT_Scene(), tr("Points sol"));
 
-    resultModel = createNewOutResultModel(DEF_SearchOutResultMNT, tr("Rasters de classification"));
-    resultModel->setRootGroup(DEF_SearchOutGroupMNT);
-    resultModel->addItemModel(DEF_SearchOutGroupMNT, DEF_SearchOutMNT, new CT_Image2D<float>(), tr("MNT (Zmin)"));
-    resultModel->addItemModel(DEF_SearchOutGroupMNT, DEF_SearchOutDensite, new CT_Image2D<int>(), tr("Densité pts sol"));
+        CT_OutResultModelGroup *resultModelMNT = createNewOutResultModel(DEF_SearchOutResultMNT, tr("Rasters de classification"));
+        resultModelMNT->setRootGroup(DEF_SearchOutGroupMNT);
+        resultModelMNT->addItemModel(DEF_SearchOutGroupMNT, DEF_SearchOutMNT, new CT_Image2D<float>(), tr("MNT (Zmin)"));
+        resultModelMNT->addItemModel(DEF_SearchOutGroupMNT, DEF_SearchOutDensite, new CT_Image2D<int>(), tr("Densité pts sol"));
+    }
 }
 
 void ONF_StepClassifyGround::compute()
 {
-
-    // recupere le resultat d'entree
-    CT_ResultGroup *inResult = getInputResults().first();
-
     // recupere les resultats de sortie
     const QList<CT_ResultGroup*> &outResList = getOutResultList();
 
@@ -149,7 +143,7 @@ void ONF_StepClassifyGround::compute()
     CT_ResultGroup *outResultVegetation =       outResList.at(0);
     CT_ResultGroup *outResultMNT =              outResList.at(1);
 
-    CT_ResultItemIterator it(inResult, this, DEF_SearchInScene);
+    CT_ResultItemIterator it(outResultVegetation, this, DEF_SearchInScene);
     if (!isStopped() && it.hasNext())
     {
 
@@ -187,8 +181,9 @@ void ONF_StepClassifyGround::compute()
         CT_Image2D<float>* mnt = new CT_Image2D<float>(DEF_SearchOutMNT, outResultMNT, minX, minY, n_mntX, n_mntY, _gridsize, minZ, -9999, -9999);
         CT_Image2D<int>* densite = new CT_Image2D<int>(DEF_SearchOutDensite, outResultMNT, minX, minY, n_mntX, n_mntY, _gridsize, minZ - 1, -9999, 0);
 
+        qDebug() << mnt;
         // Création MNT (version Zmin) + MNS
-        CT_ResultItemIterator it2(inResult, this, DEF_SearchInScene);
+        CT_ResultItemIterator it2(outResultVegetation, this, DEF_SearchInScene);
         while (!isStopped() && it2.hasNext())
         {
             const CT_Scene *scene = (CT_Scene*)it2.next();
@@ -207,8 +202,8 @@ void ONF_StepClassifyGround::compute()
         setProgress(20);
         PS_LOG->addMessage(LogInterface::info, LogInterface::step, tr("Grille Zmin créée"));
 
-        // Creation raster densité points sol (sur la base de Zmin + _soilwidth)
-        CT_ResultItemIterator it3(inResult, this, DEF_SearchInScene);
+        // Creation raster densité points sol (sur la base de Zmin + _groundWidth)
+        CT_ResultItemIterator it3(outResultVegetation, this, DEF_SearchInScene);
         while (!isStopped() && it3.hasNext())
         {
             const CT_Scene *scene = (CT_Scene*)it3.next();
@@ -218,7 +213,7 @@ void ONF_StepClassifyGround::compute()
             while(itP.hasNext() && !isStopped())
             {
                 const CT_Point &point =itP.next().currentPoint();
-                float value = mnt->valueAtCoords(point(0), point(1)) + _soilwidth;
+                float value = mnt->valueAtCoords(point(0), point(1)) + _groundwidth;
                 if (point(2) < value)
                 {
                     densite->addValueAtCoords(point(0), point(1), 1);
@@ -239,6 +234,7 @@ void ONF_StepClassifyGround::compute()
             // Test de cohérence de voisinnage
             for (xx=0 ; xx<n_mntX ; ++xx) {
                 for (yy=0 ; yy<n_mntY ; ++yy) {
+                    qDebug() << mnt;
                     float value = mnt->value(xx, yy);
                     if (value != mnt->NA())
                     {
@@ -285,80 +281,80 @@ void ONF_StepClassifyGround::compute()
 
 
         // creation des scenes pour les points sol et vegetation
-        CT_ResultItemIterator it4(inResult, this, DEF_SearchInScene);
+        CT_ResultGroupIterator itGrpScene(outResultVegetation, this, DEF_SearchInGroup);
         int nscenes = 1;
-        while (!isStopped() && it4.hasNext())
+        while (!isStopped() && itGrpScene.hasNext())
         {
-            const CT_Scene *scene = (CT_Scene*)it4.next();
-            const CT_AbstractPointCloudIndex *pointCloudIndex = scene->getPointCloudIndex();
-
-            CT_PointIterator itP(pointCloudIndex);
-            while(itP.hasNext() && !isStopped())
+            CT_StandardItemGroup* group = (CT_StandardItemGroup*) itGrpScene.next();
+            const CT_Scene *scene = (CT_Scene*)group->firstItemByINModelName(this, DEF_SearchInScene);
+            if (scene != NULL)
             {
-                const CT_Point &point = itP.next().currentPoint();
-                size_t index = itP.currentGlobalIndex();
 
-                float value = mnt->valueAtCoords(point(0), point(1)) + _soilwidth;
+                const CT_AbstractPointCloudIndex *pointCloudIndex = scene->getPointCloudIndex();
 
-                if (value != mnt->NA() && point(2) < value) {
-                    if (tab_sol_index == NULL)
-                    {
-                        tab_sol_index = new CT_PointCloudIndexVector();
-                        tab_sol_index->setSortType(CT_AbstractCloudIndex::NotSorted);
-                    }
-                    tab_sol_index->addIndex(index);
-
-                } else {
-                    if (tab_veg_index == NULL)
-                    {
-                        tab_veg_index = new CT_PointCloudIndexVector();
-                        tab_veg_index->setSortType(CT_AbstractCloudIndex::NotSorted);
-                    }
-                    tab_veg_index->addIndex(index);
-                }
-            }
-
-            setProgress(80);
-
-            size_t numberOfSoilPoints = 0;
-            size_t numberOfVegetationPoints = 0;
-
-            CT_StandardItemGroup *outGroupVegetation = new CT_StandardItemGroup(DEF_SearchOutGroupVegetation, outResultVegetation);
-            outResultVegetation->addGroup(outGroupVegetation);
-
-            if (tab_sol_index != NULL)
-            {
-                tab_sol_index->setSortType(CT_AbstractCloudIndex::SortedInAscendingOrder);
-                numberOfSoilPoints = tab_sol_index->size();
-
-                if (numberOfSoilPoints > 0)
+                CT_PointIterator itP(pointCloudIndex);
+                while(itP.hasNext() && !isStopped())
                 {
-                    // creation de la scene sol
-                    CT_Scene *outSceneSoil = new CT_Scene(DEF_SearchOutSceneSoil, outResultVegetation);
-                    outSceneSoil->setPointCloudIndexRegistered(PS_REPOSITORY->registerPointCloudIndex(tab_sol_index));
-                    outSceneSoil->updateBoundingBox();
-                    outGroupVegetation->addItemDrawable(outSceneSoil);
+                    const CT_Point &point = itP.next().currentPoint();
+                    size_t index = itP.currentGlobalIndex();
+
+                    float value = mnt->valueAtCoords(point(0), point(1)) + _groundwidth;
+
+                    if (value != mnt->NA() && point(2) < value) {
+                        if (tab_sol_index == NULL)
+                        {
+                            tab_sol_index = new CT_PointCloudIndexVector();
+                            tab_sol_index->setSortType(CT_AbstractCloudIndex::NotSorted);
+                        }
+                        tab_sol_index->addIndex(index);
+
+                    } else {
+                        if (tab_veg_index == NULL)
+                        {
+                            tab_veg_index = new CT_PointCloudIndexVector();
+                            tab_veg_index->setSortType(CT_AbstractCloudIndex::NotSorted);
+                        }
+                        tab_veg_index->addIndex(index);
+                    }
                 }
-            }
 
-            if (tab_veg_index != NULL)
-            {
-                tab_veg_index->setSortType(CT_AbstractCloudIndex::SortedInAscendingOrder);
-                numberOfVegetationPoints = tab_veg_index->size();
+                setProgress(80);
 
-                if (numberOfVegetationPoints > 0)
+                size_t numberOfGroundPoints = 0;
+                size_t numberOfVegetationPoints = 0;
+
+                if (tab_sol_index != NULL)
                 {
-                    // creation de la scene vegetation
-                    CT_Scene *outSceneVegetation = new CT_Scene(DEF_SearchOutSceneVegetation, outResultVegetation);
-                    outSceneVegetation->setPointCloudIndexRegistered(PS_REPOSITORY->registerPointCloudIndex(tab_veg_index));
-                    outSceneVegetation->updateBoundingBox();
-                    outGroupVegetation->addItemDrawable(outSceneVegetation);
-                }
-            }
+                    tab_sol_index->setSortType(CT_AbstractCloudIndex::SortedInAscendingOrder);
+                    numberOfGroundPoints = tab_sol_index->size();
 
-            PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("Scène %3 : Création des scènes sol (%1 points) et végétation (%2 points) terminée")).arg(numberOfSoilPoints).arg(numberOfVegetationPoints).arg(nscenes++));
-            tab_sol_index = NULL;
-            tab_veg_index = NULL;
+                    if (numberOfGroundPoints > 0)
+                    {
+                        // creation de la scene sol
+                        CT_Scene *outSceneGround = new CT_Scene(_outSceneGround_ModelName.completeName(), outResultVegetation, PS_REPOSITORY->registerPointCloudIndex(tab_sol_index));
+                        outSceneGround->updateBoundingBox();
+                        group->addItemDrawable(outSceneGround);
+                    }
+                }
+
+                if (tab_veg_index != NULL)
+                {
+                    tab_veg_index->setSortType(CT_AbstractCloudIndex::SortedInAscendingOrder);
+                    numberOfVegetationPoints = tab_veg_index->size();
+
+                    if (numberOfVegetationPoints > 0)
+                    {
+                        // creation de la scene vegetation
+                        CT_Scene *outSceneVegetation = new CT_Scene(_outSceneVegetation_ModelName.completeName(), outResultVegetation, PS_REPOSITORY->registerPointCloudIndex(tab_veg_index));
+                        outSceneVegetation->updateBoundingBox();
+                        group->addItemDrawable(outSceneVegetation);
+                    }
+                }
+
+                PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("Scène %3 : Création des scènes sol (%1 points) et végétation (%2 points) terminée")).arg(numberOfGroundPoints).arg(numberOfVegetationPoints).arg(nscenes++));
+                tab_sol_index = NULL;
+                tab_veg_index = NULL;
+            }
         }
 
         // Progression Etape 4
