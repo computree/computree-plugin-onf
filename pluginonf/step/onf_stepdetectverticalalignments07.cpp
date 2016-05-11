@@ -1186,6 +1186,41 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
 
     float resolutionInRadians = M_PI*_step->_resolutionForDiameterEstimation / 180.0;
     float pi2 =  2.0*(float)M_PI;
+
+    // Selected points pairs to test
+    QMultiMap<int, QPair<int, int> > pairsToTest;
+    for (int i = 0 ; i < mainLinePointsSize ; i++)
+    {
+        const CT_Point &mainPt = mainLinePoints[i];
+
+        for (int j = 0 ; j < neighbourLinesToTestSize ; j++)
+        {
+            const QList<int> &pointOfTheLine = neighbourLinesToTest.at(j);
+
+            double deltaZMin = std::numeric_limits<double>::max();
+            int bestK = -1;
+
+            for (int k = 0 ; k < pointOfTheLine.size() ; k++)
+            {
+                int currentNeighbourIndex = pointOfTheLine.at(k);
+                const CT_Point &testedPt = neighbourPoints[currentNeighbourIndex];
+
+                double deltaZ = abs(mainPt(2) - testedPt(2));
+                if (deltaZ < deltaZMin)
+                {
+                    deltaZMin = deltaZ;
+                    bestK = k;
+                }
+            }
+
+            if (bestK >= 0)
+            {
+                pairsToTest.insert(i, QPair<int, int>(j, bestK));
+            }
+        }
+    }
+
+
     // For each direction
     for (float zenithal = 0 ; zenithal <= zenithalAngleMaxRadians ; zenithal += resolutionInRadians)
     {
@@ -1219,83 +1254,84 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
             {
                 const Eigen::Vector2d& projectedPtMain = prjPtsMainLine[i];
 
-                for (int j = 0 ; j < neighbourLinesToTestSize ; j++)
+                QList<QPair<int, int> > pointsToTest = pairsToTest.values(i);
+                for (int pp = 0 ; pp < pointsToTest.size() ; pp++)
                 {
+                    const QPair<int, int> &pair = pointsToTest.at(pp);
+                    int j = pair.first;
+                    int k = pair.second;
+
                     const QList<int> &pointOfTheLine = neighbourLinesToTest.at(j);
+                    int currentNeighbourIndex = pointOfTheLine.at(k);
+                    const Eigen::Vector2d& neighbourProjectedPoint = prjPtsNeighbours[currentNeighbourIndex];
 
-                    for (int k = 0 ; k < pointOfTheLine.size() ; k++)
+                    double candidateDiameter = sqrt(pow (projectedPtMain(0) - neighbourProjectedPoint(0), 2) + pow (projectedPtMain(1) - neighbourProjectedPoint(1), 2));
+
+                    // If candidate diameter is in the good range
+                    if (candidateDiameter <= _step->_maxDiameter && candidateDiameter >= _step->_minDiameter)
                     {
-                        int currentNeighbourIndex = pointOfTheLine.at(k);
-                        const Eigen::Vector2d& neighbourProjectedPoint = prjPtsNeighbours[currentNeighbourIndex];
+                        double candidateRadius = candidateDiameter / 2.0;
+                        double candidateScore = 0;
+                        bool lowestPointsIncludedForLine = false;
+                        circleCenter (0) = (projectedPtMain(0) + neighbourProjectedPoint(0)) / 2.0;
+                        circleCenter (1) = (projectedPtMain(1) + neighbourProjectedPoint(1)) / 2.0;
 
-                        double candidateDiameter = sqrt(pow (projectedPtMain(0) - neighbourProjectedPoint(0), 2) + pow (projectedPtMain(1) - neighbourProjectedPoint(1), 2));
-
-                        // If candidate diameter is in the good range
-                        if (candidateDiameter <= _step->_maxDiameter && candidateDiameter >= _step->_minDiameter)
+                        // Verifiy if any lowest neighbour point is in the circle
+                        for (int ll = 0 ; ll < neighbourLinesToTestSize ; ll++)
                         {
-                            double candidateRadius = candidateDiameter / 2.0;
-                            double candidateScore = 0;
-                            circleCenter (0) = (projectedPtMain(0) + neighbourProjectedPoint(0)) / 2.0;
-                            circleCenter (1) = (projectedPtMain(1) + neighbourProjectedPoint(1)) / 2.0;
-
-                            // Verifiy if any lowest neighbour point is in the circle
-                            for (int ll = 0 ; ll < neighbourLinesToTestSize ; ll++)
+                            if (ll != j)
                             {
-                                if (ll != j)
-                                {
-                                    int firstIndex = neighbourLinesToTest.at(ll).first();
-                                    const Eigen::Vector2d& point = prjPtsNeighbours[firstIndex];
-                                    double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
-
-                                    if (distXY < candidateRadius*0.90)
-                                    {
-                                        lowestPointsIncludedForLines[j] = true;
-                                    } else {
-                                        lowestPointsIncludedForLines[j] = false;
-                                    }
-                                }
-                            }
-
-                            // compute score for mainLine points
-                            for (int k = 0 ; k < mainLinePointsSize ; k++)
-                            {
-                                const Eigen::Vector2d& point = prjPtsMainLine[k];
+                                int firstIndex = neighbourLinesToTest.at(ll).first();
+                                const Eigen::Vector2d& point = prjPtsNeighbours[firstIndex];
                                 double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
 
-                                if (distXY <= candidateRadius)
+                                if (distXY < candidateRadius*0.90)
                                 {
-                                    candidateScore += weightedScore(_step->_applySigmoid, distXY / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
-                                } else {
-                                    if (distXY <= candidateDiameter)
-                                    {
-                                        candidateScore += weightedScore(_step->_applySigmoid, (candidateDiameter - distXY) / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
-                                    }
+                                    lowestPointsIncludedForLine = true;
                                 }
                             }
+                        }
 
-                            // compute score for neighbour points
-                            for (int k = 0 ; k < neighbourPointsSize ; k++)
+                        // compute score for mainLine points
+                        for (int k = 0 ; k < mainLinePointsSize ; k++)
+                        {
+                            const Eigen::Vector2d& point = prjPtsMainLine[k];
+                            double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
+
+                            if (distXY <= candidateRadius)
                             {
-                                const Eigen::Vector2d& point = prjPtsNeighbours[k];
-                                double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
-
-                                if (distXY <= candidateRadius)
+                                candidateScore += weightedScore(_step->_applySigmoid, distXY / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
+                            } else {
+                                if (distXY <= candidateDiameter)
                                 {
-                                    candidateScore += weightedScore(_step->_applySigmoid, distXY / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
-                                } else {
-                                    if (distXY <= candidateDiameter)
-                                    {
-                                        candidateScore += weightedScore(_step->_applySigmoid, (candidateDiameter - distXY) / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
-                                    }
+                                    candidateScore += weightedScore(_step->_applySigmoid, (candidateDiameter - distXY) / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
                                 }
                             }
+                        }
 
-                            if (candidateScore > scoreForLines[j])
+                        // compute score for neighbour points
+                        for (int k = 0 ; k < neighbourPointsSize ; k++)
+                        {
+                            const Eigen::Vector2d& point = prjPtsNeighbours[k];
+                            double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
+
+                            if (distXY <= candidateRadius)
                             {
-                                scoreForLines[j] = candidateScore;
-                                diameterForLines[j] = candidateDiameter;
-                                directionForLines[j] = direction;
+                                candidateScore += weightedScore(_step->_applySigmoid, distXY / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
+                            } else {
+                                if (distXY <= candidateDiameter)
+                                {
+                                    candidateScore += weightedScore(_step->_applySigmoid, (candidateDiameter - distXY) / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
+                                }
                             }
+                        }
+
+                        if (candidateScore > scoreForLines[j])
+                        {
+                            scoreForLines[j] = candidateScore;
+                            diameterForLines[j] = candidateDiameter;
+                            directionForLines[j] = direction;
+                            lowestPointsIncludedForLines[j] = lowestPointsIncludedForLine;
                         }
                     }
                 }
