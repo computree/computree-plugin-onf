@@ -252,14 +252,6 @@ protected:
 
 
         void detectAlignmentsForScene(CT_StandardItemGroup* grp);
-        inline double weightedScore(bool applySigmoid, double val, const double &k, const double &x0)
-        {
-            if (applySigmoid)
-            {
-                return 1.0/ (1.0 + std::exp(-k*(val - x0)));
-            }
-            return val;
-        }
         
         void sortIndicesByGPSTime(const CT_AbstractPointCloudIndex* pointCloudIndexLAS,
                                   const CT_AbstractPointAttributesScalar* attributeGPS,
@@ -405,11 +397,7 @@ protected:
     double      _maxLineSpacing;
     double      _resolutionForDiameterEstimation;
     double      _zenithalAngleMax;
-
-
-    bool        _applySigmoid;
-    double      _sigmoidCoefK;
-    double      _sigmoidX0;
+    double      _ratioRadius;
 
     double      _ratioDbhNbPtsMax;
     double      _monoLineMult;
