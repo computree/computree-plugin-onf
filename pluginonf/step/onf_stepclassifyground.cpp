@@ -164,12 +164,15 @@ void ONF_StepClassifyGround::compute()
             const CT_AbstractPointCloudIndex *pointCloudIndex = scene->getPointCloudIndex();
             size_t n_points = pointCloudIndex->size();
 
-            if (scene->minX() < minX) {minX = scene->minX();}
-            if (scene->minY() < minY) {minY = scene->minY();}
-            if (scene->minZ() < minZ) {minZ = scene->minZ();}
-            if (scene->maxX() > maxX) {maxX = scene->maxX();}
-            if (scene->maxY() > maxY) {maxY = scene->maxY();}
-            if (scene->maxZ() > maxZ) {maxZ = scene->maxZ();}
+            if (n_points > 0)
+            {
+                if (scene->minX() < minX) {minX = scene->minX();}
+                if (scene->minY() < minY) {minY = scene->minY();}
+                if (scene->minZ() < minZ) {minZ = scene->minZ();}
+                if (scene->maxX() > maxX) {maxX = scene->maxX();}
+                if (scene->maxY() > maxY) {maxY = scene->maxY();}
+                if (scene->maxZ() > maxZ) {maxZ = scene->maxZ();}
+            }
             PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("La scène d'entrée %2 comporte %1 points.")).arg(n_points).arg(nSc++));
         }
 
@@ -178,10 +181,11 @@ void ONF_StepClassifyGround::compute()
         size_t n_mntY = abs((maxY - minY)/_gridsize) + 2;
         size_t tab_mnt_size = n_mntX*n_mntY;
 
+        PS_LOG->addMessage(LogInterface::info, LogInterface::step, tr("Grille MNT à créer : %1 lignes sur %2 colonnes").arg(n_mntY).arg(n_mntX));
+
         CT_Image2D<float>* mnt = new CT_Image2D<float>(DEF_SearchOutMNT, outResultMNT, minX, minY, n_mntX, n_mntY, _gridsize, minZ, -9999, -9999);
         CT_Image2D<int>* densite = new CT_Image2D<int>(DEF_SearchOutDensite, outResultMNT, minX, minY, n_mntX, n_mntY, _gridsize, minZ - 1, -9999, 0);
 
-        qDebug() << mnt;
         // Création MNT (version Zmin) + MNS
         CT_ResultItemIterator it2(outResultVegetation, this, DEF_SearchInScene);
         while (!isStopped() && it2.hasNext())
@@ -234,7 +238,6 @@ void ONF_StepClassifyGround::compute()
             // Test de cohérence de voisinnage
             for (xx=0 ; xx<n_mntX ; ++xx) {
                 for (yy=0 ; yy<n_mntY ; ++yy) {
-                    qDebug() << mnt;
                     float value = mnt->value(xx, yy);
                     if (value != mnt->NA())
                     {
