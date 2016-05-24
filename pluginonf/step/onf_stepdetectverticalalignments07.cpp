@@ -103,6 +103,7 @@ ONF_StepDetectVerticalAlignments07::ONF_StepDetectVerticalAlignments07(CT_StepIn
 
 
     _clusterDebugMode = false;
+    _retrieveLostLinesParts = true;
 }
 
 // Step description (tooltip of contextual menu)
@@ -227,6 +228,7 @@ void ONF_StepDetectVerticalAlignments07::createPostConfigurationDialog()
 
     configDialog->addEmpty();
     configDialog->addBool(tr("Mode Debug Clusters"), "", "", _clusterDebugMode);
+    configDialog->addBool(tr("Récupérer les parties de lignes perdues"), "", "", _retrieveLostLinesParts);
 }
 
 void ONF_StepDetectVerticalAlignments07::compute()
@@ -327,7 +329,25 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
         createLinesOfScan(sortedIndices, linesOfScan, isolatedPointIndices);
         sortedIndices.clear();
 
+        // Archive detection of lines of scan (all complete)
+        if (_step->_clusterDebugMode)
+        {
+            for (int lineN = 0 ; lineN < linesOfScan.size() ; lineN++)
+            {
+                const QList<size_t> &completeLine = linesOfScan.at(lineN);
 
+                CT_PointCluster* cluster = new CT_PointCluster(_step->_clusterDebug1_ModelName.completeName(), _res);
+                for (int j = 0 ; j < completeLine.size() ; j++)
+                {
+                    cluster->addPoint(completeLine.at(j));
+                }
+                CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpClusterDebug1_ModelName.completeName(), _res);
+                grp->addGroup(grpClKept);
+                grpClKept->addItemDrawable(cluster);
+            }
+        }
+
+        
         // Eliminate noise in lines of scan
         QList<QList<size_t> > simplifiedLinesOfScan;
         denoiseLinesOfScan(linesOfScan, pointCloudIndexLAS, attributeIntensity, grp, simplifiedLinesOfScan, isolatedPointIndices);
@@ -752,25 +772,12 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::denoiseLine
 {
     CT_PointAccessor pointAccessor;
 
-    QListIterator<QList<size_t> > itLines(linesOfScan);
-    while (itLines.hasNext())
+    QList<QList<size_t> > linesOfScanTmp;
+    linesOfScanTmp.append(linesOfScan);
+
+    for (int lineN = 0 ; lineN < linesOfScanTmp.size() ; lineN++)
     {
-        const QList<size_t> &completeLine = itLines.next();
-
-
-        // Archive detection of lines of scan (all complete)
-        if (_step->_clusterDebugMode)
-        {
-            CT_PointCluster* cluster = new CT_PointCluster(_step->_clusterDebug1_ModelName.completeName(), _res);
-            for (int j = 0 ; j < completeLine.size() ; j++)
-            {
-                cluster->addPoint(completeLine.at(j));
-            }
-            CT_StandardItemGroup* grpClKept = new CT_StandardItemGroup(_step->_grpClusterDebug1_ModelName.completeName(), _res);
-            grp->addGroup(grpClKept);
-            grpClKept->addItemDrawable(cluster);
-        }
-
+        const QList<size_t> &completeLine = linesOfScanTmp.at(lineN);
 
         // Find a reference point on the line of scan (max intensity point)
         double maxIntensity = -std::numeric_limits<double>::max();
@@ -896,15 +903,54 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::denoiseLine
             }
         }
 
-        // All noise points are added to isolatedPointsIndices
-        for (int i = 0 ; i < completeLine.size() ; i++)
+        if (_step->_retrieveLostLinesParts)
         {
-            size_t index = completeLine.at(1);
-            if (!finalSimplifiedLine.contains(index))
+            // All noise points are added to isolatedPointsIndices or in lines list
+            QList<size_t> previousRemovedIndices;
+            for (int i = 0 ; i < completeLine.size() ; i++)
             {
-                isolatedPointIndices.append(index);
+                size_t index = completeLine.at(i);
+                if (finalSimplifiedLine.contains(index))
+                {
+                    if (previousRemovedIndices.size() == 1)
+                    {
+                        isolatedPointIndices.append(previousRemovedIndices.first());
+                    } else if (previousRemovedIndices.size() > 1) {
+                        linesOfScanTmp.append(previousRemovedIndices);
+                        previousRemovedIndices.clear();
+                    }
+                    previousRemovedIndices.clear();
+                } else {
+                    previousRemovedIndices.append(index);
+                }
             }
 
+            if (previousRemovedIndices.size() == 1)
+            {
+                isolatedPointIndices.append(previousRemovedIndices.first());
+            } else if (previousRemovedIndices.size() > 1) {
+
+                if (finalSimplifiedLine.size() > 0)
+                {
+                    linesOfScanTmp.append(previousRemovedIndices);
+                } else {
+                    for (int i = 0 ; i < previousRemovedIndices.size() ; i++)
+                    {
+                        isolatedPointIndices.append(previousRemovedIndices.at(i));
+                    }
+                }
+                previousRemovedIndices.clear();
+            }
+        } else {
+            // All noise points are added to isolatedPointsIndices
+            for (int i = 0 ; i < completeLine.size() ; i++)
+            {
+                size_t index = completeLine.at(i);
+                if (!finalSimplifiedLine.contains(index))
+                {
+                    isolatedPointIndices.append(index);
+                }
+            }
         }
 
     }

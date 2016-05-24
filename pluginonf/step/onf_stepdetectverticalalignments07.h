@@ -419,6 +419,7 @@ protected:
 
 
     bool      _clusterDebugMode;
+    bool      _retrieveLostLinesParts;
 
 };
 
