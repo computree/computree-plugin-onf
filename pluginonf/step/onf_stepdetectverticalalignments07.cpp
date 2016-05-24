@@ -86,6 +86,9 @@ ONF_StepDetectVerticalAlignments07::ONF_StepDetectVerticalAlignments07(CT_StepIn
     _resolutionForDiameterEstimation = 1;
     _zenithalAngleMax = 10;
     _ratioRadius = 0.8;
+    _applySigmoid = true;
+    _sigmoidCoefK = 10.0;
+    _sigmoidX0 = 0.75;
 
     _ratioDbhNbPtsMax = 0.11; // 0.07
     _monoLineMult = 3.0;
@@ -196,6 +199,7 @@ void ONF_StepDetectVerticalAlignments07::createPostConfigurationDialog()
     configDialog->addDouble(tr("Distance XY maximale entre points d'une ligne de scan"), "cm", 0, 1e+4, 2, _maxXYDist, 100);
     configDialog->addDouble(tr("Angle zénithal maximal pour conserver une ligne de scan"), "°", 0, 360, 2, _thresholdZenithalAngle);
     configDialog->addInt(tr("Ne conserver que les lignes de scan avec au moins"), "points", 0, 1000, _minPts);
+    configDialog->addBool(tr("Récupérer les parties de lignes perdues"), "", "", _retrieveLostLinesParts);
 
     configDialog->addEmpty();
     configDialog->addTitle( tr("2- Estimation du diamètre :"));
@@ -206,7 +210,12 @@ void ONF_StepDetectVerticalAlignments07::createPostConfigurationDialog()
     configDialog->addDouble(tr("Ecartement maximal"), "cm / m", 0, 1e+4, 2, _maxLineSpacing, 100);
     configDialog->addDouble(tr("Résolution pour la recherche de tronc"), "°", 0, 1e+4, 2, _resolutionForDiameterEstimation);
     configDialog->addDouble(tr("Angle zénithal maximal pour la recherche de tronc"), "°", 0, 180, 2, _zenithalAngleMax);
-    configDialog->addDouble(tr("Proportion du rayon à prendre en compte pour le scoring"), "%", 0, 100, 0, _ratioRadius, 100);
+    configDialog->addDouble(tr("Proportion du rayon où les alignements sont à exclure"), "%", 0, 100, 0, _ratioRadius, 100);
+
+    configDialog->addBool(tr("Appliquer une fonction sigmoide pour le scoring"), "", "", _applySigmoid);
+    configDialog->addDouble(tr("Fonction Sigmoide : coefficient K"), "", 0, 1e+4, 2, _sigmoidCoefK);
+    configDialog->addDouble(tr("Fonction Sigmoide : coordonnée x0 du point d'inflexion "), "", 0, 1, 2, _sigmoidX0);
+
     configDialog->addDouble(tr("Ratio maximal diamètre / nb. points"), "cm", 0, 1e+4, 2, _ratioDbhNbPtsMax, 100);
     configDialog->addDouble(tr("Multiplicateur de diamètre pour les lignes de scan uniques"), "fois", 0, 1e+4, 2, _monoLineMult);
 
@@ -228,7 +237,6 @@ void ONF_StepDetectVerticalAlignments07::createPostConfigurationDialog()
 
     configDialog->addEmpty();
     configDialog->addBool(tr("Mode Debug Clusters"), "", "", _clusterDebugMode);
-    configDialog->addBool(tr("Récupérer les parties de lignes perdues"), "", "", _retrieveLostLinesParts);
 }
 
 void ONF_StepDetectVerticalAlignments07::compute()
@@ -1309,38 +1317,53 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
                     if (candidateDiameter <= _step->_maxDiameter && candidateDiameter >= _step->_minDiameter)
                     {
                         double candidateRadius = candidateDiameter / 2.0;
+                        double ajustedRadius = _step->_ratioRadius * candidateRadius;
                         double candidateScore = 0;
                         bool lowestPointsIncludedForLine = false;
                         circleCenter (0) = (projectedPtMain(0) + neighbourProjectedPoint(0)) / 2.0;
                         circleCenter (1) = (projectedPtMain(1) + neighbourProjectedPoint(1)) / 2.0;
 
                         // Verifiy if any lowest neighbour point is in the circle
-                        for (int ll = 0 ; ll < neighbourLinesToTestSize ; ll++)
+                        if (ajustedRadius > 0)
                         {
-                            if (ll != j)
+                            for (int ll = 0 ; ll < neighbourLinesToTestSize ; ll++)
                             {
-                                int firstIndex = neighbourLinesToTest.at(ll).first();
-                                const Eigen::Vector2d& point = prjPtsNeighbours[firstIndex];
-                                double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
-
-                                if (distXY < candidateRadius*_step->_ratioRadius)
+                                if (ll != j)
                                 {
-                                    lowestPointsIncludedForLine = true;
+                                    int firstIndex = neighbourLinesToTest.at(ll).first();
+                                    const Eigen::Vector2d& point = prjPtsNeighbours[firstIndex];
+                                    double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
+
+                                    if (distXY < ajustedRadius)
+                                    {
+                                        lowestPointsIncludedForLine = true;
+                                    }
                                 }
                             }
                         }
 
 
-                        double ajustedRadius = _step->_ratioRadius * candidateRadius;
                         // compute score for mainLine points
                         for (int k = 0 ; k < mainLinePointsSize ; k++)
                         {
                             const Eigen::Vector2d& point = prjPtsMainLine[k];
                             double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
 
-                            if (distXY >= ajustedRadius && distXY <= candidateRadius)
+
+                            if (_step->_applySigmoid)
                             {
-                                candidateScore += 1;
+                                if (distXY <= candidateRadius)
+                                {
+                                    candidateScore += weightedScore(distXY / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
+                                } else if (distXY <= candidateDiameter)
+                                {
+                                    candidateScore += weightedScore((candidateDiameter - distXY) / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
+                                }
+                            } else {
+                                if (distXY >= ajustedRadius && distXY <= candidateRadius)
+                                {
+                                    candidateScore += 1;
+                                }
                             }
                         }
 
@@ -1350,9 +1373,21 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
                             const Eigen::Vector2d& point = prjPtsNeighbours[k];
                             double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
 
-                            if (distXY >= ajustedRadius && distXY <= candidateRadius)
+
+                            if (_step->_applySigmoid)
                             {
-                                candidateScore += 1;
+                                if (distXY <= candidateRadius)
+                                {
+                                    candidateScore += weightedScore(distXY / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
+                                } else if (distXY <= candidateDiameter)
+                                {
+                                    candidateScore += weightedScore((candidateDiameter - distXY) / candidateRadius, _step->_sigmoidCoefK, _step->_sigmoidX0);
+                                }
+                            } else {
+                                if (distXY >= ajustedRadius && distXY <= candidateRadius)
+                                {
+                                    candidateScore += 1;
+                                }
                             }
                         }
 

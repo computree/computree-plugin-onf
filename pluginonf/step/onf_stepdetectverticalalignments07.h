@@ -250,9 +250,13 @@ protected:
             detectAlignmentsForScene(grp);
         }
 
-
         void detectAlignmentsForScene(CT_StandardItemGroup* grp);
-        
+                        
+        inline double weightedScore(double val, const double &k, const double &x0)
+        {
+            return 1.0/ (1.0 + std::exp(-k*(val - x0)));
+        }
+
         void sortIndicesByGPSTime(const CT_AbstractPointCloudIndex* pointCloudIndexLAS,
                                   const CT_AbstractPointAttributesScalar* attributeGPS,
                                   const CT_AbstractPointCloudIndex* pointCloudIndex,
@@ -389,6 +393,7 @@ protected:
     double      _maxXYDist;
     double      _thresholdZenithalAngle;
     int         _minPts;
+    bool      _retrieveLostLinesParts;
 
     double      _minDiameter;
     double      _maxDiameter;
@@ -398,6 +403,10 @@ protected:
     double      _resolutionForDiameterEstimation;
     double      _zenithalAngleMax;
     double      _ratioRadius;
+
+    bool        _applySigmoid;
+    double      _sigmoidCoefK;
+    double      _sigmoidX0;
 
     double      _ratioDbhNbPtsMax;
     double      _monoLineMult;
@@ -419,7 +428,6 @@ protected:
 
 
     bool      _clusterDebugMode;
-    bool      _retrieveLostLinesParts;
 
 };
 
