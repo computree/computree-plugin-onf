@@ -100,6 +100,7 @@
 #include "step/onf_stepaddtilexyareas.h"
 #include "step/onf_stepcreatetiling.h"
 #include "step/onf_stepcomputeedbhfromheightallometry.h"
+#include "step/onf_stepaddlasdatatoplots.h"
 
 #include "filter/onf_filterbyreturntype.h"
 #include "filter/onf_filterremoveupperoutliers.h"
@@ -172,6 +173,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewBetaStep<ONF_StepCreatePlotManagerGrid>("");
     addNewBetaStep<ONF_StepCreatePlotsFromList>("");
     addNewBetaStep<ONF_StepExtractPointsForPlots>("");
+    addNewBetaStep<ONF_StepAddLASDataToPlots>("");
     addNewWorkflowStep<ONF_StepSelectBBoxByFileName>("");
     addNewWorkflowStep<ONF_StepSelectGroupsByReferenceHeight>(CT_StepsMenu::LP_Filter);
     addNewWorkflowStep<ONF_StepSetAffiliationIDFromReference>("");
