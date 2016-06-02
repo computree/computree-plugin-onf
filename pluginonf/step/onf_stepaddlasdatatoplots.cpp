@@ -127,7 +127,7 @@ void ONF_StepAddLASDataToPlots::compute()
 
                 if (plotPoints != NULL)
                 {
-                    CT_StdLASPointsAttributesContainerShortcut* containerShortcut = new CT_StdLASPointsAttributesContainerShortcut(_outLASData_ModelName,
+                    CT_StdLASPointsAttributesContainerShortcut* containerShortcut = new CT_StdLASPointsAttributesContainerShortcut(_outLASData_ModelName.completeName(),
                                                                                                                                    resOut,
                                                                                                                                    inLASAll);
                     groupPlot->addItemDrawable(containerShortcut);
