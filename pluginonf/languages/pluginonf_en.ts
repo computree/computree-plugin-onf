@@ -3642,6 +3642,110 @@ You can also choose which classifications to keep.</source>
     </message>
 </context>
 <context>
+    <name>ONF_StepExtractPointsInVerticalCylinders</name>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="61"/>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="170"/>
+        <source>Rayon</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="76"/>
+        <source>Extraire points dans des cylindres verticaux (par placette)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="103"/>
+        <source>Scène(s)</source>
+        <translation type="unfinished">Scene(s)</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="107"/>
+        <source>Scène</source>
+        <translation type="unfinished">Scene</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="108"/>
+        <source>Item avec nom de fichier</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="109"/>
+        <source>Nom de fichier</source>
+        <translation type="unfinished">File name</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="118"/>
+        <source>Extracted Scene</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="119"/>
+        <source>PlotID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="127"/>
+        <source>Fichier des cylindres par placette</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="127"/>
+        <source>Fichier ASCII (*.txt ; *.asc)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="128"/>
+        <source>Appliquer translation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="172"/>
+        <source>Champ IDplot non défini (non bloquant)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="173"/>
+        <source>Champ IDtree non défini</source>
+        <translation type="unfinished">IDtree field not defined</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="174"/>
+        <source>Champ X non défini</source>
+        <translation type="unfinished">X field not defined</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="175"/>
+        <source>Champ Y non défini</source>
+        <translation type="unfinished">Y field not defined</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="176"/>
+        <source>Champ Z non défini</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="177"/>
+        <source>Champ Zmin non défini</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="178"/>
+        <source>Champ Zmax non défini</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="179"/>
+        <source>Champ Rayon non défini</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepextractpointsinverticalcylinders.cpp" line="228"/>
+        <source>Ligne %1 du fichier REF non valide</source>
+        <translation type="unfinished">Line %1 of REF file not valid</translation>
+    </message>
+</context>
+<context>
     <name>ONF_StepExtractPositionsFromDensity</name>
     <message>
         <location filename="../step/onf_stepextractpositionsfromdensity.cpp" line="60"/>
@@ -6542,13 +6646,13 @@ Please adjust parameters to define slices. </translation>
         <translation>N_exclus</translation>
     </message>
     <message>
-        <location filename="../onf_steppluginmanager.cpp" line="119"/>
         <location filename="../onf_steppluginmanager.cpp" line="120"/>
         <location filename="../onf_steppluginmanager.cpp" line="121"/>
         <location filename="../onf_steppluginmanager.cpp" line="122"/>
         <location filename="../onf_steppluginmanager.cpp" line="123"/>
         <location filename="../onf_steppluginmanager.cpp" line="124"/>
-        <location filename="../onf_steppluginmanager.cpp" line="174"/>
+        <location filename="../onf_steppluginmanager.cpp" line="125"/>
+        <location filename="../onf_steppluginmanager.cpp" line="176"/>
         <source>Détéction tiges (ONF 2013)</source>
         <translation>Stem detection (ONF 2013)</translation>
     </message>
