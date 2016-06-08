@@ -119,7 +119,8 @@ HEADERS += \
     step/onf_stepcomputedsmonly.h \
     step/onf_stepcomputeedbhfromheightallometry.h \
     step/onf_stepdetectverticalalignments07.h \
-    step/onf_stepaddlasdatatoplots.h
+    step/onf_stepaddlasdatatoplots.h \
+    step/onf_stepfilterelementsbyxyarea.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -228,7 +229,8 @@ SOURCES += \
     step/onf_stepcomputedsmonly.cpp \
     step/onf_stepcomputeedbhfromheightallometry.cpp \
     step/onf_stepdetectverticalalignments07.cpp \
-    step/onf_stepaddlasdatatoplots.cpp
+    step/onf_stepaddlasdatatoplots.cpp \
+    step/onf_stepfilterelementsbyxyarea.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts
