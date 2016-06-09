@@ -118,6 +118,9 @@ void ONF_StepExtractPointsForPlots::compute()
         if (inScene != NULL)
         {
            QMap<CT_AbstractAreaShape2D*, PlotPointsIndices> shapes;
+           QList<CT_AbstractAreaShape2D*> shapesList;
+           QList<PlotPointsIndices> plotPointsIndicesList;
+
            CT_GroupIterator grpPlotIt(groupScene, this, DEFin_grpPlot);
            while (grpPlotIt.hasNext() && !isStopped())
            {
@@ -126,37 +129,45 @@ void ONF_StepExtractPointsForPlots::compute()
 
                if (areaShape != NULL)
                {
-                   shapes.insert(areaShape, PlotPointsIndices(groupPlot));
+                   shapesList.append(areaShape);
+                   plotPointsIndicesList.append(PlotPointsIndices(groupPlot));
                }
            }
 
-           QMapIterator<CT_AbstractAreaShape2D*, PlotPointsIndices> itSh(shapes);
+           int sizeShapes = shapesList.size();
+
+           setProgress(10);
 
            const CT_AbstractPointCloudIndex *pointCloudIndex = inScene->getPointCloudIndex();
+
+           size_t sizeCloud = pointCloudIndex->size();
+           PS_LOG->addInfoMessage(LogInterface::step, tr("Le nuage de points contient %1 points").arg(sizeCloud));
+
+           size_t cpt = 0;
            CT_PointIterator itP(pointCloudIndex);
            while(itP.hasNext() && (!isStopped()))
            {
                const CT_Point &point = itP.next().currentPoint();
                size_t index = itP.currentGlobalIndex();
 
-               itSh.toFront();
-               while (itSh.hasNext())
+               for (int sh = 0 ; sh < sizeShapes ; sh++)
                {
-                   itSh.next();
-                   CT_AbstractAreaShape2D* shape = itSh.key();
-                   if (shape->contains(point(0), point(1)))
+                   if (shapesList.at(sh)->contains(point(0), point(1)))
                    {
-                       PlotPointsIndices& plotPointsIndices = (PlotPointsIndices&) itSh.value();
-                       plotPointsIndices._indices.append(index);
+                       plotPointsIndicesList[sh]._indices.append(index);
                    }
                }
+
+               setProgress(10.0 + 49.0*((float)cpt++ / (float)sizeCloud));
            }
 
-           itSh.toFront();
-           while (itSh.hasNext())
+           setProgress(60);
+
+
+           cpt = 0;
+           for (int sh = 0 ; sh < sizeShapes ; sh++)
            {
-               itSh.next();
-               PlotPointsIndices& plotPointsIndices = (PlotPointsIndices&) itSh.value();
+               PlotPointsIndices& plotPointsIndices = plotPointsIndicesList[sh];
                CT_StandardItemGroup* grpSh = plotPointsIndices._group;
 
                if (plotPointsIndices._indices.size() > 0)
@@ -173,7 +184,11 @@ void ONF_StepExtractPointsForPlots::compute()
 
                    grpSh->addItemDrawable(plotScene);
                }
+               setProgress(60.0 + 39.0*((float)cpt++ / (float)sizeShapes));
+
            }
+
+           setProgress(99);
 
         }
     }    
