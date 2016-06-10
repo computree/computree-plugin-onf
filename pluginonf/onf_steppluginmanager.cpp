@@ -195,11 +195,11 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewWorkflowStep<ONF_StepSelectGroupsByReferenceHeight>(CT_StepsMenu::LP_Filter);
     addNewWorkflowStep<ONF_StepSetAffiliationIDFromReference>("");
     addNewGeometricalShapesStep<ONF_StepComputeDBHFromHeightAllometry>(CT_StepsMenu::LP_Stems);
+    addNewBetaStep<ONF_StepDetectVerticalAlignments07>(CT_StepsMenu::LP_Stems);
 
 
 #ifdef USE_OPENCV
     addNewBetaStep<ONF_StepDetectVerticalAlignments06>(CT_StepsMenu::LP_Stems);
-    addNewBetaStep<ONF_StepDetectVerticalAlignments07>(CT_StepsMenu::LP_Stems);
 
     addNewGeometricalShapesStep<ONF_StepSetFootCoordinatesVertically>(QObject::tr("Détéction tiges (ONF 2013)"));
     addNewGeometricalShapesStep<ONF_StepExtractPositionsFromDensity>(CT_StepsMenu::LP_Stems);

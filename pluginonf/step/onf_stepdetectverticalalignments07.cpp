@@ -24,7 +24,6 @@
 
 #include "onf_stepdetectverticalalignments07.h"
 
-#ifdef USE_OPENCV
 
 #include "ct_itemdrawable/abstract/ct_abstractitemdrawablewithpointcloud.h"
 #include "ct_itemdrawable/ct_polygon2d.h"
@@ -46,10 +45,6 @@
 #include "ct_math/ct_sphericalline3d.h"
 #include "ct_math/ct_mathstatistics.h"
 #include "ct_math/ct_mathpoint.h"
-
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/core/core.hpp"
-#include "opencv2/imgproc/types_c.h"
 
 
 #include <QtConcurrent>
@@ -1720,61 +1715,6 @@ bool ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::testLengthB
     return okLength;
 }
 
-void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::computeCorrectedDiameters(const CT_Image2D<qint32>* clusters, const QList<CT_Circle2D*> &allometryDBHs, const QList<CT_Circle2D*> &circles, QMap<CT_Circle2D*, double> &correctedDiameters)
-{
-    for (int a = 0 ; a < allometryDBHs.size() ; a++)
-    {
-        const CT_Circle2D* alloCircle = allometryDBHs.at(a);
-        qint32 alloId = clusters->valueAtCoords(alloCircle->getCenterX(), alloCircle->getCenterY());
-        double alloDiameter = alloCircle->getRadius() * 2.0;
-        double alloDiameterMin = alloDiameter - _step->_deltaDmax;
-        double alloDiameterMax = alloDiameter + _step->_deltaDmax;
-
-        QMap<double, CT_Circle2D*> clusterCircles;
-        for (int i = 0 ; i < circles.size() ; i++)
-        {
-            CT_Circle2D* circle = circles.at(i);
-            qint32 id = clusters->valueAtCoords(circle->getCenterX(), circle->getCenterY());
-
-            if (id != 0 && id != clusters->NA() && id == alloId)
-            {
-                double dist = sqrt(pow(circle->getCenterX() - alloCircle->getCenterX(), 2) + pow(circle->getCenterY() - alloCircle->getCenterY(), 2));
-                clusterCircles.insert(dist, circle);
-            }
-        }
-
-        if (clusterCircles.size() > 0)
-        {
-            QMapIterator<double, CT_Circle2D*> itClCir(clusterCircles);
-            if (itClCir.hasNext())
-            {
-                itClCir.next();
-                CT_Circle2D* firstCircle = itClCir.value();
-                double firstDiameter = firstCircle->getRadius() * 2.0;
-
-                if (firstDiameter < alloDiameterMin || firstDiameter > alloDiameterMax)
-                {
-                    firstDiameter = alloDiameter;
-                    correctedDiameters.insert(firstCircle, alloDiameter);
-                }
-
-                while (itClCir.hasNext())
-                {
-                    itClCir.next();
-                    CT_Circle2D* circle = itClCir.value();
-                    double diameter = circle->getRadius()*2.0;
-
-                    if (diameter > firstDiameter)
-                    {
-                        correctedDiameters.insert(circle, -1);
-                    }
-                }
-            }
-        }
-        clusterCircles.clear();
-    }
-}
-
 void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::createOrderedCircleList(const QMultiMap< int, CT_Circle2D*> &circleTypes, const QMap<CT_Circle2D *, double> &circleScores, QList<CT_Circle2D*> &circles)
 {
     circles.clear();
@@ -1834,5 +1774,3 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::createOrder
     circles.append(circlesByScore.values());
 }
 
-
-#endif

@@ -25,14 +25,11 @@
 #ifndef ONF_STEPDETECTVERTICALALIGNMENTS07_H
 #define ONF_STEPDETECTVERTICALALIGNMENTS07_H
 
-#ifdef USE_OPENCV
-
 #include "ct_step/abstract/ct_abstractstep.h"
 
 #include "ct_itemdrawable/ct_standarditemgroup.h"
 #include "ct_itemdrawable/ct_line.h"
 #include "ct_itemdrawable/ct_circle2d.h"
-#include "ct_itemdrawable/ct_image2d.h"
 
 
 // Inclusion of auto-indexation system
@@ -350,8 +347,6 @@ protected:
                                      const CT_LineData* fittedLineData);
 
 
-        void computeCorrectedDiameters(const CT_Image2D<qint32>* clusters, const QList<CT_Circle2D*> &allometryDBHs, const QList<CT_Circle2D*> &circles, QMap<CT_Circle2D*, double> &correctedDiameters);
-
         void createOrderedCircleList(const QMultiMap<int, CT_Circle2D *> &circleTypes, const QMap<CT_Circle2D*, double> &circleScores, QList<CT_Circle2D *> &circles);
 
     private:
@@ -430,7 +425,5 @@ protected:
     bool      _clusterDebugMode;
 
 };
-
-#endif
 
 #endif // ONF_STEPDETECTVERTICALALIGNMENTS07_H
