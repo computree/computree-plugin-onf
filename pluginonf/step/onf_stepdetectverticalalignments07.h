@@ -271,7 +271,6 @@ protected:
         void denoiseLinesOfScan(const QList<QList<size_t> > &linesOfScan,
                                 const CT_AbstractPointCloudIndex* pointCloudIndexLAS,
                                 const CT_AbstractPointAttributesScalar* attributeIntensity,
-                                CT_StandardItemGroup* grp,
                                 QList<QList<size_t> > &simplifiedLinesOfScan,
                                 QList<size_t> &isolatedPointIndices);
 

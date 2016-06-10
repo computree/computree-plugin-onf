@@ -355,7 +355,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
         
         // Eliminate noise in lines of scan
         QList<QList<size_t> > simplifiedLinesOfScan;
-        denoiseLinesOfScan(linesOfScan, pointCloudIndexLAS, attributeIntensity, grp, simplifiedLinesOfScan, isolatedPointIndices);
+        denoiseLinesOfScan(linesOfScan, pointCloudIndexLAS, attributeIntensity, simplifiedLinesOfScan, isolatedPointIndices);
         linesOfScan.clear();
 
 
@@ -772,7 +772,6 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::createLines
 void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::denoiseLinesOfScan(const QList<QList<size_t> > &linesOfScan,
                                                                                         const CT_AbstractPointCloudIndex* pointCloudIndexLAS,
                                                                                         const CT_AbstractPointAttributesScalar* attributeIntensity,
-                                                                                        CT_StandardItemGroup* grp,
                                                                                         QList<QList<size_t> > &simplifiedLinesOfScan,
                                                                                         QList<size_t> &isolatedPointIndices)
 {
