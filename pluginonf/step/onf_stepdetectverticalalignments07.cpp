@@ -272,6 +272,7 @@ void ONF_StepDetectVerticalAlignments07::compute()
 
 void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlignmentsForScene(CT_StandardItemGroup* grp)
 {
+
     double thresholdZenithalAngleRadians = M_PI * _step->_thresholdZenithalAngle / 180.0;
     double zenithalAngleMaxRadians = M_PI * _step->_zenithalAngleMax / 180.0;
     double rangeUnderstorey = _step->_maxDiameterForUnderstorey - _step->_minDiameter;
@@ -323,6 +324,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
         ////////////////////////////////////////////////////
         /// Detection of big stems: lines of scan        ///
         ////////////////////////////////////////////////////
+
 
         // Sort indices by GPS time
         QMultiMap<double, size_t> sortedIndices;
@@ -711,6 +713,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
         circles.clear();
         allPoints.clear();
     }
+
 
 }
 
