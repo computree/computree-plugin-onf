@@ -27,6 +27,8 @@
 #define ONF_STEPPLUGINMANAGER_H
 
 #include "ct_abstractstepplugin.h"
+#include "ct_log/ct_fileloglistener.h"
+
 
 class ONF_StepPluginManager : public CT_AbstractStepPlugin
 {
@@ -36,7 +38,11 @@ public:
 
     QString getPluginURL() const {return QString("http://rdinnovation.onf.fr/projects/plugin-onf/wiki");}
 
+    virtual bool init();
+
 protected:
+
+    CT_FileLogListener* _logListener;
 
     bool loadGenericsStep();
     bool loadOpenFileStep();

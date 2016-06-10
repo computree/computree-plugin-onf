@@ -112,12 +112,27 @@
 #include "itemdrawable/onf_lai2000data.h"
 #include "itemdrawable/onf_lvoxsphere.h"
 
+
 ONF_StepPluginManager::ONF_StepPluginManager() : CT_AbstractStepPlugin()
 {
+    _logListener = new CT_FileLogListener();
+
+    // défini le chemin vers le fichier
+    _logListener->setFilePath("log_onf.log");
 }
 
 ONF_StepPluginManager::~ONF_StepPluginManager()
 {
+    PS_LOG->removeLogListener(_logListener);
+}
+
+bool ONF_StepPluginManager::init()
+{
+
+    // enregistrement du listener auprès de PS_LOG
+    PS_LOG->addNormalLogListener(_logListener);
+
+    return CT_AbstractStepPlugin::init();
 }
 
 bool ONF_StepPluginManager::loadGenericsStep()
