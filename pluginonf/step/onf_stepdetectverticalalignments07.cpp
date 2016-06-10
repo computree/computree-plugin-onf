@@ -249,6 +249,16 @@ void ONF_StepDetectVerticalAlignments07::compute()
         groups.append(grp);
     }
 
+
+//    AlignmentsDetectorForScene align(this, res);
+//    for (int i = 0 ; i < groups.size() ; i++)
+//    {
+
+//        CT_StandardItemGroup* grp = groups.at(i);
+//        align(grp);
+//        setProgress(99.0 * (float)i / (float)(groups.size()));
+//    }
+
     QFuture<void> futur = QtConcurrent::map(groups, AlignmentsDetectorForScene(this, res));
 
     int progressMin = futur.progressMinimum();
@@ -279,6 +289,8 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
 
     if (sceneStem != NULL && attributeLAS != NULL)
     {
+
+        if (sceneStem->getPointCloudIndexSize() == 0) {return;}
 
         QMultiMap<double, Eigen::Vector2d> allPoints;
         // Compute point slice for continuity check
@@ -782,12 +794,13 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::denoiseLine
 
     for (int lineN = 0 ; lineN < linesOfScanTmp.size() ; lineN++)
     {
-        const QList<size_t> &completeLine = linesOfScanTmp.at(lineN);
+        QList<size_t> completeLine = linesOfScanTmp.at(lineN);
+        int sizeCompleteLine = completeLine.size();
 
         // Find a reference point on the line of scan (max intensity point)
         double maxIntensity = -std::numeric_limits<double>::max();
         int refi = 0;
-        for (int i = 0 ; i < completeLine.size() ; i++)
+        for (int i = 0 ; i < sizeCompleteLine ; i++)
         {
             size_t localIndex = pointCloudIndexLAS->indexOf(completeLine.at(i));
             double intensity = maxIntensity;
@@ -805,7 +818,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::denoiseLine
         CT_Point p1 = pointAccessor.constPointAt(completeLine.at(refi));
         QList<size_t> bestSimplifiedLine;
         double bestSimplifiedLineLength = std::numeric_limits<double>::max();
-        for (int i = 0 ; i < completeLine.size() ; i++)
+        for (int i = 0 ; i < sizeCompleteLine ; i++)
         {
             if (i != refi)
             {
@@ -815,7 +828,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::denoiseLine
 
                 QList<size_t> simplifiedLine;
 
-                for (int j = 0 ; j < completeLine.size() ; j++)
+                for (int j = 0 ; j < sizeCompleteLine ; j++)
                 {
                     if (j == refi)
                     {
@@ -912,7 +925,8 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::denoiseLine
         {
             // All noise points are added to isolatedPointsIndices or in lines list
             QList<size_t> previousRemovedIndices;
-            for (int i = 0 ; i < completeLine.size() ; i++)
+            int toto = completeLine.size();
+            for (int i = 0 ; i < sizeCompleteLine ; i++)
             {
                 size_t index = completeLine.at(i);
                 if (finalSimplifiedLine.contains(index))
@@ -948,7 +962,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::denoiseLine
             }
         } else {
             // All noise points are added to isolatedPointsIndices
-            for (int i = 0 ; i < completeLine.size() ; i++)
+            for (int i = 0 ; i < sizeCompleteLine ; i++)
             {
                 size_t index = completeLine.at(i);
                 if (!finalSimplifiedLine.contains(index))
