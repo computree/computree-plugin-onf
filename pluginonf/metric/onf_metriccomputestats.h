@@ -25,20 +25,28 @@
 #ifndef ONF_METRICCOMPUTESTATS_H
 #define ONF_METRICCOMPUTESTATS_H
 
-#include "ctlibmetrics/ct_metric/abstract/ct_abstractmetric_xyz.h"
+#include "ctliblas/metrics/abstract/ct_abstractmetric_las.h"
 
-class ONF_MetricComputeStats : public CT_AbstractMetric_XYZ
+class ONF_MetricComputeStats : public CT_AbstractMetric_LAS
 {
     Q_OBJECT
 public:
 
     struct Config {
-        VaB<double> valHmean;
-        VaB<double> valHsd;
-        VaB<double> valHskew;
-        VaB<double> valHkurt;
-        VaB<double> valHcv;
         size_t      n;
+        size_t      n_first;
+        size_t      n_last;
+        size_t      n_intermediate;
+        size_t      n_only;
+        size_t      n_error;
+        size_t      n_ground;
+        size_t      n_vegetation;
+        size_t      n_others;
+        size_t      max_m_min;
+        size_t      numberOfLines;
+        size_t      nBestLine;
+        size_t      nSecondLine;
+        size_t      nWorstLine;
     };
 
     ONF_MetricComputeStats();
@@ -60,7 +68,6 @@ public:
     CT_AbstractConfigurableElement* copy() const;
 
 protected:
-    void declareAttributes();
     void createAttributes();
     void computeMetric();
 

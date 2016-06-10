@@ -243,7 +243,7 @@ void ONF_StepDetectVerticalAlignments07::compute()
     QList<CT_StandardItemGroup*> groups;
     // COPIED results browsing
     CT_ResultGroupIterator itCpy_grp(res, this, DEFin_grp);
-    while (itCpy_grp.hasNext() && !isStopped())
+    while (itCpy_grp.hasNext())
     {
         CT_StandardItemGroup* grp = (CT_StandardItemGroup*) itCpy_grp.next();
         groups.append(grp);
@@ -298,7 +298,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
         {
             const CT_AbstractPointCloudIndex* pointCloudIndexAll = sceneAll->getPointCloudIndex();
             CT_PointIterator itP(pointCloudIndexAll);
-            while(itP.hasNext() && (!_step->isStopped()))
+            while(itP.hasNext())
             {
                 const CT_Point &point = itP.next().currentPoint();
 
@@ -351,7 +351,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
         {
             for (int lineN = 0 ; lineN < linesOfScan.size() ; lineN++)
             {
-                const QList<size_t> &completeLine = linesOfScan.at(lineN);
+                QList<size_t> completeLine = linesOfScan.at(lineN);
 
                 CT_PointCluster* cluster = new CT_PointCluster(_step->_clusterDebug1_ModelName.completeName(), _res);
                 for (int j = 0 ; j < completeLine.size() ; j++)
@@ -376,7 +376,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
         {
             for (int i = 0 ; i < simplifiedLinesOfScan.size() ; i++)
             {
-                const QList<size_t> &line = simplifiedLinesOfScan.at(i);
+                QList<size_t> line = simplifiedLinesOfScan.at(i);
                 CT_PointCluster* cluster = new CT_PointCluster(_step->_clusterDebug2_ModelName.completeName(), _res);
                 for (int j = 0 ; j < line.size() ; j++)
                 {
@@ -591,7 +591,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
                         if (testLengthBetweenPoints(cloudIndex, fittedLineData))
                         {
                             int type = 4; // Alignement, ok
-                            const Eigen::Vector3d &center = fittedLineData->getP1();
+                            Eigen::Vector3d center = fittedLineData->getP1();
                             double diameter = computeDiameterAlongLine(cluster, fittedLineData->getDirection(), center);
 
                             if (diameter > _step->_maxDiameter || (diameter / nbPts) > _step->_ratioDbhNbPtsMax)
@@ -674,7 +674,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
                     while (itPts.hasNext())
                     {
                         itPts.next();
-                        const Eigen::Vector2d &pt = itPts.value();
+                        Eigen::Vector2d pt = itPts.value();
                         double dist = sqrt(pow(circleX - pt(0), 2) + pow(circleY - pt(1), 2));
 
                         if (dist < _step->_minRadiusForVerticalConstinuity)
@@ -731,7 +731,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::sortIndices
                                                                                           QMultiMap<double, size_t> &sortedIndices)
 {
     CT_PointIterator itP(pointCloudIndex);
-    while(itP.hasNext() && (!_step->isStopped()))
+    while(itP.hasNext())
     {
         size_t index = itP.next().currentGlobalIndex();
         size_t localIndex = pointCloudIndexLAS->indexOf(index);
@@ -925,7 +925,6 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::denoiseLine
         {
             // All noise points are added to isolatedPointsIndices or in lines list
             QList<size_t> previousRemovedIndices;
-            int toto = completeLine.size();
             for (int i = 0 ; i < sizeCompleteLine ; i++)
             {
                 size_t index = completeLine.at(i);
@@ -1045,7 +1044,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::getPointsOf
     for (int j = 0 ; j < mainLine->size() ; j++)
     {
         size_t index = mainLine->at(j);
-        const CT_Point& point = pointAccessor.constPointAt(index);
+        CT_Point point = pointAccessor.constPointAt(index);
         mainLinePoints.append(point);
 
         size_t localIndex = pointCloudIndexLAS->indexOf(index);
@@ -1186,7 +1185,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findNeighbo
                     for (int j = 0 ; j < testedLine->size() ; j++)
                     {
                         size_t index = testedLine->at(j);
-                        const CT_Point& point = pointAccessor.constPointAt(index);
+                        CT_Point point = pointAccessor.constPointAt(index);
                         neighbourPoints.append(point);
 
                         size_t localIndex = pointCloudIndexLAS->indexOf(index);
@@ -1248,7 +1247,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
     QMultiMap<int, QPair<int, int> > pairsToTest;
     for (int i = 0 ; i < mainLinePointsSize ; i++)
     {
-        const CT_Point &mainPt = mainLinePoints[i];
+        CT_Point mainPt = mainLinePoints[i];
 
         for (int j = 0 ; j < neighbourLinesToTestSize ; j++)
         {
@@ -1260,7 +1259,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
             for (int k = 0 ; k < pointOfTheLine.size() ; k++)
             {
                 int currentNeighbourIndex = pointOfTheLine.at(k);
-                const CT_Point &testedPt = neighbourPoints[currentNeighbourIndex];
+                CT_Point testedPt = neighbourPoints[currentNeighbourIndex];
 
                 double deltaZ = abs(mainPt(2) - testedPt(2));
                 if (deltaZ < deltaZMin)
@@ -1309,20 +1308,18 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
             // Test all possible diameter between one point from the main line, and one point from the neighbours lines
             for (int i = 0 ; i < mainLinePointsSize ; i++)
             {
-                const Eigen::Vector2d& projectedPtMain = prjPtsMainLine[i];
-
                 QList<QPair<int, int> > pointsToTest = pairsToTest.values(i);
                 for (int pp = 0 ; pp < pointsToTest.size() ; pp++)
                 {
-                    const QPair<int, int> &pair = pointsToTest.at(pp);
+                    QPair<int, int> pair = pointsToTest.at(pp);
                     int j = pair.first;
                     int k = pair.second;
 
                     const QList<int> &pointOfTheLine = neighbourLinesToTest.at(j);
                     int currentNeighbourIndex = pointOfTheLine.at(k);
-                    const Eigen::Vector2d& neighbourProjectedPoint = prjPtsNeighbours[currentNeighbourIndex];
+                    Eigen::Vector2d neighbourProjectedPoint = prjPtsNeighbours[currentNeighbourIndex];
 
-                    double candidateDiameter = sqrt(pow (projectedPtMain(0) - neighbourProjectedPoint(0), 2) + pow (projectedPtMain(1) - neighbourProjectedPoint(1), 2));
+                    double candidateDiameter = sqrt(pow (prjPtsMainLine[i](0) - neighbourProjectedPoint(0), 2) + pow (prjPtsMainLine[i](1) - neighbourProjectedPoint(1), 2));
 
                     // If candidate diameter is in the good range
                     if (candidateDiameter <= _step->_maxDiameter && candidateDiameter >= _step->_minDiameter)
@@ -1331,8 +1328,8 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
                         double ajustedRadius = _step->_ratioRadius * candidateRadius;
                         double candidateScore = 0;
                         bool lowestPointsIncludedForLine = false;
-                        circleCenter (0) = (projectedPtMain(0) + neighbourProjectedPoint(0)) / 2.0;
-                        circleCenter (1) = (projectedPtMain(1) + neighbourProjectedPoint(1)) / 2.0;
+                        circleCenter (0) = (prjPtsMainLine[i](0) + neighbourProjectedPoint(0)) / 2.0;
+                        circleCenter (1) = (prjPtsMainLine[i](1) + neighbourProjectedPoint(1)) / 2.0;
 
                         // Verifiy if any lowest neighbour point is in the circle
                         if (ajustedRadius > 0)
@@ -1342,7 +1339,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
                                 if (ll != j)
                                 {
                                     int firstIndex = neighbourLinesToTest.at(ll).first();
-                                    const Eigen::Vector2d& point = prjPtsNeighbours[firstIndex];
+                                    Eigen::Vector2d point = prjPtsNeighbours[firstIndex];
                                     double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
 
                                     if (distXY < ajustedRadius)
@@ -1357,7 +1354,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
                         // compute score for mainLine points
                         for (int k = 0 ; k < mainLinePointsSize ; k++)
                         {
-                            const Eigen::Vector2d& point = prjPtsMainLine[k];
+                            Eigen::Vector2d point = prjPtsMainLine[k];
                             double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
 
 
@@ -1381,7 +1378,7 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findBestDir
                         // compute score for neighbour points
                         for (int k = 0 ; k < neighbourPointsSize ; k++)
                         {
-                            const Eigen::Vector2d& point = prjPtsNeighbours[k];
+                            Eigen::Vector2d point = prjPtsNeighbours[k];
                             double distXY = sqrt(pow (circleCenter(0) - point(0), 2) + pow (circleCenter(1) - point(1), 2));
 
 
@@ -1560,12 +1557,12 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::findCandida
 
     double maxPhiRadians = M_PI*_step->_maxPhiAngleSmall/180.0;
 
-    for (int iso1 = 0 ; iso1 < isolatedPointIndices.size() && (!_step->isStopped()); iso1++)
+    for (int iso1 = 0 ; iso1 < isolatedPointIndices.size(); iso1++)
     {
         size_t index1 = isolatedPointIndices.at(iso1);
         CT_Point point1 = pointAccessor.constPointAt(index1);
 
-        for (int iso2 = iso1 + 1 ; iso2 < isolatedPointIndices.size() && (!_step->isStopped()); iso2++)
+        for (int iso2 = iso1 + 1 ; iso2 < isolatedPointIndices.size(); iso2++)
         {
             size_t index2 = isolatedPointIndices.at(iso2);
             CT_Point point2 = pointAccessor.constPointAt(index2);
@@ -1617,10 +1614,10 @@ double ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::computeDi
     double maxDist = 0;
     for (int i = 0 ; i < projPts.size() ; i++)
     {
-        const Eigen::Vector2d& point1 = projPts.at(i);
+        Eigen::Vector2d point1 = projPts.at(i);
         for (int j = i+1 ; j < projPts.size() ; j++)
         {
-            const Eigen::Vector2d& point2 = projPts.at(j);
+            Eigen::Vector2d point2 = projPts.at(j);
             double dist = sqrt(pow(point1(0) - point2(0), 2) + pow(point1(1) - point2(1), 2));
             if (dist > maxDist) {maxDist = dist;}
         }

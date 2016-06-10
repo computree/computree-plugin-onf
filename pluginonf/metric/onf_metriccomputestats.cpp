@@ -26,31 +26,26 @@
 #include "ct_pointcloudindex/ct_pointcloudindexvector.h"
 #include "ct_iterator/ct_pointiterator.h"
 
-ONF_MetricComputeStats::ONF_MetricComputeStats() : CT_AbstractMetric_XYZ()
+#include "ctliblas/tools/las/ct_lasdata.h"
+
+ONF_MetricComputeStats::ONF_MetricComputeStats() : CT_AbstractMetric_LAS()
 {
-    declareAttributes();
 }
 
-ONF_MetricComputeStats::ONF_MetricComputeStats(const ONF_MetricComputeStats &other) : CT_AbstractMetric_XYZ(other)
+ONF_MetricComputeStats::ONF_MetricComputeStats(const ONF_MetricComputeStats &other) : CT_AbstractMetric_LAS(other)
 {
-    declareAttributes();
     m_configAndResults = other.m_configAndResults;
 }
 
 QString ONF_MetricComputeStats::getShortDescription() const
 {
-    return tr("Calcul des indicateurs statistiques standard");
+    return tr("Calcul d'indicateurs de diagnostique");
 }
 
 QString ONF_MetricComputeStats::getDetailledDescription() const
 {
     return tr("Les valeurs suivantes sont calculées :<br>"
-              "- Hmean : Moyenne<br>"
-              "- Hsd   : Ecart-type (non biaisé)<br>"
-              "_ Hskew : Skewness  (non biaisé)<br>"
-              "- Hkurt : Kurtosis  (non biaisé)<br>"
-              "- Hcv   : Coefficient de variation<br>"
-              "<em>N.B. : Les formules du Skewness et du Kurtosis sont issues du package e1071 de R (versions SAS).</em>");
+              "- N : Nombre total de points");
 }
 
 ONF_MetricComputeStats::Config ONF_MetricComputeStats::metricConfiguration() const
@@ -68,89 +63,85 @@ CT_AbstractConfigurableElement *ONF_MetricComputeStats::copy() const
     return new ONF_MetricComputeStats(*this);
 }
 
-void ONF_MetricComputeStats::declareAttributes()
-{
-    registerAttributeVaB(m_configAndResults.valHmean, CT_AbstractCategory::DATA_Z, tr("H mean"));
-    registerAttributeVaB(m_configAndResults.valHsd, CT_AbstractCategory::DATA_Z, tr("H sd"));
-    registerAttributeVaB(m_configAndResults.valHskew, CT_AbstractCategory::DATA_Z, tr("H skew"));
-    registerAttributeVaB(m_configAndResults.valHkurt, CT_AbstractCategory::DATA_Z, tr("H kurt"));
-    registerAttributeVaB(m_configAndResults.valHcv, CT_AbstractCategory::DATA_Z, tr("H cv"));
-}
-
 void ONF_MetricComputeStats::createAttributes()
 {
     addAttribute<size_t>(m_configAndResults.n, CT_AbstractCategory::DATA_NUMBER, tr("N"));
+    addAttribute<size_t>(m_configAndResults.n_first, CT_AbstractCategory::DATA_NUMBER, tr("N_first"));
+    addAttribute<size_t>(m_configAndResults.n_last, CT_AbstractCategory::DATA_NUMBER, tr("N_last"));
+    addAttribute<size_t>(m_configAndResults.n_intermediate, CT_AbstractCategory::DATA_NUMBER, tr("N_int"));
+    addAttribute<size_t>(m_configAndResults.n_only, CT_AbstractCategory::DATA_NUMBER, tr("N_only"));
+    addAttribute<size_t>(m_configAndResults.n_error, CT_AbstractCategory::DATA_NUMBER, tr("N_error"));
+    addAttribute<size_t>(m_configAndResults.n_ground, CT_AbstractCategory::DATA_NUMBER, tr("N_ground"));
+    addAttribute<size_t>(m_configAndResults.n_vegetation, CT_AbstractCategory::DATA_NUMBER, tr("N_veg"));
+    addAttribute<size_t>(m_configAndResults.n_others, CT_AbstractCategory::DATA_NUMBER, tr("N_other"));
+    addAttribute<size_t>(m_configAndResults.max_m_min, CT_AbstractCategory::DATA_NUMBER, tr("Range"));
+    addAttribute<size_t>(m_configAndResults.numberOfLines, CT_AbstractCategory::DATA_NUMBER, tr("NumberOfLines"));
+    addAttribute<size_t>(m_configAndResults.nBestLine, CT_AbstractCategory::DATA_NUMBER, tr("N_bestLine"));
+    addAttribute<size_t>(m_configAndResults.nSecondLine, CT_AbstractCategory::DATA_NUMBER, tr("N_secondLine"));
+    addAttribute<size_t>(m_configAndResults.nWorstLine, CT_AbstractCategory::DATA_NUMBER, tr("N_worstLine"));
 
-    CT_AbstractMetric_XYZ::createAttributes();
+    CT_AbstractMetric_LAS::createAttributes();
 }
 
 void ONF_MetricComputeStats::computeMetric()
 {    
-    m_configAndResults.valHmean.value = 0;
-    m_configAndResults.valHsd.value = 0;
-    m_configAndResults.valHskew.value = 0;
-    m_configAndResults.valHkurt.value = 0;
-    m_configAndResults.valHcv.value = 0;
     m_configAndResults.n = 0;
-    double m2 = 0;
-    double m3 = 0;
-    double m4 = 0;
+    m_configAndResults.n_first = 0;
+    m_configAndResults.n_last = 0;
+    m_configAndResults.n_intermediate = 0;
+    m_configAndResults.n_only = 0;
+    m_configAndResults.n_error = 0;
+    m_configAndResults.n_ground = 0;
+    m_configAndResults.n_vegetation = 0;
+    m_configAndResults.n_others = 0;
+    m_configAndResults.max_m_min = 0;
+    m_configAndResults.numberOfLines = 0;
+    m_configAndResults.nBestLine = 0;
+    m_configAndResults.nSecondLine = 0;
+    m_configAndResults.nWorstLine = 0;
 
     CT_PointIterator itP(pointCloud());
-    std::vector<double> zValues(pointCloud()->size());
-    double zValue;
     while(itP.hasNext())
     {
         const CT_Point& point = itP.next().currentPoint();
 
         if ((plotArea() == NULL) || plotArea()->contains(point(0), point(1)))
         {
-            zValue = point(CT_Point::Z);
-            zValues[m_configAndResults.n] = zValue;
-            m_configAndResults.valHmean.value += zValue;
             ++m_configAndResults.n;
-        }
-    }
 
-    zValues.resize(m_configAndResults.n);
+            size_t index = itP.currentGlobalIndex();
+            if (lasPointCloudIndex()->contains(index))
+            {
+                size_t lasIndex = lasPointCloudIndex()->indexOf(index);
+                CT_LASData lasData;
+                lasAttributes()->getLASDataAt(lasIndex, lasData);
 
-    if (m_configAndResults.n > 1)
-    {
-        double nd = (double)m_configAndResults.n;
+                if (lasData._Return_Number == 1 && lasData._Number_of_Returns >= 1) {++m_configAndResults.n_first;}
+                if (lasData._Return_Number == 1 && lasData._Number_of_Returns == 1) {++m_configAndResults.n_only;}
+                if (lasData._Return_Number != 1 && lasData._Return_Number == lasData._Number_of_Returns && lasData._Number_of_Returns > 1) {++m_configAndResults.n_last;}
+                if (lasData._Return_Number > 1 && lasData._Return_Number != lasData._Number_of_Returns && lasData._Number_of_Returns > 1) {++m_configAndResults.n_intermediate;}
+                if (lasData._Return_Number < 1 || lasData._Return_Number < 1 || lasData._Return_Number > lasData._Return_Number) {++m_configAndResults.n_intermediate;}
 
-        m_configAndResults.valHmean.value /= nd;
 
-        if (m_configAndResults.valHskew.used || m_configAndResults.valHkurt.used)
-        {
-            for(size_t i=0; i<m_configAndResults.n; ++i) {
-                zValue = zValues[i] - m_configAndResults.valHmean.value;
-                m2 += pow(zValue, 2.0);
-                m3 += pow(zValue, 3.0);
-                m4 += pow(zValue, 4.0);
             }
-
-            m2 /= nd;
-            m3 /= nd;
-            m4 /= nd;
-
-            m_configAndResults.valHsd.value = sqrt((nd/(nd-1))*m2);
-
-            m_configAndResults.valHcv.value = m_configAndResults.valHsd.value / m_configAndResults.valHmean.value;
-
-            m_configAndResults.valHskew.value = m3 / pow(m2, 3.0/2.0);
-            m_configAndResults.valHskew.value *= sqrt(nd*(nd-1.0))/(nd-2.0); // SAS & SPSS
-            //valHskew *= pow((nd-1.0)/nd, 3.0/2.0); // R package e1071
-
-            m_configAndResults.valHkurt.value = m4 / pow(m2, 2.0) - 3.0;
-            m_configAndResults.valHkurt.value = ((nd+1.0)*m_configAndResults.valHkurt.value + 6.0)*(nd-1.0)/((nd-2.0)*(nd-3.0)); // SAS & SPSS
-            //valHkurt = (valHkurt + 3)*pow(1.0-1.0/nd, 2.0) - 3.0; // R package e1071
         }
     }
 
     setAttributeValue(m_configAndResults.n);
-    setAttributeValueVaB(m_configAndResults.valHmean);
-    setAttributeValueVaB(m_configAndResults.valHsd);
-    setAttributeValueVaB(m_configAndResults.valHskew);
-    setAttributeValueVaB(m_configAndResults.valHkurt);
-    setAttributeValueVaB(m_configAndResults.valHcv);
+
+    setAttributeValue(m_configAndResults.n_first);
+    setAttributeValue(m_configAndResults.n_last);
+    setAttributeValue(m_configAndResults.n_intermediate);
+    setAttributeValue(m_configAndResults.n_only);
+    setAttributeValue(m_configAndResults.n_error);
+
+    setAttributeValue(m_configAndResults.n_ground);
+    setAttributeValue(m_configAndResults.n_vegetation);
+    setAttributeValue(m_configAndResults.n_others);
+
+    setAttributeValue(m_configAndResults.max_m_min);
+    setAttributeValue(m_configAndResults.numberOfLines);
+    setAttributeValue(m_configAndResults.nBestLine);
+    setAttributeValue(m_configAndResults.nSecondLine);
+    setAttributeValue(m_configAndResults.nWorstLine);
 }
