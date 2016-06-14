@@ -42,7 +42,7 @@ public:
         size_t      n_ground;
         size_t      n_vegetation;
         size_t      n_others;
-        size_t      max_m_min;
+        double      max_m_min;
         size_t      numberOfLines;
         size_t      nBestLine;
         size_t      nSecondLine;

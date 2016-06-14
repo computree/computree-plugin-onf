@@ -45,7 +45,20 @@ QString ONF_MetricComputeStats::getShortDescription() const
 QString ONF_MetricComputeStats::getDetailledDescription() const
 {
     return tr("Les valeurs suivantes sont calculées :<br>"
-              "- N : Nombre total de points");
+              "- N : Nombre total de points"
+              "- N_first : Nombre de points First"
+              "- N_last : Nombre de points Last"
+              "- N_int : Nombre de points Intermediate"
+              "- N_only : Nombre de points Only"
+              "- N_error : Nombre de points en Erreur (nombre de retours ou numéro de retour aberrant)"
+              "- N_ground : Nombre de points Sol"
+              "- N_veg : Nombre de Végétation "
+              "- N_other : Nombre de points Autres (ni Végétation, ni Sol)"
+              "- Range : Zmax - Zmin"
+              "- NumberOfLines : Nombre de lignes vols couvrant la placette"
+              "- N_bestLine : Nombre de points de la ligne de vols ayant le plus de points"
+              "- N_secondLine : Nombre de points de la seconde ligne de vols ayant le plus de points"
+              "- N_worstLine : Nombre de points de la ligne de vols ayant le moins de points");
 }
 
 ONF_MetricComputeStats::Config ONF_MetricComputeStats::metricConfiguration() const
@@ -74,7 +87,7 @@ void ONF_MetricComputeStats::createAttributes()
     addAttribute<size_t>(m_configAndResults.n_ground, CT_AbstractCategory::DATA_NUMBER, tr("N_ground"));
     addAttribute<size_t>(m_configAndResults.n_vegetation, CT_AbstractCategory::DATA_NUMBER, tr("N_veg"));
     addAttribute<size_t>(m_configAndResults.n_others, CT_AbstractCategory::DATA_NUMBER, tr("N_other"));
-    addAttribute<size_t>(m_configAndResults.max_m_min, CT_AbstractCategory::DATA_NUMBER, tr("Range"));
+    addAttribute<double>(m_configAndResults.max_m_min, CT_AbstractCategory::DATA_NUMBER, tr("Range"));
     addAttribute<size_t>(m_configAndResults.numberOfLines, CT_AbstractCategory::DATA_NUMBER, tr("NumberOfLines"));
     addAttribute<size_t>(m_configAndResults.nBestLine, CT_AbstractCategory::DATA_NUMBER, tr("N_bestLine"));
     addAttribute<size_t>(m_configAndResults.nSecondLine, CT_AbstractCategory::DATA_NUMBER, tr("N_secondLine"));
@@ -91,14 +104,21 @@ void ONF_MetricComputeStats::computeMetric()
     m_configAndResults.n_intermediate = 0;
     m_configAndResults.n_only = 0;
     m_configAndResults.n_error = 0;
+
     m_configAndResults.n_ground = 0;
     m_configAndResults.n_vegetation = 0;
     m_configAndResults.n_others = 0;
+
     m_configAndResults.max_m_min = 0;
     m_configAndResults.numberOfLines = 0;
     m_configAndResults.nBestLine = 0;
     m_configAndResults.nSecondLine = 0;
     m_configAndResults.nWorstLine = 0;
+
+    double max = -std::numeric_limits<double>::max();
+    double min = std::numeric_limits<double>::max();
+
+    QMap<quint16, size_t> linesCounts;
 
     CT_PointIterator itP(pointCloud());
     while(itP.hasNext())
@@ -120,12 +140,43 @@ void ONF_MetricComputeStats::computeMetric()
                 if (lasData._Return_Number == 1 && lasData._Number_of_Returns == 1) {++m_configAndResults.n_only;}
                 if (lasData._Return_Number != 1 && lasData._Return_Number == lasData._Number_of_Returns && lasData._Number_of_Returns > 1) {++m_configAndResults.n_last;}
                 if (lasData._Return_Number > 1 && lasData._Return_Number != lasData._Number_of_Returns && lasData._Number_of_Returns > 1) {++m_configAndResults.n_intermediate;}
-                if (lasData._Return_Number < 1 || lasData._Return_Number < 1 || lasData._Return_Number > lasData._Return_Number) {++m_configAndResults.n_intermediate;}
+                if (lasData._Return_Number < 1 || lasData._Return_Number < 1 || lasData._Return_Number > lasData._Return_Number) {++m_configAndResults.n_error;}
 
+                if (lasData._Classification == 2) {++m_configAndResults.n_ground;}
+                else if (lasData._Classification == 3 || lasData._Classification == 4 || lasData._Classification == 5) {++m_configAndResults.n_vegetation;}
+                else {++m_configAndResults.n_others;}
 
+                if (point(2) > max) {max = point(2);}
+                if (point(2) < min) {min = point(2);}
+
+                linesCounts[lasData._Point_Source_ID] = linesCounts.value(lasData._Point_Source_ID, 0) + 1;
             }
         }
     }
+
+    QList<size_t> counts = linesCounts.values();
+    qSort(counts.begin(), counts.end());
+
+    m_configAndResults.numberOfLines = linesCounts.size();
+
+    if (counts.size() > 1)
+    {
+        m_configAndResults.nBestLine = counts.last();
+    } else {
+        m_configAndResults.nBestLine = 0;
+    }
+
+    if (counts.size() > 1)
+    {
+        m_configAndResults.nSecondLine = counts.at(counts.size() - 2);
+        m_configAndResults.nWorstLine  = counts.first();
+    } else {
+        m_configAndResults.nSecondLine = 0;
+        m_configAndResults.nWorstLine  = 0;
+    }
+
+    m_configAndResults.max_m_min = max - min;
+
 
     setAttributeValue(m_configAndResults.n);
 
