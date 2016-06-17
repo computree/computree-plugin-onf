@@ -285,6 +285,7 @@ bool ONF_FilterByReturnType::validatePoint(const CT_PointIterator &pointIt, cons
     Q_UNUSED(pointIt)
 
     // Test for the type of return
+    if (LASData._Number_of_Returns <= 0) {return false;}
     if (_type == ONF_FilterByReturnType::First && LASData._Return_Number != 1) {return false;}
     if (_type == ONF_FilterByReturnType::Last && (LASData._Return_Number != LASData._Number_of_Returns || LASData._Return_Number == 1)) {return false;}
     if (_type == ONF_FilterByReturnType::LastAndOnly && LASData._Return_Number != LASData._Number_of_Returns) {return false;}
