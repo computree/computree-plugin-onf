@@ -282,10 +282,14 @@ void ONF_StepDetectVerticalAlignments07::AlignmentsDetectorForScene::detectAlign
     double zenithalAngleMaxRadians = M_PI * _step->_zenithalAngleMax / 180.0;
     double rangeUnderstorey = _step->_maxDiameterForUnderstorey - _step->_minDiameter;
 
+    _step->_mutex.lock();
+
     const CT_AbstractItemDrawableWithPointCloud* sceneStem = (CT_AbstractItemDrawableWithPointCloud*)grp->firstItemByINModelName(_step, DEFin_sceneStem);
     const CT_AbstractItemDrawableWithPointCloud* sceneAll = (CT_AbstractItemDrawableWithPointCloud*)grp->firstItemByINModelName(_step, DEFin_sceneAll);
     const CT_StdLASPointsAttributesContainer* attributeLAS = (CT_StdLASPointsAttributesContainer*)grp->firstItemByINModelName(_step, DEFin_attLAS);
     const CT_AbstractAreaShape2D *emprise = (const CT_AbstractAreaShape2D*)grp->firstItemByINModelName(_step, DEF_SearchInArea);
+
+    _step->_mutex.unlock();
 
     if (sceneStem != NULL && attributeLAS != NULL)
     {

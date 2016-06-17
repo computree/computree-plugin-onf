@@ -40,6 +40,7 @@
 #include "ct_itemdrawable/abstract/ct_abstractpointattributesscalar.h"
 
 #include "eigen/Eigen/Core"
+#include <QMutex>
 
 class CT_StandardItemGroup;
 
@@ -354,6 +355,7 @@ protected:
     };
 
 
+    QMutex                 _mutex;
 
     // Declaration of autoRenames Variables (groups or items added to In models copies)
     CT_AutoRenameModels    _grpCluster_ModelName;
