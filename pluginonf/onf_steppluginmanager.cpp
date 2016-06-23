@@ -130,7 +130,7 @@ bool ONF_StepPluginManager::init()
 {
 
     // enregistrement du listener auprès de PS_LOG
-    PS_LOG->addNormalLogListener(_logListener);
+    PS_LOG->addPrioritaryLogListener(_logListener);
 
     return CT_AbstractStepPlugin::init();
 }
