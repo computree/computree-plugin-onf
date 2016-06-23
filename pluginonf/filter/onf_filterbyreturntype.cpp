@@ -284,13 +284,18 @@ bool ONF_FilterByReturnType::validatePoint(const CT_PointIterator &pointIt, cons
 {   
     Q_UNUSED(pointIt)
 
+    // To be coherent with fusion/LASTools, if ReturnNumber = 0 and NumberOfReturn = 1 => First/Only
+
     // Test for the type of return
-    if (LASData._Number_of_Returns <= 0) {return false;}
-    if (_type == ONF_FilterByReturnType::First && LASData._Return_Number != 1) {return false;}
-    if (_type == ONF_FilterByReturnType::Last && (LASData._Return_Number != LASData._Number_of_Returns || LASData._Return_Number == 1)) {return false;}
-    if (_type == ONF_FilterByReturnType::LastAndOnly && LASData._Return_Number != LASData._Number_of_Returns) {return false;}
+    if (LASData._Number_of_Returns <= 0) {return false;} // aberrant point
+    if (_type == ONF_FilterByReturnType::First && LASData._Return_Number > 1) {return false;}
+    if (_type == ONF_FilterByReturnType::Last && (LASData._Return_Number != LASData._Number_of_Returns || LASData._Return_Number <= 1)) {return false;}
+
+    bool firstWithN1R0 = (LASData._Number_of_Returns == 1 && LASData._Return_Number == 0); // Special Only (ReturnNumber = 0 and NumberOfReturn = 1)
+    if (_type == ONF_FilterByReturnType::LastAndOnly && LASData._Return_Number != LASData._Number_of_Returns && !firstWithN1R0) {return false;}
+
     if (_type == ONF_FilterByReturnType::Intermediate && (LASData._Return_Number == 1 || LASData._Return_Number == LASData._Number_of_Returns)) {return false;}
-    if (_type == ONF_FilterByReturnType::Only && (LASData._Return_Number != 1 || LASData._Number_of_Returns != 1)) {return false;}
+    if (_type == ONF_FilterByReturnType::Only && (LASData._Return_Number > 1 || LASData._Number_of_Returns != 1)) {return false;}
 
     // test for classification
     if (_filterByClassif && !_classifToKeep.contains(LASData._Classification)) {return false;}
