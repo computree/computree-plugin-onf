@@ -58,7 +58,7 @@ ONF_StepCreatePlotManagerGrid::ONF_StepCreatePlotManagerGrid(CT_StepInitializeDa
 // Step description (tooltip of contextual menu)
 QString ONF_StepCreatePlotManagerGrid::getStepDescription() const
 {
-    return tr("Ajoute des gestionnaires de placette (grille)");
+    return tr("1- Ajoute des gestionnaires de placette (grille)");
 }
 
 // Step detailled description

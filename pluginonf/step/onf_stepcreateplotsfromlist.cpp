@@ -55,7 +55,7 @@ ONF_StepCreatePlotsFromList::ONF_StepCreatePlotsFromList(CT_StepInitializeData &
 // Step description (tooltip of contextual menu)
 QString ONF_StepCreatePlotsFromList::getStepDescription() const
 {
-    return tr("Créer des placettes à partir d'une liste");
+    return tr("2- Créer des placettes à partir d'une liste");
 }
 
 // Step detailled description

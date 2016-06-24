@@ -53,7 +53,7 @@ ONF_StepExtractPointsForPlots::ONF_StepExtractPointsForPlots(CT_StepInitializeDa
 // Step description (tooltip of contextual menu)
 QString ONF_StepExtractPointsForPlots::getStepDescription() const
 {
-    return tr("Extraire les points par placette");
+    return tr("3- Extraire les points par placette");
 }
 
 // Step detailled description

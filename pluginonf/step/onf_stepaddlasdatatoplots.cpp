@@ -53,7 +53,7 @@ ONF_StepAddLASDataToPlots::ONF_StepAddLASDataToPlots(CT_StepInitializeData &data
 // Step description (tooltip of contextual menu)
 QString ONF_StepAddLASDataToPlots::getStepDescription() const
 {
-    return tr("Ajoute les données LAS aux placettes");
+    return tr("4- Ajoute les données LAS aux placettes");
 }
 
 // Step detailled description

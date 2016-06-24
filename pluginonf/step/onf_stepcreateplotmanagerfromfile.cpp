@@ -43,7 +43,7 @@ ONF_StepCreatePlotManagerFromFile::ONF_StepCreatePlotManagerFromFile(CT_StepInit
 // Step description (tooltip of contextual menu)
 QString ONF_StepCreatePlotManagerFromFile::getStepDescription() const
 {
-    return tr("Créée un gestionnaire de placettes à partir d'un fichier ASCII");
+    return tr("1- Créée un gestionnaire de placettes à partir d'un fichier ASCII");
 }
 
 // Step detailled description

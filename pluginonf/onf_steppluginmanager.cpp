@@ -138,23 +138,23 @@ bool ONF_StepPluginManager::init()
 bool ONF_StepPluginManager::loadGenericsStep()
 {
 
-    addNewGeometricalShapesStep<ONF_StepDetectSection07>(QObject::tr("Détéction tiges (ONF 2013)"));
-    addNewGeometricalShapesStep<ONF_StepFilterGroupsByGroupsNumber>(QObject::tr("Détéction tiges (ONF 2013)"));
-    addNewGeometricalShapesStep<ONF_StepMergeNeighbourSections04>(QObject::tr("Détéction tiges (ONF 2013)"));
-    addNewGeometricalShapesStep<ONF_StepMergeEndToEndSections04>(QObject::tr("Détéction tiges (ONF 2013)"));
-    addNewGeometricalShapesStep<ONF_StepFitAndFilterCylindersInSections>(QObject::tr("Détéction tiges (ONF 2013)"));
-    addNewGeometricalShapesStep<ONF_StepExtractDiametersFromCylinders>(QObject::tr("Détéction tiges (ONF 2013)"));
+    addNewGeometricalShapesStep<ONF_StepDetectSection07>(QObject::tr("Détécter (tiges) - ONF 2013"));
+    addNewGeometricalShapesStep<ONF_StepFilterGroupsByGroupsNumber>(QObject::tr("Détécter (tiges) - ONF 2013"));
+    addNewGeometricalShapesStep<ONF_StepMergeNeighbourSections04>(QObject::tr("Détécter (tiges) - ONF 2013"));
+    addNewGeometricalShapesStep<ONF_StepMergeEndToEndSections04>(QObject::tr("Détécter (tiges) - ONF 2013"));
+    addNewGeometricalShapesStep<ONF_StepFitAndFilterCylindersInSections>(QObject::tr("Détécter (tiges) - ONF 2013"));
+    addNewGeometricalShapesStep<ONF_StepExtractDiametersFromCylinders>(QObject::tr("Détécter (tiges) - ONF 2013"));
 
     addNewGeometricalShapesStep<ONF_StepFitCirclesAndFilter>(CT_StepsMenu::LP_Fit);
-    addNewBetaStep<ONF_StepComputeSphereVoxels>("");
+    addNewBetaStep<ONF_StepComputeSphereVoxels>(CT_StepsMenu::LP_Analyze);
     addNewPointsStep<ONF_StepChangeClusterThickness02>(CT_StepsMenu::LP_Clusters);
-    addNewPointsStep<ONF_StepConvertSceneToCluster>(CT_StepsMenu::LP_Clusters);
+    addNewPointsStep<ONF_StepConvertSceneToCluster>(CT_StepsMenu::LP_Transform);
     addNewPointsStep<ONF_StepExtractPlot>(CT_StepsMenu::LP_Extract);
     addNewPointsStep<ONF_StepFilterClustersBySize>(CT_StepsMenu::LP_Clusters);
-    addNewPointsStep<ONF_StepHorizontalClustering3D>(CT_StepsMenu::LP_Clusters);
-    addNewPointsStep<ONF_StepRefPointFromArcCenter>(CT_StepsMenu::LP_Clusters);
-    addNewPointsStep<ONF_StepRefPointFromBarycenter02>(CT_StepsMenu::LP_Clusters);
-    addNewPointsStep<ONF_StepSmoothSkeleton>(CT_StepsMenu::LP_Clusters);
+    addNewBetaStep<ONF_StepHorizontalClustering3D>(CT_StepsMenu::LP_Clusters);
+    addNewGeometricalShapesStep<ONF_StepRefPointFromArcCenter>(QObject::tr("Points de référence"));
+    addNewGeometricalShapesStep<ONF_StepRefPointFromBarycenter02>(QObject::tr("Points de référence"));
+    addNewGeometricalShapesStep<ONF_StepSmoothSkeleton>(QObject::tr("Points de référence"));
     addNewPointsStep<ONF_StepComputeVerticalProfile>(CT_StepsMenu::LP_Analyze);
     addNewPointsStep<ONF_StepCorrectALSProfile>(CT_StepsMenu::LP_Analyze);
     addNewPointsStep<ONF_StepExtractPointsInVerticalCylinders>(CT_StepsMenu::LP_Extract);
@@ -162,46 +162,47 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewGeometricalShapesStep<ONF_StepComputeCrownProjection>(CT_StepsMenu::LP_Crowns);
     addNewGeometricalShapesStep<ONF_StepFilterItemsByPosition>(CT_StepsMenu::LP_Filter);
     addNewGeometricalShapesStep<ONF_StepFitCylinderOnCluster>(CT_StepsMenu::LP_Fit);
-    addNewBetaStep<ONF_StepMatchItemsPositions>("");
     addNewGeometricalShapesStep<ONF_StepModifyPositions2D>(CT_StepsMenu::LP_Stems);
     addNewGeometricalShapesStep<ONF_StepSegmentCrowns>(CT_StepsMenu::LP_Crowns);
     addNewGeometricalShapesStep<ONF_StepSegmentGaps>(CT_StepsMenu::LP_Crowns);
     addNewGeometricalShapesStep<ONF_StepValidateInventory>(CT_StepsMenu::LP_Stems);
     addNewGeometricalShapesStep<ONF_StepAddAttributeValue>(CT_StepsMenu::LP_Analyze);
-    addNewGeometricalShapesStep<ONF_StepAddTileXYAreas>(CT_StepsMenu::LP_Vector);
-    addNewGeometricalShapesStep<ONF_StepCreateTiling>(CT_StepsMenu::LP_Vector);
-    addNewBetaStep<ONF_StepComputeLAI2000Data>(CT_StepsMenu::LP_Analyze);
-    addNewBetaStep<ONF_StepImportSegmaFilesForMatching>(CT_StepsMenu::LP_Others);
+    addNewShapes2DStep<ONF_StepAddTileXYAreas>(CT_StepsMenu::LP_Footprints);
+    addNewShapes2DStep<ONF_StepCreateTiling>(CT_StepsMenu::LP_Footprints);
     addNewLoadStep<ONF_StepLoadPlotAreas>(CT_StepsMenu::LP_Vector);
-    addNewBetaStep<ONF_StepLoadPositionsForMatching>(CT_StepsMenu::LP_Others);
     addNewLoadStep<ONF_StepLoadTreeMap>(CT_StepsMenu::LP_Items);
-    addNewBetaStep<ONF_StepExtractLogBuffer>(CT_StepsMenu::LP_Extract);
     addNewPointsStep<ONF_StepReducePointsDensity>(CT_StepsMenu::LP_Filter);
     addNewPointsStep<ONF_StepSlicePointCloud>(CT_StepsMenu::LP_Extract);
-    addNewBetaStep<ONF_StepTransformPointCloud>(CT_StepsMenu::LP_Transform);
-    addNewVoxelsStep<ONF_StepCompare3DGridsContents>("");
+    addNewVoxelsStep<ONF_StepCompare3DGridsContents>(CT_StepsMenu::LP_Analyze);
     addNewVoxelsStep<ONF_StepComputeHitGrid>(CT_StepsMenu::LP_Create);
     addNewVoxelsStep<ONF_StepSelectCellsInGrid3D>(CT_StepsMenu::LP_Filter);
     addNewVoxelsStep<ONF_StepSelectCellsInGrid3DByBinaryPattern>(CT_StepsMenu::LP_Filter);
     addNewVoxelsStep<ONF_StepFilterPointsByBoolGrid>(CT_StepsMenu::LP_Filter);
-    addNewWorkflowStep<ONF_StepAddAffiliationID>("");
-    addNewBetaStep<ONF_StepCreatePlotManagerFromFile>("");
-    addNewBetaStep<ONF_StepCreatePlotManagerGrid>("");
-    addNewBetaStep<ONF_StepCreatePlotsFromList>("");
-    addNewBetaStep<ONF_StepExtractPointsForPlots>("");
-    addNewBetaStep<ONF_StepAddLASDataToPlots>("");
-    addNewBetaStep<ONF_StepFilterElementsByXYArea>("");
-    addNewWorkflowStep<ONF_StepSelectBBoxByFileName>("");
-    addNewWorkflowStep<ONF_StepSelectGroupsByReferenceHeight>(CT_StepsMenu::LP_Filter);
-    addNewWorkflowStep<ONF_StepSetAffiliationIDFromReference>("");
+    addNewWorkflowStep<ONF_StepAddAffiliationID>("Affiliations");
+    addNewShapes2DStep<ONF_StepCreatePlotManagerFromFile>(CT_StepsMenu::LP_Plots);
+    addNewShapes2DStep<ONF_StepCreatePlotManagerGrid>(CT_StepsMenu::LP_Plots);
+    addNewShapes2DStep<ONF_StepCreatePlotsFromList>(CT_StepsMenu::LP_Plots);
+    addNewShapes2DStep<ONF_StepExtractPointsForPlots>(CT_StepsMenu::LP_Plots);
+    addNewShapes2DStep<ONF_StepAddLASDataToPlots>(CT_StepsMenu::LP_Plots);
+    addNewShapes2DStep<ONF_StepFilterElementsByXYArea>(CT_StepsMenu::LP_Footprints);
+    addNewShapes2DStep<ONF_StepSelectBBoxByFileName>(CT_StepsMenu::LP_Footprints);
+    addNewGeometricalShapesStep<ONF_StepSelectGroupsByReferenceHeight>(CT_StepsMenu::LP_Filter);
+    addNewWorkflowStep<ONF_StepSetAffiliationIDFromReference>("Affiliations");
     addNewGeometricalShapesStep<ONF_StepComputeDBHFromHeightAllometry>(CT_StepsMenu::LP_Stems);
+
+    addNewBetaStep<ONF_StepTransformPointCloud>(CT_StepsMenu::LP_Transform);
+    addNewBetaStep<ONF_StepComputeLAI2000Data>(CT_StepsMenu::LP_Analyze);
+    addNewBetaStep<ONF_StepImportSegmaFilesForMatching>(CT_StepsMenu::LP_Others);
+    addNewBetaStep<ONF_StepLoadPositionsForMatching>(CT_StepsMenu::LP_Others);
+    addNewBetaStep<ONF_StepMatchItemsPositions>(CT_StepsMenu::LP_Others);
+    addNewBetaStep<ONF_StepExtractLogBuffer>(CT_StepsMenu::LP_Extract);
     addNewBetaStep<ONF_StepDetectVerticalAlignments07>(CT_StepsMenu::LP_Stems);
 
 
 #ifdef USE_OPENCV
-    addNewBetaStep<ONF_StepDetectVerticalAlignments06>(CT_StepsMenu::LP_Stems);
+    //addNewBetaStep<ONF_StepDetectVerticalAlignments06>(CT_StepsMenu::LP_Stems);
 
-    addNewGeometricalShapesStep<ONF_StepSetFootCoordinatesVertically>(QObject::tr("Détéction tiges (ONF 2013)"));
+    addNewGeometricalShapesStep<ONF_StepSetFootCoordinatesVertically>(QObject::tr("Détécter (tiges) - ONF 2013"));
     addNewGeometricalShapesStep<ONF_StepExtractPositionsFromDensity>(CT_StepsMenu::LP_Stems);
     addNewBetaStep<ONF_StepSegmentCrownsFromStemClusters>(CT_StepsMenu::LP_Crowns);
 
@@ -211,7 +212,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewRastersStep<ONF_StepComputeDSM>(CT_StepsMenu::LP_DEM);
     addNewRastersStep<ONF_StepComputeDSMOnly>(CT_StepsMenu::LP_DEM);
 
-    addNewBetaStep<ONF_StepFilterMaximaByClusterPositions>("");
+    addNewBetaStep<ONF_StepFilterMaximaByClusterPositions>(CT_StepsMenu::LP_Raster);
     addNewBetaStep<ONF_StepConvertFloatImageToqint32>(CT_StepsMenu::LP_Transform);
     addNewRastersStep<ONF_StepComputeAttributeMapFromClusters>("");
 
