@@ -102,6 +102,7 @@
 #include "step/onf_stepcomputeedbhfromheightallometry.h"
 #include "step/onf_stepaddlasdatatoplots.h"
 #include "step/onf_stepfilterelementsbyxyarea.h"
+#include "step/onf_stepfiltergridbycloud.h"
 
 #include "filter/onf_filterbyreturntype.h"
 #include "filter/onf_filterremoveupperoutliers.h"
@@ -174,6 +175,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewPointsStep<ONF_StepReducePointsDensity>(CT_StepsMenu::LP_Filter);
     addNewPointsStep<ONF_StepSlicePointCloud>(CT_StepsMenu::LP_Extract);
     addNewVoxelsStep<ONF_StepCompare3DGridsContents>(CT_StepsMenu::LP_Analyze);
+    addNewVoxelsStep<ONF_StepFilterGridByCloud>(CT_StepsMenu::LP_Filter);
     addNewVoxelsStep<ONF_StepComputeHitGrid>(CT_StepsMenu::LP_Create);
     addNewVoxelsStep<ONF_StepSelectCellsInGrid3D>(CT_StepsMenu::LP_Filter);
     addNewVoxelsStep<ONF_StepSelectCellsInGrid3DByBinaryPattern>(CT_StepsMenu::LP_Filter);
