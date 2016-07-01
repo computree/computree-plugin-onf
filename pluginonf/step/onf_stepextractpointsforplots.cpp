@@ -33,8 +33,11 @@
 
 #include "ct_itemdrawable/abstract/ct_abstractareashape2d.h"
 #include "ct_itemdrawable/ct_scene.h"
-#include "ct_pointcloudindex/ct_pointcloudindexvector.h"
 #include "ct_iterator/ct_pointiterator.h"
+
+#ifdef USE_OPENCV
+#include "ct_itemdrawable/ct_image2d.h"
+#endif
 
 #include <QDebug>
 
@@ -48,6 +51,7 @@
 // Constructor : initialization of parameters
 ONF_StepExtractPointsForPlots::ONF_StepExtractPointsForPlots(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
+    _cellSize = 50.0;
 }
 
 // Step description (tooltip of contextual menu)
@@ -101,7 +105,8 @@ void ONF_StepExtractPointsForPlots::createOutResultModelListProtected()
 // Semi-automatic creation of step parameters DialogBox
 void ONF_StepExtractPointsForPlots::createPostConfigurationDialog()
 {
-   //CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
+   CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
+   configDialog->addDouble(tr("Taille de la cellule de QuadTree pour l'optimisation"), "m", 0, 1e+5, 2, _cellSize);
 }
 
 void ONF_StepExtractPointsForPlots::compute()
@@ -121,6 +126,11 @@ void ONF_StepExtractPointsForPlots::compute()
            QList<CT_AbstractAreaShape2D*> shapesList;
            QList<PlotPointsIndices> plotPointsIndicesList;
 
+           double xmin = std::numeric_limits<double>::max();
+           double ymin = std::numeric_limits<double>::max();
+           double xmax = -std::numeric_limits<double>::max();
+           double ymax = -std::numeric_limits<double>::max();
+
            CT_GroupIterator grpPlotIt(groupScene, this, DEFin_grpPlot);
            while (grpPlotIt.hasNext() && !isStopped())
            {
@@ -129,12 +139,55 @@ void ONF_StepExtractPointsForPlots::compute()
 
                if (areaShape != NULL)
                {
+                   if (areaShape->minX() < xmin) {xmin = areaShape->minX();}
+                   if (areaShape->minY() < ymin) {ymin = areaShape->minY();}
+                   if (areaShape->maxX() > xmax) {xmax = areaShape->maxX();}
+                   if (areaShape->maxY() > ymax) {ymax = areaShape->maxY();}
+
                    shapesList.append(areaShape);
                    plotPointsIndicesList.append(PlotPointsIndices(groupPlot));
                }
            }
 
+
+           // Construction of quadTree
+#ifdef USE_OPENCV
+           xmin -= _cellSize;
+           ymin -= _cellSize;
+           xmax += _cellSize;
+           ymax += _cellSize;
+
+           CT_Image2D<int>* quadTree = CT_Image2D<int>::createImage2DFromXYCoords(NULL, NULL,xmin, ymin, xmax, ymax, _cellSize, 0, -1, -1);
+           for (size_t index = 0 ; index < quadTree->nCells() ; index++)
+           {
+               quadTree->setValueAtIndex(index, index);
+           }
+           QVector<QList<int> > shapeLists(quadTree->nCells());
+
            int sizeShapes = shapesList.size();
+           for (int sh = 0 ; sh < sizeShapes ; sh++)
+           {
+               CT_AbstractAreaShape2D* shape = shapesList.at(sh);
+               Eigen::Vector3d min, max;
+               shape->getBoundingBox(min, max);
+
+               size_t colB, colE, linB, linE;
+               if (!quadTree->col(min(0), colB)) {colB = 0;}
+               if (!quadTree->col(max(0), colE)) {colE = quadTree->colDim() - 1;}
+               if (!quadTree->lin(min(1), linE)) {linE = quadTree->linDim() - 1;}
+               if (!quadTree->lin(max(1), linB)) {linB = 0;}
+
+               for (size_t cc = colB; cc <= colE ; cc++)
+               {
+                   for (size_t ll = linB ; ll <= linE ; ll++)
+                   {
+                       int shIdx = quadTree->value(cc, ll);
+                       shapeLists[shIdx].append(sh);
+                   }
+               }
+           }
+#endif
+
 
            setProgress(10);
 
@@ -150,18 +203,38 @@ void ONF_StepExtractPointsForPlots::compute()
                const CT_Point &point = itP.next().currentPoint();
                size_t index = itP.currentGlobalIndex();
 
+
+#ifdef USE_OPENCV
+               int shIdx = quadTree->valueAtCoords(point(0), point(1));
+               const QList<int> &shNumberList = shapeLists.at(shIdx);
+
+               for (int sh = 0 ; sh < shNumberList.size() ; sh++)
+               {
+                   int shNum = shNumberList.at(sh);
+                   if (shapesList.at(shNum)->contains(point(0), point(1)))
+                   {
+                       plotPointsIndicesList[shNum]._indices->addIndex(index);
+                   }
+               }
+
+#else
                for (int sh = 0 ; sh < sizeShapes ; sh++)
                {
                    if (shapesList.at(sh)->contains(point(0), point(1)))
                    {
-                       plotPointsIndicesList[sh]._indices.append(index);
+                       plotPointsIndicesList[sh]._indices->addIndex(index);
                    }
                }
+#endif
 
-               setProgress(10.0 + 49.0*((float)cpt++ / (float)sizeCloud));
+               setProgress(10.0 + 79.0*((float)cpt++ / (float)sizeCloud));
            }
 
-           setProgress(60);
+#ifdef USE_OPENCV
+           delete quadTree;
+#endif
+
+           setProgress(90);
 
 
            cpt = 0;
@@ -170,21 +243,19 @@ void ONF_StepExtractPointsForPlots::compute()
                PlotPointsIndices& plotPointsIndices = plotPointsIndicesList[sh];
                CT_StandardItemGroup* grpSh = plotPointsIndices._group;
 
-               if (plotPointsIndices._indices.size() > 0)
+               CT_PointCloudIndexVector *plotPointCloudIndex = plotPointsIndices._indices;
+               if (plotPointCloudIndex->size() > 0)
                {
-                   CT_PointCloudIndexVector *plotPointCloudIndex = new CT_PointCloudIndexVector();
-
-                   for (int i = 0 ; i < plotPointsIndices._indices.size() ; i++)
-                   {
-                       plotPointCloudIndex->addIndex(plotPointsIndices._indices.at(i));
-                   }
+                   plotPointCloudIndex->setSortType(CT_PointCloudIndexVector::SortedInAscendingOrder);
 
                    CT_Scene* plotScene = new CT_Scene(_outPoints_ModelName.completeName(), resOut, PS_REPOSITORY->registerPointCloudIndex(plotPointCloudIndex));
                    plotScene->updateBoundingBox();
 
                    grpSh->addItemDrawable(plotScene);
+               } else {
+                   delete plotPointCloudIndex;
                }
-               setProgress(60.0 + 39.0*((float)cpt++ / (float)sizeShapes));
+               setProgress(90 + 9.0*((float)cpt++ / (float)sizeShapes));
 
            }
 

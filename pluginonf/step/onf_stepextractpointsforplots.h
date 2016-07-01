@@ -29,6 +29,7 @@
 #include "ct_tools/model/ct_autorenamemodels.h"
 
 #include "ct_itemdrawable/ct_standarditemgroup.h"
+#include "ct_pointcloudindex/ct_pointcloudindexvector.h"
 
 
 class ONF_StepExtractPointsForPlots: public CT_AbstractStep
@@ -99,21 +100,31 @@ private:
 
     struct PlotPointsIndices {
 
-        PlotPointsIndices(const PlotPointsIndices& other)
+        PlotPointsIndices(const PlotPointsIndices* other)
         {
-            _group = other._group;
-            _indices.append(other._indices);
+            _indices = new CT_PointCloudIndexVector();
+            _indices->setSortType(CT_PointCloudIndexVector::NotSorted);
+            _group = other->_group;
+
+            for (int i = 0 ; i < other->_indices->size() ; i++)
+            {
+                _indices->addIndex(other->_indices->indexAt(i));
+            }
         }
 
         PlotPointsIndices(CT_StandardItemGroup* group)
         {
+            _indices = new CT_PointCloudIndexVector();
+            _indices->setSortType(CT_PointCloudIndexVector::NotSorted);
             _group = group;
         }
 
-        CT_StandardItemGroup* _group;
-        QList<size_t>         _indices;
+        CT_StandardItemGroup*            _group;
+        CT_PointCloudIndexVector*        _indices;
     };
 
+
+    double                  _cellSize;
     CT_AutoRenameModels     _outPoints_ModelName;
 
 };
