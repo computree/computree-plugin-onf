@@ -126,10 +126,12 @@ void ONF_StepExtractPointsForPlots::compute()
            QList<CT_AbstractAreaShape2D*> shapesList;
            QList<PlotPointsIndices> plotPointsIndicesList;
 
+#ifdef USE_OPENCV
            double xmin = std::numeric_limits<double>::max();
            double ymin = std::numeric_limits<double>::max();
            double xmax = -std::numeric_limits<double>::max();
            double ymax = -std::numeric_limits<double>::max();
+#endif
 
            CT_GroupIterator grpPlotIt(groupScene, this, DEFin_grpPlot);
            while (grpPlotIt.hasNext() && !isStopped())
@@ -139,10 +141,12 @@ void ONF_StepExtractPointsForPlots::compute()
 
                if (areaShape != NULL)
                {
+#ifdef USE_OPENCV
                    if (areaShape->minX() < xmin) {xmin = areaShape->minX();}
                    if (areaShape->minY() < ymin) {ymin = areaShape->minY();}
                    if (areaShape->maxX() > xmax) {xmax = areaShape->maxX();}
                    if (areaShape->maxY() > ymax) {ymax = areaShape->maxY();}
+#endif
 
                    shapesList.append(areaShape);
                    plotPointsIndicesList.append(PlotPointsIndices(groupPlot));
@@ -216,7 +220,6 @@ void ONF_StepExtractPointsForPlots::compute()
                        plotPointsIndicesList[shNum]._indices->addIndex(index);
                    }
                }
-
 #else
                for (int sh = 0 ; sh < sizeShapes ; sh++)
                {
