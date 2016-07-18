@@ -42,6 +42,7 @@
 #include "step/onf_stepmanualinventory.h"
 #include "step/onf_stepextractpositionsfromdensity.h"
 #include "step/onf_stepsegmentcrownsfromstemclusters.h"
+#include "step/onf_stepvoxelclusterization.h"
 #endif
 
 #include "step/onf_stepchangeclusterthickness02.h"
@@ -220,6 +221,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
 
     addNewGeometricalShapesStep<ONF_StepMergeClustersFromPositions02>(CT_StepsMenu::LP_Crowns);
     addNewGeometricalShapesStep<ONF_StepManualInventory>(CT_StepsMenu::LP_Stems);
+    addNewPointsStep<ONF_StepVoxelClusterization>(CT_StepsMenu::LP_Clusters);
 #endif
 
 

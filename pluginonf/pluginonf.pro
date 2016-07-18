@@ -121,7 +121,8 @@ HEADERS += \
     step/onf_stepdetectverticalalignments07.h \
     step/onf_stepaddlasdatatoplots.h \
     step/onf_stepfilterelementsbyxyarea.h \
-    step/onf_stepfiltergridbycloud.h
+    step/onf_stepfiltergridbycloud.h \
+    step/onf_stepvoxelclusterization.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -232,7 +233,8 @@ SOURCES += \
     step/onf_stepdetectverticalalignments07.cpp \
     step/onf_stepaddlasdatatoplots.cpp \
     step/onf_stepfilterelementsbyxyarea.cpp \
-    step/onf_stepfiltergridbycloud.cpp
+    step/onf_stepfiltergridbycloud.cpp \
+    step/onf_stepvoxelclusterization.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts
