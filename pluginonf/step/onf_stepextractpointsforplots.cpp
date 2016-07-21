@@ -136,6 +136,7 @@ void ONF_StepExtractPointsForPlots::compute()
            CT_GroupIterator grpPlotIt(groupScene, this, DEFin_grpPlot);
            while (grpPlotIt.hasNext() && !isStopped())
            {
+
                CT_StandardItemGroup* groupPlot = (CT_StandardItemGroup*) grpPlotIt.next();
                CT_AbstractAreaShape2D* areaShape = (CT_AbstractAreaShape2D*) groupPlot->firstItemByINModelName(this, DEFin_plot);
 
@@ -153,7 +154,7 @@ void ONF_StepExtractPointsForPlots::compute()
                }
            }
            int sizeShapes = shapesList.size();
-
+           if (sizeShapes <= 0) {return;}
 
            // Construction of quadTree
 #ifdef USE_OPENCV
@@ -163,6 +164,7 @@ void ONF_StepExtractPointsForPlots::compute()
            ymax += _cellSize;
 
            CT_Image2D<int>* quadTree = CT_Image2D<int>::createImage2DFromXYCoords(NULL, NULL,xmin, ymin, xmax, ymax, _cellSize, 0, -1, -1);
+
            for (size_t index = 0 ; index < quadTree->nCells() ; index++)
            {
                quadTree->setValueAtIndex(index, index);
@@ -200,6 +202,7 @@ void ONF_StepExtractPointsForPlots::compute()
            size_t sizeCloud = pointCloudIndex->size();
            PS_LOG->addInfoMessage(LogInterface::step, tr("Le nuage de points contient %1 points").arg(sizeCloud));
 
+
            size_t cpt = 0;
            CT_PointIterator itP(pointCloudIndex);
            while(itP.hasNext() && (!isStopped()))
@@ -220,6 +223,7 @@ void ONF_StepExtractPointsForPlots::compute()
                        plotPointsIndicesList[shNum]._indices->addIndex(index);
                    }
                }
+
 #else
                for (int sh = 0 ; sh < sizeShapes ; sh++)
                {
