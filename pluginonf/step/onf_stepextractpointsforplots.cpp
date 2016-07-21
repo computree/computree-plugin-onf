@@ -152,6 +152,7 @@ void ONF_StepExtractPointsForPlots::compute()
                    plotPointsIndicesList.append(PlotPointsIndices(groupPlot));
                }
            }
+           int sizeShapes = shapesList.size();
 
 
            // Construction of quadTree
@@ -168,7 +169,6 @@ void ONF_StepExtractPointsForPlots::compute()
            }
            QVector<QList<int> > shapeLists(quadTree->nCells());
 
-           int sizeShapes = shapesList.size();
            for (int sh = 0 ; sh < sizeShapes ; sh++)
            {
                CT_AbstractAreaShape2D* shape = shapesList.at(sh);
