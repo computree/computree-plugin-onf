@@ -55,7 +55,7 @@
 
 ONF_StepVoxelClusterization::ONF_StepVoxelClusterization(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
-    _res = 0.01;
+    _res = 0.1;
     _gridMode = 0;
     _xBase = 0;
     _yBase = 0;
