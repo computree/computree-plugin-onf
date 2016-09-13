@@ -104,6 +104,7 @@
 #include "step/onf_stepaddlasdatatoplots.h"
 #include "step/onf_stepfilterelementsbyxyarea.h"
 #include "step/onf_stepfiltergridbycloud.h"
+#include "step/onf_stepcomputecumulativeconvexhull.h"
 
 #include "filter/onf_filterbyreturntype.h"
 #include "filter/onf_filterremoveupperoutliers.h"
@@ -189,6 +190,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewShapes2DStep<ONF_StepAddLASDataToPlots>(CT_StepsMenu::LP_Plots);
     addNewShapes2DStep<ONF_StepFilterElementsByXYArea>(CT_StepsMenu::LP_Footprints);
     addNewShapes2DStep<ONF_StepSelectBBoxByFileName>(CT_StepsMenu::LP_Footprints);
+    addNewShapes2DStep<ONF_StepComputeCumulativeConvexHull>(CT_StepsMenu::LP_Footprints);
     addNewGeometricalShapesStep<ONF_StepSelectGroupsByReferenceHeight>(CT_StepsMenu::LP_Filter);
     addNewWorkflowStep<ONF_StepSetAffiliationIDFromReference>("Affiliations");
     addNewGeometricalShapesStep<ONF_StepComputeDBHFromHeightAllometry>(CT_StepsMenu::LP_Stems);
