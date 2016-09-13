@@ -251,17 +251,17 @@ void ONF_StepExtractPointsForPlots::compute()
                CT_StandardItemGroup* grpSh = plotPointsIndices._group;
 
                CT_PointCloudIndexVector *plotPointCloudIndex = plotPointsIndices._indices;
-               if (plotPointCloudIndex->size() > 0)
-               {
+//               if (plotPointCloudIndex->size() > 0)
+//               {
                    plotPointCloudIndex->setSortType(CT_PointCloudIndexVector::SortedInAscendingOrder);
 
                    CT_Scene* plotScene = new CT_Scene(_outPoints_ModelName.completeName(), resOut, PS_REPOSITORY->registerPointCloudIndex(plotPointCloudIndex));
                    plotScene->updateBoundingBox();
 
                    grpSh->addItemDrawable(plotScene);
-               } else {
-                   delete plotPointCloudIndex;
-               }
+//               } else {
+//                   delete plotPointCloudIndex;
+//               }
                setProgress(90 + 9.0*((float)cpt++ / (float)sizeShapes));
 
            }

@@ -109,7 +109,7 @@ void ONF_MetricComputeStats::computeMetric()
     m_configAndResults.n_vegetation = 0;
     m_configAndResults.n_others = 0;
 
-    m_configAndResults.max_m_min = 0;
+    m_configAndResults.max_m_min = NAN;
     m_configAndResults.numberOfLines = 0;
     m_configAndResults.nBestLine = 0;
     m_configAndResults.nSecondLine = 0;
@@ -175,8 +175,10 @@ void ONF_MetricComputeStats::computeMetric()
         m_configAndResults.nWorstLine  = 0;
     }
 
-    m_configAndResults.max_m_min = max - min;
-
+    if (m_configAndResults.n > 0)
+    {
+        m_configAndResults.max_m_min = max - min;
+    }
 
     setAttributeValue(m_configAndResults.n);
 
