@@ -111,6 +111,7 @@
 
 #include "metric/onf_metricquantiles.h"
 #include "metric/onf_metricnbylasclass.h"
+#include "metric/onf_metricminmaxlasfields.h"
 
 #include "itemdrawable/onf_lai2000data.h"
 #include "itemdrawable/onf_lvoxsphere.h"
@@ -250,6 +251,7 @@ bool ONF_StepPluginManager::loadFilters()
 bool ONF_StepPluginManager::loadMetrics()
 {
     addNewMetric(new ONF_MetricNbyLASClass());
+    addNewMetric(new ONF_MetricMinMaxLASFields());
     addNewMetric(new ONF_MetricQuantiles());
     return true;
 }
