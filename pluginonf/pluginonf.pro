@@ -34,7 +34,6 @@ HEADERS += \
     filter/onf_filterremoveupperoutliers.h \
     itemdrawable/onf_lai2000data.h \
     itemdrawable/onf_lvoxsphere.h \
-    metric/onf_metriccomputestats.h \
     metric/onf_metricquantiles.h \
     step/onf_stepaddaffiliationid.h \
     step/onf_stepaddattributevalue.h \
@@ -128,7 +127,8 @@ HEADERS += \
     step/onf_stepfilterelementsbyxyarea.h \
     step/onf_stepfiltergridbycloud.h \
     step/onf_stepvoxelclusterization.h \
-    step/onf_stepcomputecumulativeconvexhull.h
+    step/onf_stepcomputecumulativeconvexhull.h \
+    metric/onf_metricnbylasclass.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -147,7 +147,6 @@ SOURCES += \
     filter/onf_filterremoveupperoutliers.cpp \
     itemdrawable/onf_lai2000data.cpp \
     itemdrawable/onf_lvoxsphere.cpp \
-    metric/onf_metriccomputestats.cpp \
     metric/onf_metricquantiles.cpp \
     step/onf_stepaddaffiliationid.cpp \
     step/onf_stepaddattributevalue.cpp \
@@ -241,7 +240,8 @@ SOURCES += \
     step/onf_stepfilterelementsbyxyarea.cpp \
     step/onf_stepfiltergridbycloud.cpp \
     step/onf_stepvoxelclusterization.cpp \
-    step/onf_stepcomputecumulativeconvexhull.cpp
+    step/onf_stepcomputecumulativeconvexhull.cpp \
+    metric/onf_metricnbylasclass.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts
