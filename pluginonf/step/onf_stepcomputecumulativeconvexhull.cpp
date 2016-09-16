@@ -58,7 +58,7 @@ ONF_StepComputeCumulativeConvexHull::ONF_StepComputeCumulativeConvexHull(CT_Step
 // Step description (tooltip of contextual menu)
 QString ONF_StepComputeCumulativeConvexHull::getStepDescription() const
 {
-    return tr("Calculer l'enveloppe convexe cumulée");
+    return tr("Calculer enveloppe convexe cumulée");
 }
 
 // Step detailled description
