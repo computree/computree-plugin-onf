@@ -105,6 +105,7 @@
 #include "step/onf_stepfilterelementsbyxyarea.h"
 #include "step/onf_stepfiltergridbycloud.h"
 #include "step/onf_stepcomputecumulativeconvexhull.h"
+#include "step/onf_stepfiltermaximabyneighbourhood.h"
 
 #include "filter/onf_filterbyreturntype.h"
 #include "filter/onf_filterremoveupperoutliers.h"
@@ -217,6 +218,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewRastersStep<ONF_StepComputeDTM02>(CT_StepsMenu::LP_DEM);
     addNewRastersStep<ONF_StepComputeDSM>(CT_StepsMenu::LP_DEM);
     addNewRastersStep<ONF_StepComputeDSMOnly>(CT_StepsMenu::LP_DEM);
+    addNewRastersStep<ONF_StepFilterMaximaByNeighbourhood>(CT_StepsMenu::LP_DEM);
 
     addNewBetaStep<ONF_StepFilterMaximaByClusterPositions>(CT_StepsMenu::LP_Raster);
     addNewBetaStep<ONF_StepConvertFloatImageToqint32>(CT_StepsMenu::LP_Transform);
