@@ -1,10 +1,14 @@
 #ifndef ONF_STEPFILTERMAXIMABYNEIGHBOURHOOD_H
 #define ONF_STEPFILTERMAXIMABYNEIGHBOURHOOD_H
 
+#ifdef USE_OPENCV
+
 #include "ct_step/abstract/ct_abstractstep.h"
 
 // Inclusion of auto-indexation system
 #include "ct_tools/model/ct_autorenamemodels.h"
+#include "ct_math/delaunay2d/ct_delaunaytriangulation.h"
+#include "ct_itemdrawable/ct_image2d.h"
 
 
 class ONF_StepFilterMaximaByNeighbourhood: public CT_AbstractStep
@@ -75,13 +79,17 @@ private:
 
     QStringList _fileName;
     bool        _createMaximaPts;
+    double      _scoreThreshold;
 
     // Declaration of autoRenames Variables (groups or items added to In models copies)
     CT_AutoRenameModels    _filteredMaxima_ModelName;
     CT_AutoRenameModels    _filteredMaximaPtsGrp_ModelName;
     CT_AutoRenameModels    _filteredMaximaPts_ModelName;
 
+    double computeScore(CT_Image2D<float> *heightImage, CT_DelaunayVertex *baseVertex, CT_DelaunayVertex *neighbourVertex);
     double getRadius(double height, const QMap<double, double> &radii);
 };
+
+#endif
 
 #endif // ONF_STEPFILTERMAXIMABYNEIGHBOURHOOD_H

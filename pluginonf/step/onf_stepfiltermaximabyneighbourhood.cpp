@@ -1,12 +1,14 @@
 #include "onf_stepfiltermaximabyneighbourhood.h"
 
+#ifdef USE_OPENCV
+
 #include "ct_itemdrawable/tools/iterator/ct_groupiterator.h"
 #include "ct_result/ct_resultgroup.h"
 #include "ct_result/model/inModel/ct_inresultmodelgrouptocopy.h"
 #include "ct_result/model/outModel/tools/ct_outresultmodelgrouptocopypossibilities.h"
 #include "ct_view/ct_stepconfigurabledialog.h"
-#include "ct_itemdrawable/ct_image2d.h"
 #include "ct_itemdrawable/ct_referencepoint.h"
+
 
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/core/core.hpp"
@@ -22,6 +24,7 @@
 ONF_StepFilterMaximaByNeighbourhood::ONF_StepFilterMaximaByNeighbourhood(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
     _createMaximaPts = true;
+    _scoreThreshold = 0.5;
 }
 
 // Step description (tooltip of contextual menu)
@@ -83,6 +86,7 @@ void ONF_StepFilterMaximaByNeighbourhood::createPostConfigurationDialog()
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
     configDialog->addFileChoice(tr("Fichier de paramètres"),CT_FileChoiceButton::OneExistingFile , "Fichier de paramètres (*.*)", _fileName);
     configDialog->addBool("", "", tr("Créer des points pour les maxima"), _createMaximaPts);
+    configDialog->addDouble(tr("Seuil pour le score"), "", 0, 10, 2, _scoreThreshold);
 }
 
 void ONF_StepFilterMaximaByNeighbourhood::compute()
@@ -170,7 +174,6 @@ void ONF_StepFilterMaximaByNeighbourhood::compute()
 
             setProgress(25);
 
-
             // Compute ordered vector of maxima ids
             QList<qint32> validMaxima;
 
@@ -213,40 +216,55 @@ void ONF_StepFilterMaximaByNeighbourhood::compute()
                 }
             }
 
-
             setProgress(30);
 
-
-            // For each radius, test others
-            for (int i = 0 ; i < mxSize ; i++)
+            bool filtered = true;
+            while (filtered)
             {
-                qint32 id = orderedMaxima.at(i);
+                // Compute triangulation
+                CT_DelaunayTriangulation *delaunay = new CT_DelaunayTriangulation();
+                delaunay->init(maximaIn->minX(), maximaIn->minY(), maximaIn->maxX(), maximaIn->maxY());
 
-                if (id > 0)
+                QVector<CT_DelaunayVertex*> delaunayVertices(mxSize);
+
+                for (int i = 0 ; i < coords.size() ; i++)
                 {
-                    double x = coords[i](0);
-                    double y = coords[i](1);
-                    double z = coords[i](2);
-                    double radius = getRadius(z, radii);
-
-                    // detect the maximum to remove
-                    for (int j = i + 1 ; j < mxSize ; j++)
+                    if (orderedMaxima.at(i) > 0)
                     {
-                        qint32 idTested = orderedMaxima.at(j);
+                        delaunayVertices[i] = delaunay->addVertex(&coords[i], false);
+                    }
+                }
+                delaunay->doInsertion();
+                delaunay->computeVerticesNeighbors();
 
-                        if (idTested > 0)
+                setProgress(50);
+
+                filtered = false;
+                for (int i = 0 ; i < delaunayVertices.size() && !filtered; i++)
+                {
+                    if (orderedMaxima.at(i) > 0)
+                    {
+                        CT_DelaunayVertex* baseVertex = delaunayVertices.at(i);
+                        QList<CT_DelaunayVertex*> &neighbours = baseVertex->getNeighbors();
+
+                        for (int j = 0 ; j < neighbours.size() ; j++)
                         {
-                            double dist = sqrt(pow(x - coords[j](0), 2) + pow(y - coords[j](1), 2));
-                            if (dist < radius)
+                            CT_DelaunayVertex* neighbour = neighbours.at(j);
+
+                            double score = computeScore(imageIn, baseVertex, neighbour);
+
+                            if (score < _scoreThreshold)
                             {
-                                orderedMaxima[j] = 0;
+                                orderedMaxima[delaunayVertices.indexOf(neighbour)] = 0;
+                                filtered = true;
                             }
                         }
                     }
                 }
-
-                setProgress(29.0*(float)i / (float)mxSize + 30.0);
+                delete delaunay;
             }
+
+
 
             setProgress(60);
 
@@ -312,6 +330,32 @@ void ONF_StepFilterMaximaByNeighbourhood::compute()
     setProgress(100);
 }
 
+double ONF_StepFilterMaximaByNeighbourhood::computeScore(CT_Image2D<float>* heightImage, CT_DelaunayVertex* baseVertex, CT_DelaunayVertex* neighbourVertex)
+{
+    Eigen::Vector3d dir = *(neighbourVertex->getData()) - *(baseVertex->getData());
+
+    double length = dir.norm();
+    double offset =  1 / (length / (heightImage->resolution() / 10.0));
+
+    double deltaHMax = 0;
+
+    for (double l = 0 ; l < 1 ; l += offset)
+    {
+        Eigen::Vector3d pos = *(baseVertex->getData()) + dir*l;
+        double h = heightImage->valueAtCoords(pos(0), pos(1));
+        double deltaH = pos(2) - h;
+
+        if (deltaH > deltaHMax) {deltaHMax = deltaH;}
+    }
+
+    double dist = sqrt(pow(baseVertex->x() - neighbourVertex->x(), 2) + pow(baseVertex->y() - neighbourVertex->y(), 2));
+    if (dist > 10) {return 10000;}
+
+    return deltaHMax;
+
+    return 0;
+}
+
 double ONF_StepFilterMaximaByNeighbourhood::getRadius(double height, const QMap<double, double> &radii)
 {
     double radius = 0;
@@ -333,3 +377,5 @@ double ONF_StepFilterMaximaByNeighbourhood::getRadius(double height, const QMap<
 
     return radius;
 }
+
+#endif
