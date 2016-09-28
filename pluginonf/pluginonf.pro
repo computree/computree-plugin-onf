@@ -130,7 +130,8 @@ HEADERS += \
     step/onf_stepcomputecumulativeconvexhull.h \
     metric/onf_metricnbylasclass.h \
     metric/onf_metricminmaxlasfields.h \
-    step/onf_stepfiltermaximabyneighbourhood.h
+    step/onf_stepfiltermaximabyneighbourhood.h \
+    step/onf_stepcomputeboundary.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -245,7 +246,8 @@ SOURCES += \
     step/onf_stepcomputecumulativeconvexhull.cpp \
     metric/onf_metricnbylasclass.cpp \
     metric/onf_metricminmaxlasfields.cpp \
-    step/onf_stepfiltermaximabyneighbourhood.cpp
+    step/onf_stepfiltermaximabyneighbourhood.cpp \
+    step/onf_stepcomputeboundary.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts

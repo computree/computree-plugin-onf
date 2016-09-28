@@ -105,6 +105,7 @@
 #include "step/onf_stepfilterelementsbyxyarea.h"
 #include "step/onf_stepfiltergridbycloud.h"
 #include "step/onf_stepcomputecumulativeconvexhull.h"
+#include "step/onf_stepcomputeboundary.h"
 #include "step/onf_stepfiltermaximabyneighbourhood.h"
 
 #include "filter/onf_filterbyreturntype.h"
@@ -193,6 +194,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewShapes2DStep<ONF_StepFilterElementsByXYArea>(CT_StepsMenu::LP_Footprints);
     addNewShapes2DStep<ONF_StepSelectBBoxByFileName>(CT_StepsMenu::LP_Footprints);
     addNewShapes2DStep<ONF_StepComputeCumulativeConvexHull>(CT_StepsMenu::LP_Footprints);
+    addNewShapes2DStep<ONF_StepComputeBoundary>(CT_StepsMenu::LP_Footprints);
     addNewGeometricalShapesStep<ONF_StepSelectGroupsByReferenceHeight>(CT_StepsMenu::LP_Filter);
     addNewWorkflowStep<ONF_StepSetAffiliationIDFromReference>("Affiliations");
     addNewGeometricalShapesStep<ONF_StepComputeDBHFromHeightAllometry>(CT_StepsMenu::LP_Stems);
