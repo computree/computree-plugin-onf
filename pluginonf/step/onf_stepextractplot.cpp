@@ -133,6 +133,7 @@ void ONF_StepExtractPlot::compute()
         PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("La scène d'entrée comporte %1 points.")).arg(n_points));
 
         CT_PointCloudIndexVector *resPointCloudIndex = new CT_PointCloudIndexVector();
+        resPointCloudIndex->setSortType(CT_PointCloudIndexVector::NotSorted);
 
         std::cout << " le nombre de points dans ma scene : " << n_points;
 
@@ -225,6 +226,8 @@ void ONF_StepExtractPlot::compute()
 
         if (resPointCloudIndex->size() > 0)
         {
+            resPointCloudIndex->setSortType(CT_PointCloudIndexVector::SortedInAscendingOrder);
+
             // creation du groupe
             CT_StandardItemGroup *outGroup = new CT_StandardItemGroup(DEF_SearchOutGroup, outResult);
 
