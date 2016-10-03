@@ -43,6 +43,9 @@
 #include "step/onf_stepextractpositionsfromdensity.h"
 #include "step/onf_stepsegmentcrownsfromstemclusters.h"
 #include "step/onf_stepvoxelclusterization.h"
+#include "step/onf_stepcomputeboundary.h"
+#include "step/onf_stepfiltermaximabyneighbourhood.h"
+#include "step/onf_stepcreatemaximacloud.h"
 #endif
 
 #include "step/onf_stepchangeclusterthickness02.h"
@@ -105,8 +108,6 @@
 #include "step/onf_stepfilterelementsbyxyarea.h"
 #include "step/onf_stepfiltergridbycloud.h"
 #include "step/onf_stepcomputecumulativeconvexhull.h"
-#include "step/onf_stepcomputeboundary.h"
-#include "step/onf_stepfiltermaximabyneighbourhood.h"
 
 #include "filter/onf_filterbyreturntype.h"
 #include "filter/onf_filterremoveupperoutliers.h"
@@ -114,6 +115,7 @@
 #include "metric/onf_metricquantiles.h"
 #include "metric/onf_metricnbylasclass.h"
 #include "metric/onf_metricminmaxlasfields.h"
+#include "metric/onf_metricnapexmean.h"
 
 #include "itemdrawable/onf_lai2000data.h"
 #include "itemdrawable/onf_lvoxsphere.h"
@@ -221,6 +223,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewRastersStep<ONF_StepComputeDSM>(CT_StepsMenu::LP_DEM);
     addNewRastersStep<ONF_StepComputeDSMOnly>(CT_StepsMenu::LP_DEM);
     addNewRastersStep<ONF_StepFilterMaximaByNeighbourhood>(CT_StepsMenu::LP_DEM);
+    addNewRastersStep<ONF_StepCreateMaximaCloud>(CT_StepsMenu::LP_DEM);
 
     addNewBetaStep<ONF_StepFilterMaximaByClusterPositions>(CT_StepsMenu::LP_Raster);
     addNewBetaStep<ONF_StepConvertFloatImageToqint32>(CT_StepsMenu::LP_Transform);
@@ -257,6 +260,7 @@ bool ONF_StepPluginManager::loadMetrics()
     addNewMetric(new ONF_MetricNbyLASClass());
     addNewMetric(new ONF_MetricMinMaxLASFields());
     addNewMetric(new ONF_MetricQuantiles());
+    addNewMetric(new ONF_MetricNApexMean());
     return true;
 }
 

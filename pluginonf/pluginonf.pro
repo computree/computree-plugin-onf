@@ -131,7 +131,9 @@ HEADERS += \
     metric/onf_metricnbylasclass.h \
     metric/onf_metricminmaxlasfields.h \
     step/onf_stepfiltermaximabyneighbourhood.h \
-    step/onf_stepcomputeboundary.h
+    step/onf_stepcomputeboundary.h \
+    step/onf_stepcreatemaximacloud.h \
+    metric/onf_metricnapexmean.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -247,7 +249,9 @@ SOURCES += \
     metric/onf_metricnbylasclass.cpp \
     metric/onf_metricminmaxlasfields.cpp \
     step/onf_stepfiltermaximabyneighbourhood.cpp \
-    step/onf_stepcomputeboundary.cpp
+    step/onf_stepcomputeboundary.cpp \
+    step/onf_stepcreatemaximacloud.cpp \
+    metric/onf_metricnapexmean.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts

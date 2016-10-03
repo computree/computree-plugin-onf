@@ -23,8 +23,10 @@
 // Constructor : initialization of parameters
 ONF_StepFilterMaximaByNeighbourhood::ONF_StepFilterMaximaByNeighbourhood(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
-    _createMaximaPts = true;
     _scoreThreshold = 0.5;
+    _minRadius = 1.5;
+    _maxRadius = 10.0;
+
 }
 
 // Step description (tooltip of contextual menu)
@@ -72,11 +74,6 @@ void ONF_StepFilterMaximaByNeighbourhood::createOutResultModelListProtected()
     if (resCpy_res != NULL)
     {
         resCpy_res->addItemModel(DEFin_grp, _filteredMaxima_ModelName, new CT_Image2D<qint32>(), tr("Maxima filtrés"));
-        if (_createMaximaPts)
-        {
-            resCpy_res->addGroupModel(DEFin_grp, _filteredMaximaPtsGrp_ModelName, new CT_StandardItemGroup(), tr("Maxima filtrés (Pts)"));
-            resCpy_res->addItemModel(_filteredMaximaPtsGrp_ModelName, _filteredMaximaPts_ModelName, new CT_ReferencePoint(), tr("Maximum"));
-        }
     }
 }
 
@@ -84,51 +81,15 @@ void ONF_StepFilterMaximaByNeighbourhood::createOutResultModelListProtected()
 void ONF_StepFilterMaximaByNeighbourhood::createPostConfigurationDialog()
 {
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
-    configDialog->addFileChoice(tr("Fichier de paramètres"),CT_FileChoiceButton::OneExistingFile , "Fichier de paramètres (*.*)", _fileName);
-    configDialog->addBool("", "", tr("Créer des points pour les maxima"), _createMaximaPts);
-    configDialog->addDouble(tr("Seuil pour le score"), "", 0, 10, 2, _scoreThreshold);
+    configDialog->addDouble(tr("DeltaH maximum dans un houppier"), "m", 0, 10, 2, _scoreThreshold);
+    configDialog->addDouble(tr("Rayon de houppier minimal"), "m", 0, 1000, 2, _minRadius);
+    configDialog->addDouble(tr("Rayon de houppier maximal"), "m", 0, 1000, 2, _maxRadius);
 }
 
 void ONF_StepFilterMaximaByNeighbourhood::compute()
 {
     QList<CT_ResultGroup*> outResultList = getOutResultList();
     CT_ResultGroup* res = outResultList.at(0);
-
-    QMap<double, double> radii;
-
-    if (_fileName.size() > 0)
-    {
-        QFile parameterFile(_fileName.first());
-        if (parameterFile.exists() && parameterFile.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
-            QTextStream stream(&parameterFile);
-
-            while (!stream.atEnd())
-            {
-                QString line = stream.readLine();
-                if (!line.isEmpty())
-                {
-                    QStringList values = line.split("\t");
-
-                    if (values.size() > 1)
-                    {
-                        bool ok1, ok2;
-                        double height = values.at(0).toDouble(&ok1);
-                        double radius = values.at(1).toDouble(&ok2);
-
-                        if (ok1 && ok2)
-                        {
-                            radii.insert(height, radius);
-                        }
-                    }
-                }
-            }
-            parameterFile.close();
-        }
-    }
-
-    if (!radii.contains(0)) {radii.insert(0, radii.first());}
-    radii.insert(std::numeric_limits<double>::max(), radii.last());
 
     // COPIED results browsing
     CT_ResultGroupIterator itCpy_grp(res, this, DEFin_grp);
@@ -271,22 +232,8 @@ void ONF_StepFilterMaximaByNeighbourhood::compute()
             for (int i = 0 ; i < mxSize ; i++)
             {
                 qint32 cl = orderedMaxima.at(i);
-                if (cl > 0)
-                {
-                    validMaxima.append(cl);
 
-                    double x = coords[i](0);
-                    double y = coords[i](1);
-                    double z = coords[i](2);
-
-                    if (_createMaximaPts)
-                    {
-                        CT_ReferencePoint* refPoint = new CT_ReferencePoint(_filteredMaximaPts_ModelName.completeName(), res, x, y, z, 0);
-                        CT_StandardItemGroup* grpPt = new CT_StandardItemGroup(_filteredMaximaPtsGrp_ModelName.completeName(), res);
-                        grpPt->addItemDrawable(refPoint);
-                        grp->addGroup(grpPt);
-                    }
-                }
+                if (cl > 0) {validMaxima.append(cl);}
             }
 
             setProgress(70);
@@ -332,11 +279,14 @@ void ONF_StepFilterMaximaByNeighbourhood::compute()
 
 double ONF_StepFilterMaximaByNeighbourhood::computeScore(CT_Image2D<float>* heightImage, CT_DelaunayVertex* baseVertex, CT_DelaunayVertex* neighbourVertex)
 {
+    double dist = sqrt(pow(baseVertex->x() - neighbourVertex->x(), 2) + pow(baseVertex->y() - neighbourVertex->y(), 2));
+
+    if (dist <= _minRadius) {return 0;}
+    if (dist >= _maxRadius) {return std::numeric_limits<double>::max();}
+
     Eigen::Vector3d dir = *(neighbourVertex->getData()) - *(baseVertex->getData());
 
-    double length = dir.norm();
-    double offset =  1 / (length / (heightImage->resolution() / 10.0));
-
+    double offset =  1 / (dist / (heightImage->resolution() / 10.0));
     double deltaHMax = 0;
 
     for (double l = 0 ; l < 1 ; l += offset)
@@ -348,34 +298,9 @@ double ONF_StepFilterMaximaByNeighbourhood::computeScore(CT_Image2D<float>* heig
         if (deltaH > deltaHMax) {deltaHMax = deltaH;}
     }
 
-    double dist = sqrt(pow(baseVertex->x() - neighbourVertex->x(), 2) + pow(baseVertex->y() - neighbourVertex->y(), 2));
-    if (dist > 10) {return 10000;}
-
     return deltaHMax;
-
-    return 0;
 }
 
-double ONF_StepFilterMaximaByNeighbourhood::getRadius(double height, const QMap<double, double> &radii)
-{
-    double radius = 0;
-    bool stop = false;
-    QMapIterator<double, double> it(radii);
-    while (it.hasNext() && !stop)
-    {
-        it.next();
-        double h = it.key();
-        double r = it.value();
 
-        if (height >= h)
-        {
-            radius = r;
-        } else {
-            stop = true;
-        }
-    }
-
-    return radius;
-}
 
 #endif

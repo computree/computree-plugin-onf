@@ -1,5 +1,5 @@
-#ifndef ONF_STEPFILTERMAXIMABYNEIGHBOURHOOD_H
-#define ONF_STEPFILTERMAXIMABYNEIGHBOURHOOD_H
+#ifndef ONF_STEPCREATEMAXIMACLOUD_H
+#define ONF_STEPCREATEMAXIMACLOUD_H
 
 #ifdef USE_OPENCV
 
@@ -7,11 +7,10 @@
 
 // Inclusion of auto-indexation system
 #include "ct_tools/model/ct_autorenamemodels.h"
-#include "ct_math/delaunay2d/ct_delaunaytriangulation.h"
 #include "ct_itemdrawable/ct_image2d.h"
 
 
-class ONF_StepFilterMaximaByNeighbourhood: public CT_AbstractStep
+class ONF_StepCreateMaximaCloud: public CT_AbstractStep
 {
     Q_OBJECT
 
@@ -23,7 +22,7 @@ public:
      * 
      * \param dataInit Step parameters object
      */
-    ONF_StepFilterMaximaByNeighbourhood(CT_StepInitializeData &dataInit);
+    ONF_StepCreateMaximaCloud(CT_StepInitializeData &dataInit);
 
     /*! \brief Step description
      * 
@@ -61,7 +60,7 @@ protected:
      * 
      * DialogBox asking for step parameters
      */
-    void createPostConfigurationDialog();
+    void createPreConfigurationDialog();
 
     /*! \brief Output results specification
      * 
@@ -77,16 +76,15 @@ protected:
 
 private:
 
-    double      _scoreThreshold;
-    double      _minRadius;
-    double      _maxRadius;
+    int _createRefPoints;
 
     // Declaration of autoRenames Variables (groups or items added to In models copies)
-    CT_AutoRenameModels    _filteredMaxima_ModelName;
+    CT_AutoRenameModels    _maximaScene_ModelName;
+    CT_AutoRenameModels    _grpRefPtsMaxima_ModelName;
+    CT_AutoRenameModels    _refPtsMaxima_ModelName;
 
-    double computeScore(CT_Image2D<float> *heightImage, CT_DelaunayVertex *baseVertex, CT_DelaunayVertex *neighbourVertex);
 };
 
 #endif
 
-#endif // ONF_STEPFILTERMAXIMABYNEIGHBOURHOOD_H
+#endif // ONF_STEPCREATEMAXIMACLOUD_H
