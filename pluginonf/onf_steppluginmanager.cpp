@@ -46,6 +46,7 @@
 #include "step/onf_stepcomputeboundary.h"
 #include "step/onf_stepfiltermaximabyneighbourhood.h"
 #include "step/onf_stepcreatemaximacloud.h"
+#include "step/onf_stepoptimizegaussianonmaximanumber.h"
 #endif
 
 #include "step/onf_stepchangeclusterthickness02.h"
@@ -108,6 +109,7 @@
 #include "step/onf_stepfilterelementsbyxyarea.h"
 #include "step/onf_stepfiltergridbycloud.h"
 #include "step/onf_stepcomputecumulativeconvexhull.h"
+#include "step/onf_stepcomputetin.h"
 
 #include "filter/onf_filterbyreturntype.h"
 #include "filter/onf_filterremoveupperoutliers.h"
@@ -201,6 +203,8 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewWorkflowStep<ONF_StepSetAffiliationIDFromReference>("Affiliations");
     addNewGeometricalShapesStep<ONF_StepComputeDBHFromHeightAllometry>(CT_StepsMenu::LP_Stems);
 
+    addNewPointsStep<ONF_StepComputeTIN>(CT_StepsMenu::LP_Create);
+
     addNewBetaStep<ONF_StepTransformPointCloud>(CT_StepsMenu::LP_Transform);
     addNewBetaStep<ONF_StepComputeLAI2000Data>(CT_StepsMenu::LP_Analyze);
     addNewBetaStep<ONF_StepImportSegmaFilesForMatching>(CT_StepsMenu::LP_Others);
@@ -224,6 +228,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewRastersStep<ONF_StepComputeDSMOnly>(CT_StepsMenu::LP_DEM);
     addNewRastersStep<ONF_StepFilterMaximaByNeighbourhood>(CT_StepsMenu::LP_DEM);
     addNewRastersStep<ONF_StepCreateMaximaCloud>(CT_StepsMenu::LP_DEM);
+    addNewRastersStep<ONF_StepOptimizeGaussianOnMaximaNumber>(CT_StepsMenu::LP_DEM);
 
     addNewBetaStep<ONF_StepFilterMaximaByClusterPositions>(CT_StepsMenu::LP_Raster);
     addNewBetaStep<ONF_StepConvertFloatImageToqint32>(CT_StepsMenu::LP_Transform);

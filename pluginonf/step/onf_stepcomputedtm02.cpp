@@ -37,10 +37,6 @@
 
 #include "ct_itemdrawable/ct_scene.h"
 #include "ct_itemdrawable/abstract/ct_abstractareashape2d.h"
-#include "ct_itemdrawable/ct_triangulation2d.h"
-#include "ct_triangulation/ct_delaunayt.h"
-#include "ct_triangulation/ct_nodet.h"
-#include "ct_triangulation/ct_trianglet.h"
 #include "ct_pointcloudindex/ct_pointcloudindexvector.h"
 #include "ct_iterator/ct_pointiterator.h"
 #include "ct_view/ct_stepconfigurabledialog.h"
