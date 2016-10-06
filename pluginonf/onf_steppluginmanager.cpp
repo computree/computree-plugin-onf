@@ -47,6 +47,7 @@
 #include "step/onf_stepfiltermaximabyneighbourhood.h"
 #include "step/onf_stepcreatemaximacloud.h"
 #include "step/onf_stepoptimizegaussianonmaximanumber.h"
+#include "step/onf_stepconverttintodtm.h"
 #endif
 
 #include "step/onf_stepchangeclusterthickness02.h"
@@ -229,6 +230,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewRastersStep<ONF_StepFilterMaximaByNeighbourhood>(CT_StepsMenu::LP_DEM);
     addNewRastersStep<ONF_StepCreateMaximaCloud>(CT_StepsMenu::LP_DEM);
     addNewRastersStep<ONF_StepOptimizeGaussianOnMaximaNumber>(CT_StepsMenu::LP_DEM);
+    addNewRastersStep<ONF_StepConvertTINtoDTM>(CT_StepsMenu::LP_DEM);
 
     addNewBetaStep<ONF_StepFilterMaximaByClusterPositions>(CT_StepsMenu::LP_Raster);
     addNewBetaStep<ONF_StepConvertFloatImageToqint32>(CT_StepsMenu::LP_Transform);

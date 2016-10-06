@@ -135,7 +135,8 @@ HEADERS += \
     step/onf_stepcreatemaximacloud.h \
     metric/onf_metricnapexmean.h \
     step/onf_stepoptimizegaussianonmaximanumber.h \
-    step/onf_stepcomputetin.h
+    step/onf_stepcomputetin.h \
+    step/onf_stepconverttintodtm.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -255,7 +256,8 @@ SOURCES += \
     step/onf_stepcreatemaximacloud.cpp \
     metric/onf_metricnapexmean.cpp \
     step/onf_stepoptimizegaussianonmaximanumber.cpp \
-    step/onf_stepcomputetin.cpp
+    step/onf_stepcomputetin.cpp \
+    step/onf_stepconverttintodtm.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts
