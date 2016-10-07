@@ -33,7 +33,7 @@
 ONF_MetricNApexMean::ONF_MetricNApexMean() : CT_AbstractMetric_XYZ()
 {
     _nApex = 6;
-    _percHmax = 0.75;
+    _percHmax = 0.70;
 
     declareAttributesVaB();
 }
@@ -55,7 +55,7 @@ CT_AbstractConfigurableWidget* ONF_MetricNApexMean::createConfigurationWidget()
 {
     CT_GenericConfigurableWidget* configDialog = new CT_GenericConfigurableWidget();
 
-    configDialog->addInt(tr("Nombre apex"), "%", 0, 10000, _nApex);
+    configDialog->addInt(tr("Nombre apex"), "", 0, 10000, _nApex);
     configDialog->addDouble(tr("%Hmax en dessous duquel les apex ne sont plus pris en compte"), "%", 0, 100, 1, _percHmax, 100);
 
     return configDialog;

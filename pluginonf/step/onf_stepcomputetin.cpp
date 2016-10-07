@@ -116,6 +116,8 @@ void ONF_StepComputeTIN::compute()
                 Eigen::Vector3d* pt = new Eigen::Vector3d(point);
                 delaunay->addVertex(pt, true);
             }
+            setProgress(50);
+
 
             delaunay->doInsertion();
 
