@@ -136,7 +136,8 @@ HEADERS += \
     metric/onf_metricnapexmean.h \
     step/onf_stepoptimizegaussianonmaximanumber.h \
     step/onf_stepcomputetin.h \
-    step/onf_stepconverttintodtm.h
+    step/onf_stepconverttintodtm.h \
+    step/onf_stepcomputehfromzandtin.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -257,7 +258,8 @@ SOURCES += \
     metric/onf_metricnapexmean.cpp \
     step/onf_stepoptimizegaussianonmaximanumber.cpp \
     step/onf_stepcomputetin.cpp \
-    step/onf_stepconverttintodtm.cpp
+    step/onf_stepconverttintodtm.cpp \
+    step/onf_stepcomputehfromzandtin.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts

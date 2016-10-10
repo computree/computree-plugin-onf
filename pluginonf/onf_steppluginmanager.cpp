@@ -111,6 +111,7 @@
 #include "step/onf_stepfiltergridbycloud.h"
 #include "step/onf_stepcomputecumulativeconvexhull.h"
 #include "step/onf_stepcomputetin.h"
+#include "step/onf_stepcomputehfromzandtin.h"
 
 #include "filter/onf_filterbyreturntype.h"
 #include "filter/onf_filterremoveupperoutliers.h"
@@ -169,6 +170,8 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewPointsStep<ONF_StepComputeVerticalProfile>(CT_StepsMenu::LP_Analyze);
     addNewPointsStep<ONF_StepCorrectALSProfile>(CT_StepsMenu::LP_Analyze);
     addNewPointsStep<ONF_StepExtractPointsInVerticalCylinders>(CT_StepsMenu::LP_Extract);
+    addNewPointsStep<ONF_StepComputeHfromZandTIN>(CT_StepsMenu::LP_Transform);
+
 
     addNewGeometricalShapesStep<ONF_StepComputeCrownProjection>(CT_StepsMenu::LP_Crowns);
     addNewGeometricalShapesStep<ONF_StepFilterItemsByPosition>(CT_StepsMenu::LP_Filter);
