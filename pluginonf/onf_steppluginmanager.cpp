@@ -48,6 +48,7 @@
 #include "step/onf_stepcreatemaximacloud.h"
 #include "step/onf_stepoptimizegaussianonmaximanumber.h"
 #include "step/onf_stepconverttintodtm.h"
+#include "step/onf_stepremoveuppernoise.h"
 #endif
 
 #include "step/onf_stepchangeclusterthickness02.h"
@@ -171,6 +172,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewPointsStep<ONF_StepCorrectALSProfile>(CT_StepsMenu::LP_Analyze);
     addNewPointsStep<ONF_StepExtractPointsInVerticalCylinders>(CT_StepsMenu::LP_Extract);
     addNewPointsStep<ONF_StepComputeHfromZandTIN>(CT_StepsMenu::LP_Transform);
+    addNewPointsStep<ONF_StepRemoveUpperNoise>(CT_StepsMenu::LP_Filter);
 
 
     addNewGeometricalShapesStep<ONF_StepComputeCrownProjection>(CT_StepsMenu::LP_Crowns);

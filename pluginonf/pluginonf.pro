@@ -137,7 +137,8 @@ HEADERS += \
     step/onf_stepoptimizegaussianonmaximanumber.h \
     step/onf_stepcomputetin.h \
     step/onf_stepconverttintodtm.h \
-    step/onf_stepcomputehfromzandtin.h
+    step/onf_stepcomputehfromzandtin.h \
+    step/onf_stepremoveuppernoise.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -259,7 +260,8 @@ SOURCES += \
     step/onf_stepoptimizegaussianonmaximanumber.cpp \
     step/onf_stepcomputetin.cpp \
     step/onf_stepconverttintodtm.cpp \
-    step/onf_stepcomputehfromzandtin.cpp
+    step/onf_stepcomputehfromzandtin.cpp \
+    step/onf_stepremoveuppernoise.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts
