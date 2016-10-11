@@ -72,7 +72,7 @@ ONF_StepRemoveUpperNoise::ONF_StepRemoveUpperNoise(CT_StepInitializeData &dataIn
 
 QString ONF_StepRemoveUpperNoise::getStepDescription() const
 {
-    return tr("Filtre les points isolés en hauteur");
+    return tr("Remove upper noise points");
 }
 
 QString ONF_StepRemoveUpperNoise::getStepDetailledDescription() const
@@ -217,6 +217,9 @@ void ONF_StepRemoveUpperNoise::compute()
                 // Mise à jour de la barre de progression
                 setProgress(50 + 40 * i / n_points);
             }
+
+            delete densityGrd;
+            delete safeMaxHeight;
 
             if (resPointCloudIndex->size() > 0)
             {
