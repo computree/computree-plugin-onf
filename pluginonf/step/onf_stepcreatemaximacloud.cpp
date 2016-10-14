@@ -11,6 +11,8 @@
 #include "ct_view/ct_stepconfigurabledialog.h"
 #include "ct_itemdrawable/ct_referencepoint.h"
 #include "ct_itemdrawable/ct_scene.h"
+#include "ct_itemdrawable/abstract/ct_abstractareashape2d.h"
+
 
 
 // Alias for indexing models
@@ -19,6 +21,9 @@
 #define DEFin_image "image"
 #define DEFin_maxima "maxima"
 #define DEFin_DTM "DTM"
+#define DEF_SearchInArea   "emprise"
+
+#define EPSILON 0.000001
 
 
 // Constructor : initialization of parameters
@@ -63,6 +68,8 @@ void ONF_StepCreateMaximaCloud::createInResultModelListProtected()
     resIn_res->addItemModel(DEFin_grp, DEFin_image, CT_Image2D<float>::staticGetType(), tr("Image (hauteurs)"));
     resIn_res->addItemModel(DEFin_grp, DEFin_maxima, CT_Image2D<qint32>::staticGetType(), tr("Maxima"));
     resIn_res->addItemModel(DEFin_grp, DEFin_DTM, CT_Image2D<float>::staticGetType(), tr("MNT"), "", CT_InAbstractModel::C_ChooseOneIfMultiple, CT_InAbstractModel::F_IsOptional);
+    resIn_res->addItemModel(DEFin_grp, DEF_SearchInArea, CT_AbstractAreaShape2D::staticGetType(),
+                              tr("Emprise"), "", CT_InAbstractModel::C_ChooseOneIfMultiple, CT_InAbstractModel::F_IsOptional);
 }
 
 // Creation and affiliation of OUT models
@@ -104,6 +111,7 @@ void ONF_StepCreateMaximaCloud::compute()
         CT_Image2D<qint32>* maximaIn = (CT_Image2D<qint32>*)grp->firstItemByINModelName(this, DEFin_maxima);
         CT_Image2D<float>* imageIn = (CT_Image2D<float>*)grp->firstItemByINModelName(this, DEFin_image);
         CT_Image2D<float>* dtm = (CT_Image2D<float>*)grp->firstItemByINModelName(this, DEFin_DTM);
+        const CT_AbstractAreaShape2D *emprise = (const CT_AbstractAreaShape2D*)grp->firstItemByINModelName(this, DEF_SearchInArea);
 
         if (dtm != NULL)
         {
@@ -128,8 +136,11 @@ void ONF_StepCreateMaximaCloud::compute()
                         Eigen::Vector3d* coords = new Eigen::Vector3d();
                         if (maximaIn->getCellCenterCoordinates(xx, yy, *coords))
                         {
-                            (*coords)(2) = imageIn->value(xx, yy);
-                            maximaCoords.insert(maximaID, coords);
+                            if (emprise == NULL || emprise->contains((*coords)(0), (*coords)(1)))
+                            {
+                                (*coords)(2) = imageIn->value(xx, yy);
+                                maximaCoords.insert(maximaID, coords);
+                            }
                         }
                     }
                 }

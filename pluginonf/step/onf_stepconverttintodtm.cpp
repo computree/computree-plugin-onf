@@ -37,6 +37,7 @@
 #include "ct_itemdrawable/ct_scene.h"
 #include "ct_itemdrawable/ct_triangulation2d.h"
 #include "ct_itemdrawable/abstract/ct_abstractareashape2d.h"
+#include "ct_itemdrawable/abstract/ct_abstractareashape2d.h"
 #include "ct_pointcloudindex/ct_pointcloudindexvector.h"
 #include "ct_iterator/ct_pointiterator.h"
 #include "ct_view/ct_stepconfigurabledialog.h"
@@ -47,6 +48,9 @@
 #define DEF_SearchInResult  "ires"
 #define DEF_SearchInGroup   "igrp"
 #define DEF_SearchInTIN     "TIN"
+#define DEF_SearchInArea   "emprise"
+
+#define EPSILON 0.000001
 
 
 ONF_StepConvertTINtoDTM::ONF_StepConvertTINtoDTM(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
@@ -80,6 +84,8 @@ void ONF_StepConvertTINtoDTM::createInResultModelListProtected()
     resultModel->setZeroOrMoreRootGroup();
     resultModel->addGroupModel("", DEF_SearchInGroup);
     resultModel->addItemModel(DEF_SearchInGroup, DEF_SearchInTIN, CT_Triangulation2D::staticGetType(), tr("TIN"));
+    resultModel->addItemModel(DEF_SearchInGroup, DEF_SearchInArea, CT_AbstractAreaShape2D::staticGetType(),
+                              tr("Emprise"), "", CT_InAbstractModel::C_ChooseOneIfMultiple, CT_InAbstractModel::F_IsOptional);
 }
 
 void ONF_StepConvertTINtoDTM::createPostConfigurationDialog()
@@ -112,14 +118,24 @@ void ONF_StepConvertTINtoDTM::compute()
         if (group != NULL)
         {
             const CT_Triangulation2D *tin = (const CT_Triangulation2D*)group->firstItemByINModelName(this, DEF_SearchInTIN);
+            const CT_AbstractAreaShape2D *emprise = (const CT_AbstractAreaShape2D*)group->firstItemByINModelName(this, DEF_SearchInArea);
 
             if (tin != NULL)
             {
-
                 Eigen::Vector3d min, max;
-                tin->getBoundingBox(min, max);
+                if (emprise != NULL)
+                {
+                    emprise->getBoundingBox(min, max);
+                } else {
+                    tin->getBoundingBox(min, max);
+                }
 
-                CT_Image2D<float>* mnt = CT_Image2D<float>::createImage2DFromXYCoords(_outDTMModelName.completeName(), outResult, min(0), min(1), max(0), max(1), _gridsize, 0, -9999, -9999);
+                double minX = min(0);
+                double minY = min(1);
+                double maxX = max(0) - EPSILON;
+                double maxY = max(1) - EPSILON;
+
+                CT_Image2D<float>* mnt = CT_Image2D<float>::createImage2DFromXYCoords(_outDTMModelName.completeName(), outResult, minX, minY, maxX, maxY, _gridsize, 0, -9999, -9999);
 
                 CT_DelaunayTriangulation *triangulation = tin->getDelaunayT();
 

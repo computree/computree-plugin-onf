@@ -120,6 +120,7 @@ void ONF_StepComputeTIN::compute()
 
 
             delaunay->doInsertion();
+            delaunay->updateCornersZValues();
 
             CT_Triangulation2D* triangulation = new CT_Triangulation2D(_outTIN_ModelName.completeName(), outResult, delaunay);
             group->addItemDrawable(triangulation);
