@@ -47,6 +47,7 @@ class ONF_LvoxSphere : public CT_AbstractItemDrawableWithoutPointCloud
 {
     // IMPORTANT pour avoir le nom de l'ItemDrawable
     Q_OBJECT
+    CT_TYPE_IMPL_MACRO(ONF_LvoxSphere, CT_AbstractItemDrawableWithoutPointCloud, LVOX Sphere)
 
 public:
 
@@ -79,8 +80,6 @@ public:
     /**
       * ATTENTION : ne pas oublier de redéfinir ces deux méthodes si vous héritez de cette classe.
       */
-    virtual QString getType() const;
-    static QString staticGetType();
 
     virtual CT_AbstractItemDrawable* copy(const CT_OutAbstractItemModel *model, const CT_AbstractResult *result, CT_ResultCopyModeList copyModeList);
 

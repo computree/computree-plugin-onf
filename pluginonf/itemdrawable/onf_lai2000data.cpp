@@ -71,16 +71,6 @@ ONF_Lai2000Data::ONF_Lai2000Data(const QString &modelName,
     _LAI3A = -2 * (log(_t1)*cos(ANGLE1m)*W1 + log(_t2)*cos(ANGLE2m)*W2 + log(_t3)*cos(ANGLE3m)*(W3 + W4 + W5));
 }
 
-QString ONF_Lai2000Data::getType() const
-{
-    return staticGetType();
-}
-
-QString ONF_Lai2000Data::staticGetType()
-{
-    return CT_AbstractItemDrawableWithoutPointCloud::staticGetType() + "/ONF_Lai2000Data";
-}
-
 int ONF_Lai2000Data::nDataAvalaible() const
 {
     return 6;

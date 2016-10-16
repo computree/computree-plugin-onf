@@ -71,6 +71,7 @@
 class ONF_Lai2000Data : public CT_AbstractItemDrawableWithoutPointCloud
 {
     Q_OBJECT
+    CT_TYPE_IMPL_MACRO(ONF_Lai2000Data, CT_AbstractItemDrawableWithoutPointCloud, LAI 2000)
 
 public:
     ONF_Lai2000Data();
@@ -81,12 +82,6 @@ public:
     ONF_Lai2000Data(const CT_OutAbstractSingularItemModel *model, const CT_AbstractResult *result, double t1, double t2, double t3, double t4, double t5);
 
     ONF_Lai2000Data(const QString &modelName, const CT_AbstractResult *result, double t1, double t2, double t3, double t4, double t5);
-
-    /**
-      * ATTENTION : ne pas oublier de redéfinir ces deux méthodes si vous héritez de cette classe.
-      */
-    virtual QString getType() const;
-    static QString staticGetType();
 
     virtual int nDataAvalaible() const;
     virtual QVariant data(int column) const;

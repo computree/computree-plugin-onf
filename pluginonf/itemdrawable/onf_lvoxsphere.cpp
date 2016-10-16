@@ -84,16 +84,6 @@ ONF_LvoxSphere::ONF_LvoxSphere(const QString &modelName,
     setCenterZ(_zs);
 }
 
-QString ONF_LvoxSphere::getType() const
-{
-    return staticGetType();
-}
-
-QString ONF_LvoxSphere::staticGetType()
-{
-    return CT_AbstractItemDrawableWithoutPointCloud::staticGetType() + "/ONF_LvoxSphere";
-}
-
 CT_AbstractItemDrawable* ONF_LvoxSphere::copy(const CT_OutAbstractItemModel *model, const CT_AbstractResult *result, CT_ResultCopyModeList copyModeList)
 {
     ONF_LvoxSphere *sphere = new ONF_LvoxSphere((const CT_OutAbstractSingularItemModel *)model, result, _name, _xs, _ys, _zs, _rs, _re);
