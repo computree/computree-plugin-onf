@@ -28,14 +28,16 @@
 #include "ct_global/ct_context.h"
 
 #include "ct_view/ct_stepconfigurabledialog.h"
-#include "ct_result/model/inModel/ct_inresultmodelgroup.h"
-#include "ct_result/model/outModel/ct_outresultmodelgroup.h"
+#include "ct_result/model/inModel/ct_inresultmodelgrouptocopy.h"
+#include "ct_result/model/outModel/ct_outresultmodelgroupcopy.h"
+#include "ct_result/model/outModel/tools/ct_outresultmodelgrouptocopypossibilities.h"
 
 #include "ct_result/ct_resultgroup.h"
 #include "ct_itemdrawable/ct_scene.h"
 
 #include "ct_pointcloudindex/ct_pointcloudindexvector.h"
 #include "ct_iterator/ct_pointiterator.h"
+#include "ct_iterator/ct_resultgroupiterator.h"
 #include "ct_view/ct_buttongroup.h"
 
 
@@ -47,10 +49,6 @@
 #define DEF_SearchInResult "rin"
 #define DEF_SearchInGroup   "gin"
 #define DEF_SearchInScene   "scin"
-
-#define DEF_SearchOutResult "rout"
-#define DEF_SearchOutGroup  "gout"
-#define DEF_SearchOutScene  "scout"
 
 ONF_StepExtractPlot::ONF_StepExtractPlot(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
@@ -87,7 +85,7 @@ CT_VirtualAbstractStep* ONF_StepExtractPlot::createNewInstance(CT_StepInitialize
 
 void ONF_StepExtractPlot::createInResultModelListProtected()
 {
-    CT_InResultModelGroup *resultModel = createNewInResultModel(DEF_SearchInResult, tr("Scène(s)"));
+    CT_InResultModelGroupToCopy *resultModel = createNewInResultModelForCopy(DEF_SearchInResult, tr("Scène(s)"));
 
     resultModel->setZeroOrMoreRootGroup();
     resultModel->addGroupModel("", DEF_SearchInGroup);
@@ -97,10 +95,12 @@ void ONF_StepExtractPlot::createInResultModelListProtected()
 // Création et affiliation des modèles OUT
 void ONF_StepExtractPlot::createOutResultModelListProtected()
 {    
-    CT_OutResultModelGroup *resultModel = createNewOutResultModel(DEF_SearchOutResult, tr("Scène(s) extraites"));
+    CT_OutResultModelGroupToCopyPossibilities *resultModel = createNewOutResultModelToCopy(DEF_SearchInResult);
 
-    resultModel->setRootGroup(DEF_SearchOutGroup);
-    resultModel->addItemModel(DEF_SearchOutGroup, DEF_SearchOutScene, new CT_Scene(), tr("Scène extraite"));
+    if (resultModel != NULL)
+    {
+        resultModel->addItemModel(DEF_SearchInGroup, _outSceneModelName, new CT_Scene(), tr("Scène extraite"));
+    }
 }
 
 void ONF_StepExtractPlot::createPostConfigurationDialog()
@@ -120,131 +120,129 @@ void ONF_StepExtractPlot::createPostConfigurationDialog()
 void ONF_StepExtractPlot::compute()
 {
     // récupération du résultats IN et OUT
-    CT_ResultGroup *inResult = getInputResults().first();
     CT_ResultGroup *outResult = getOutResultList().first();
 
-    CT_ResultItemIterator it(inResult, this, DEF_SearchInScene);
+    CT_ResultGroupIterator it(outResult, this, DEF_SearchInGroup);
     while(!isStopped() && it.hasNext())
     {
-        const CT_Scene *in_scene = (CT_Scene*) it.next();
-        const CT_AbstractPointCloudIndex *pointCloudIndex = in_scene->getPointCloudIndex();
-        size_t n_points = pointCloudIndex->size();
+        CT_StandardItemGroup *group = (CT_StandardItemGroup*) it.next();
 
-        PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("La scène d'entrée comporte %1 points.")).arg(n_points));
-
-        CT_PointCloudIndexVector *resPointCloudIndex = new CT_PointCloudIndexVector();
-        resPointCloudIndex->setSortType(CT_PointCloudIndexVector::NotSorted);
-
-        std::cout << " le nombre de points dans ma scene : " << n_points;
-
-        // Extraction des points de la placette
-        size_t i = 0;
-        double distance = 0;
-        double azimut = 0;
-        double asinx = 0;
-        double acosy = 0;
-        double xx = 0;
-        double yy = 0;
-
-        double xmin = std::numeric_limits<double>::max();
-        double ymin = std::numeric_limits<double>::max();
-        double zmin = std::numeric_limits<double>::max();
-
-        double xmax = -std::numeric_limits<double>::max();
-        double ymax = -std::numeric_limits<double>::max();
-        double zmax = -std::numeric_limits<double>::max();
-
-        CT_PointIterator itP(pointCloudIndex);
-        while(itP.hasNext() && (!isStopped()))
+        if (group != NULL)
         {
-            const CT_Point &point = itP.next().currentPoint();
-            size_t index = itP.currentGlobalIndex();
+            const CT_Scene *in_scene = (CT_Scene*) group->firstItemByINModelName(this, DEF_SearchInScene);
+            const CT_AbstractPointCloudIndex *pointCloudIndex = in_scene->getPointCloudIndex();
+            size_t n_points = pointCloudIndex->size();
 
-            xx = point(0) - _x;
-            yy = point(1) - _y;
+            PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("La scène d'entrée comporte %1 points.")).arg(n_points));
 
-            // Calcul de l'azimut du point par rapport au centre de la placette extraite
-            // Le nord est place dans la direction de l'axe Y
-            distance = sqrt(xx*xx + yy*yy);
+            CT_PointCloudIndexVector *resPointCloudIndex = new CT_PointCloudIndexVector();
+            resPointCloudIndex->setSortType(CT_PointCloudIndexVector::NotSorted);
 
-            if(distance != 0) {
-                asinx = asin(xx/distance);
-                acosy = acos(yy/distance);
-            } else {
-                asinx = 0;
-                acosy = 0;
-            }
+            std::cout << " le nombre de points dans ma scene : " << n_points;
 
-            if (asinx>=0) {
-                azimut = acosy;
-            } else {
-                azimut = 2*M_PI-acosy;
-            }
+            // Extraction des points de la placette
+            size_t i = 0;
+            double distance = 0;
+            double azimut = 0;
+            double asinx = 0;
+            double acosy = 0;
+            double xx = 0;
+            double yy = 0;
 
-            // Conversion en grades 0-400
-            azimut = azimut/(2*M_PI)*400;
+            double xmin = std::numeric_limits<double>::max();
+            double ymin = std::numeric_limits<double>::max();
+            double zmin = std::numeric_limits<double>::max();
+
+            double xmax = -std::numeric_limits<double>::max();
+            double ymax = -std::numeric_limits<double>::max();
+            double zmax = -std::numeric_limits<double>::max();
+
+            CT_PointIterator itP(pointCloudIndex);
+            while(itP.hasNext() && (!isStopped()))
+            {
+                const CT_Point &point = itP.next().currentPoint();
+                size_t index = itP.currentGlobalIndex();
+
+                xx = point(0) - _x;
+                yy = point(1) - _y;
+
+                // Calcul de l'azimut du point par rapport au centre de la placette extraite
+                // Le nord est place dans la direction de l'axe Y
+                distance = sqrt(xx*xx + yy*yy);
+
+                if(distance != 0) {
+                    asinx = asin(xx/distance);
+                    acosy = acos(yy/distance);
+                } else {
+                    asinx = 0;
+                    acosy = 0;
+                }
+
+                if (asinx>=0) {
+                    azimut = acosy;
+                } else {
+                    azimut = 2*M_PI-acosy;
+                }
+
+                // Conversion en grades 0-400
+                azimut = azimut/(2*M_PI)*400;
 
 
-            if (distance <= _radius && distance >= _radiusmin) {
-                if (point(2) >= _zmin && point(2) <= _zmax) {
+                if (distance <= _radius && distance >= _radiusmin) {
+                    if (point(2) >= _zmin && point(2) <= _zmax) {
 
 
-                    if (_azbegin <= _azend) {
-                        if (azimut >= _azbegin && azimut <= _azend)
-                        {
-                            resPointCloudIndex->addIndex(index);
+                        if (_azbegin <= _azend) {
+                            if (azimut >= _azbegin && azimut <= _azend)
+                            {
+                                resPointCloudIndex->addIndex(index);
 
-                            if (point(0)<xmin) {xmin = point(0);}
-                            if (point(0)>xmax) {xmax = point(0);}
-                            if (point(1)<ymin) {ymin = point(1);}
-                            if (point(1)>ymax) {ymax = point(1);}
-                            if (point(2)<zmin) {zmin = point(2);}
-                            if (point(2)>zmax) {zmax = point(2);}
+                                if (point(0)<xmin) {xmin = point(0);}
+                                if (point(0)>xmax) {xmax = point(0);}
+                                if (point(1)<ymin) {ymin = point(1);}
+                                if (point(1)>ymax) {ymax = point(1);}
+                                if (point(2)<zmin) {zmin = point(2);}
+                                if (point(2)>zmax) {zmax = point(2);}
+                            }
+                        } else {
+                            if ((azimut >= _azbegin && azimut <= 400) || (azimut >= 0 && azimut <= _azend))
+                            {
+
+                                resPointCloudIndex->addIndex(index);
+
+                                if (point(0)<xmin) {xmin = point(0);}
+                                if (point(0)>xmax) {xmax = point(0);}
+                                if (point(1)<ymin) {ymin = point(1);}
+                                if (point(1)>ymax) {ymax = point(1);}
+                                if (point(2)<zmin) {zmin = point(2);}
+                                if (point(2)>zmax) {zmax = point(2);}
+                            }
+
                         }
-                    } else {
-                        if ((azimut >= _azbegin && azimut <= 400) || (azimut >= 0 && azimut <= _azend))
-                        {
-
-                            resPointCloudIndex->addIndex(index);
-
-                            if (point(0)<xmin) {xmin = point(0);}
-                            if (point(0)>xmax) {xmax = point(0);}
-                            if (point(1)<ymin) {ymin = point(1);}
-                            if (point(1)>ymax) {ymax = point(1);}
-                            if (point(2)<zmin) {zmin = point(2);}
-                            if (point(2)>zmax) {zmax = point(2);}
-                        }
-
                     }
                 }
+
+                // progres de 0 à 100
+                setProgress(100.0*i/n_points);
+                ++i;
             }
 
-            // progres de 0 à 100
-            setProgress(100.0*i/n_points);
-            ++i;
-        }
+            if (resPointCloudIndex->size() > 0)
+            {
+                resPointCloudIndex->setSortType(CT_PointCloudIndexVector::SortedInAscendingOrder);
 
-        if (resPointCloudIndex->size() > 0)
-        {
-            resPointCloudIndex->setSortType(CT_PointCloudIndexVector::SortedInAscendingOrder);
+                // creation et ajout de la scene
+                CT_Scene *outScene = new CT_Scene(_outSceneModelName.completeName(), outResult);
 
-            // creation du groupe
-            CT_StandardItemGroup *outGroup = new CT_StandardItemGroup(DEF_SearchOutGroup, outResult);
+                outScene->setBoundingBox(xmin,ymin,zmin, xmax,ymax,zmax);
+                outScene->setPointCloudIndexRegistered(PS_REPOSITORY->registerPointCloudIndex(resPointCloudIndex));
+                group->addItemDrawable(outScene);
 
-            // creation et ajout de la scene
-            CT_Scene *outScene = new CT_Scene(DEF_SearchOutScene, outResult);
-
-            outScene->setBoundingBox(xmin,ymin,zmin, xmax,ymax,zmax);
-            outScene->setPointCloudIndexRegistered(PS_REPOSITORY->registerPointCloudIndex(resPointCloudIndex));
-            outGroup->addItemDrawable(outScene);
-
-            // ajout au résultat
-            outResult->addGroup(outGroup);
-
-            PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("La scène extraite comporte %1 points.")).arg(outScene->getPointCloudIndex()->size()));
-        } else {
-            delete resPointCloudIndex;
-            PS_LOG->addMessage(LogInterface::info, LogInterface::step, tr("Aucun point n'est dans l'emprise choisie"));
+                PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("La scène extraite comporte %1 points.")).arg(outScene->getPointCloudIndex()->size()));
+            } else {
+                delete resPointCloudIndex;
+                PS_LOG->addMessage(LogInterface::info, LogInterface::step, tr("Aucun point n'est dans l'emprise choisie"));
+            }
         }
     }
 

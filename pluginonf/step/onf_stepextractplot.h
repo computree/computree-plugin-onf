@@ -27,6 +27,7 @@
 #define ONF_STEPEXTRACTPLOT_H
 
 #include "ct_step/abstract/ct_abstractstep.h"
+#include "ct_tools/model/ct_autorenamemodels.h"
 
 class ONF_StepExtractPlot : public CT_AbstractStep
 {
@@ -97,6 +98,8 @@ private:
     double _azend;                        /*!< Azimut de fin (degres) de la placette a extraire*/
     double _zmin;                         /*!< Z minimum de la placette a extraire*/
     double _zmax;                         /*!< Z maximum de la placette a extraire*/
+
+    CT_AutoRenameModels     _outSceneModelName;
 
 };
 
