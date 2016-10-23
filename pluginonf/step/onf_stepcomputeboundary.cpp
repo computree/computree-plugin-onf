@@ -46,6 +46,11 @@
 
 #include <QDebug>
 
+#include "gdal.h"
+#include "ogrsf_frmts.h"
+#include "ct_tools/ct_gdaltools.h"
+
+
 // Alias for indexing models
 #define DEFin_rscene "rscene"
 #define DEFin_grpsc "grpsc"
@@ -62,6 +67,22 @@
 ONF_StepComputeBoundary::ONF_StepComputeBoundary(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
     _res = 5.0;
+
+
+//    OGRGeometryH hGeometry1;
+//    OGRGeometryH hGeometry2;
+//    char* pszWKT1 = (char*)"POLYGON ((1208064.271243039 624154.6783778917, 1208064.271243039 601260.9785661874, 1231345.9998651114 601260.9785661874, 1231345.9998651114 624154.6783778917, 1208064.271243039 624154.6783778917))";;
+//    char* pszWKT2 = (char*)"POLYGON ((1199915.6662253144 633079.3410163528, 1199915.6662253144 614453.958118695, 1219317.1067437078 614453.958118695, 1219317.1067437078 633079.3410163528, 1199915.6662253144 633079.3410163528)))";
+
+//    OGR_G_CreateFromWkt( &pszWKT1, NULL, &hGeometry1 );
+//    OGR_G_CreateFromWkt( &pszWKT2, NULL, &hGeometry2 );
+
+//    OGRGeometryH uni = OGR_G_Union(hGeometry1, hGeometry2);
+//    qDebug() << "aaaa";
+
+//    qDebug() <<  uni;
+//    qDebug() << "bbbb";
+
 }
 
 // Step description (tooltip of contextual menu)

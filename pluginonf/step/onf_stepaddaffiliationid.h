@@ -63,6 +63,7 @@ public:
      */
     CT_VirtualAbstractStep* createNewInstance(CT_StepInitializeData &dataInit);
 
+
 protected:
 
     /*! \brief Input results specification

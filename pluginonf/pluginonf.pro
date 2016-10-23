@@ -138,7 +138,10 @@ HEADERS += \
     step/onf_stepcomputetin.h \
     step/onf_stepconverttintodtm.h \
     step/onf_stepcomputehfromzandtin.h \
-    step/onf_stepremoveuppernoise.h
+    step/onf_stepremoveuppernoise.h \
+    actions/onf_actionaggregateitems.h \
+    views/actions/onf_actionaggregateitemsoptions.h \
+    views/actions/onf_actionaggregateitemsoptionsselectiondialog.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -261,7 +264,10 @@ SOURCES += \
     step/onf_stepcomputetin.cpp \
     step/onf_stepconverttintodtm.cpp \
     step/onf_stepcomputehfromzandtin.cpp \
-    step/onf_stepremoveuppernoise.cpp
+    step/onf_stepremoveuppernoise.cpp \
+    actions/onf_actionaggregateitems.cpp \
+    views/actions/onf_actionaggregateitemsoptions.cpp \
+    views/actions/onf_actionaggregateitemsoptionsselectiondialog.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts
@@ -282,7 +288,9 @@ FORMS += \
     views/actions/onf_actionselectcellsingrid3doptions.ui \
     views/actions/onf_actionslicepointcloudoptions.ui \
     views/actions/onf_actionvalidateinventoryattributesdialog.ui \
-    views/actions/onf_actionvalidateinventoryoptions.ui
+    views/actions/onf_actionvalidateinventoryoptions.ui \
+    views/actions/onf_actionaggregateitemsoptions.ui \
+    views/actions/onf_actionaggregateitemsoptionsselectiondialog.ui
 
 RESOURCES += \
     resource.qrc
