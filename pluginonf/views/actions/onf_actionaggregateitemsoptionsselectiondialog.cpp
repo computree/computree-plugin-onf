@@ -25,7 +25,7 @@ ONF_ActionAggregateItemsOptionsSelectionDialog::ONF_ActionAggregateItemsOptionsS
         }
 
         QCheckBox* cb = new QCheckBox(items.at(i)->name());
-        QLabel* lb = new QLabel(_modalities.at(i));
+        QLabel* lb = new QLabel(_modalities->at(i));
         _checkBoxes.append(cb);
         _labelsMod.append(lb);
         layout->addWidget(cb, 0, 2 + i);
@@ -35,9 +35,9 @@ ONF_ActionAggregateItemsOptionsSelectionDialog::ONF_ActionAggregateItemsOptionsS
     }
 }
 
-ONF_ActionAggregateItemsOptionsSelectionDialog::updateModalities(QList<QString> &modalities)
+void ONF_ActionAggregateItemsOptionsSelectionDialog::updateModalities(const QList<QString> &modalities)
 {
-    for (int i = 0 ; i < _labelsMod->size() ; i++)
+    for (int i = 0 ; i < _labelsMod.size() ; i++)
     {
         _labelsMod[i]->setText(modalities.at(i));
     }
@@ -47,7 +47,7 @@ void ONF_ActionAggregateItemsOptionsSelectionDialog::checkBoxesChanged(bool chec
 {
     Q_UNUSED(checked);
 
-    for (int i = 0 ; i < _checkBoxes->size() ; i++)
+    for (int i = 0 ; i < _checkBoxes.size() ; i++)
     {
         _activeItems[i] = _checkBoxes.at(i)->isChecked();
     }

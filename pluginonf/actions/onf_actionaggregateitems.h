@@ -13,7 +13,7 @@ class ONF_ActionAggregateItems : public CT_AbstractActionForGraphicsView
     Q_OBJECT
 public:
 
-    ONF_ActionAggregateItems(const QStringList &modalities, QList<CT_AbstractSingularItemDrawable *> &items);
+    ONF_ActionAggregateItems(const QStringList &modalities, const QList<CT_AbstractSingularItemDrawable *> &items);
 
     ~ONF_ActionAggregateItems();
 
@@ -37,6 +37,8 @@ public:
     void drawOverlay(GraphicsViewInterface &view, QPainter &painter);
 
     CT_AbstractAction* copy() const;
+
+    void redraw();
 
 public slots:
     void modalityChanged(QString modality);

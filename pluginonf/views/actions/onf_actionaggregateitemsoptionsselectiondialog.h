@@ -22,9 +22,8 @@ public:
                                                             QWidget *parent = 0);
     ~ONF_ActionAggregateItemsOptionsSelectionDialog();
 
-    updateModalities(QList<QString> &modalities);
+    void updateModalities(const QList<QString> &modalities);
 
-    QList<bool>&
 
 signals:
     void visibleItemsChanged();

@@ -5,7 +5,7 @@
 #include <QIcon>
 #include <QPainter>
 
-ONF_ActionAggregateItems::ONF_ActionAggregateItems(const QStringList &modalities, QList<CT_AbstractSingularItemDrawable*> &items) : CT_AbstractActionForGraphicsView()
+ONF_ActionAggregateItems::ONF_ActionAggregateItems(const QStringList &modalities, const QList<CT_AbstractSingularItemDrawable*> &items) : CT_AbstractActionForGraphicsView()
 {
     _modalities.append(modalities);
     _items.append(items);
@@ -73,10 +73,6 @@ void ONF_ActionAggregateItems::init()
 
         document()->redrawGraphics();
     }
-}
-
-void ONF_ActionAggregateItems::toDoIfButtonPushed()
-{
 }
 
 void ONF_ActionAggregateItems::redraw()
@@ -159,7 +155,7 @@ void ONF_ActionAggregateItems::modalityChanged(QString modality)
 
     for (int i = 0 ; i < itemList.size() ; i++)
     {
-        CT_AbstractItemDrawable* item = itemList.at(i);
+        CT_AbstractSingularItemDrawable* item = (CT_AbstractSingularItemDrawable*) itemList.at(i);
         int index = _items.indexOf(item);
         if (index > 0)
         {
