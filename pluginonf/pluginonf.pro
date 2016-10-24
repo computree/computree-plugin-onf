@@ -141,7 +141,8 @@ HEADERS += \
     step/onf_stepremoveuppernoise.h \
     actions/onf_actionaggregateitems.h \
     views/actions/onf_actionaggregateitemsoptions.h \
-    views/actions/onf_actionaggregateitemsoptionsselectiondialog.h
+    views/actions/onf_actionaggregateitemsoptionsselectiondialog.h \
+    step/onf_stepmergescenesbymodality.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -267,7 +268,8 @@ SOURCES += \
     step/onf_stepremoveuppernoise.cpp \
     actions/onf_actionaggregateitems.cpp \
     views/actions/onf_actionaggregateitemsoptions.cpp \
-    views/actions/onf_actionaggregateitemsoptionsselectiondialog.cpp
+    views/actions/onf_actionaggregateitemsoptionsselectiondialog.cpp \
+    step/onf_stepmergescenesbymodality.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts
