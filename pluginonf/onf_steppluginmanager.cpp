@@ -113,6 +113,9 @@
 #include "step/onf_stepcomputecumulativeconvexhull.h"
 #include "step/onf_stepcomputetin.h"
 #include "step/onf_stepcomputehfromzandtin.h"
+#include "step/onf_stepmergescenesbymodality.h"
+#include "step/onf_stepmatchclouds.h"
+
 
 #include "filter/onf_filterbyreturntype.h"
 #include "filter/onf_filterremoveupperoutliers.h"
@@ -173,6 +176,8 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewPointsStep<ONF_StepExtractPointsInVerticalCylinders>(CT_StepsMenu::LP_Extract);
     addNewPointsStep<ONF_StepComputeHfromZandTIN>(CT_StepsMenu::LP_Transform);
     addNewPointsStep<ONF_StepRemoveUpperNoise>(CT_StepsMenu::LP_Filter);
+    addNewPointsStep<ONF_StepMergeScenesByModality>(CT_StepsMenu::LP_Create);
+    addNewPointsStep<ONF_StepMatchClouds>(CT_StepsMenu::LP_Analyze);
 
 
     addNewGeometricalShapesStep<ONF_StepComputeCrownProjection>(CT_StepsMenu::LP_Crowns);

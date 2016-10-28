@@ -142,7 +142,8 @@ HEADERS += \
     actions/onf_actionaggregateitems.h \
     views/actions/onf_actionaggregateitemsoptions.h \
     views/actions/onf_actionaggregateitemsoptionsselectiondialog.h \
-    step/onf_stepmergescenesbymodality.h
+    step/onf_stepmergescenesbymodality.h \
+    step/onf_stepmatchclouds.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -269,7 +270,8 @@ SOURCES += \
     actions/onf_actionaggregateitems.cpp \
     views/actions/onf_actionaggregateitemsoptions.cpp \
     views/actions/onf_actionaggregateitemsoptionsselectiondialog.cpp \
-    step/onf_stepmergescenesbymodality.cpp
+    step/onf_stepmergescenesbymodality.cpp \
+    step/onf_stepmatchclouds.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts

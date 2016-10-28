@@ -5,22 +5,21 @@
 #include <QIcon>
 #include <QPainter>
 
-ONF_ActionAggregateItems::ONF_ActionAggregateItems(const QStringList &modalities, const QList<CT_AbstractSingularItemDrawable*> &items) : CT_AbstractActionForGraphicsView()
+ONF_ActionAggregateItems::ONF_ActionAggregateItems(QStringList &modalities, QList<CT_AbstractSingularItemDrawable*> &items, QList<QString> &itemsModalities) : CT_AbstractActionForGraphicsView()
 {
-    _modalities.append(modalities);
-    _items.append(items);
+    _modalities = &modalities;
+    _items = &items;
+    _itemsModalities = &itemsModalities;
 
-    for (int i = 0 ; i < _items.size() ; i++)
+    _itemsModalities->clear();
+    for (int i = 0 ; i < _items->size() ; i++)
     {
-        _itemsModalities.append("");
+        _itemsModalities->append("");
     }
 }
 
 ONF_ActionAggregateItems::~ONF_ActionAggregateItems()
 {
-    _modalities.clear();
-    _items.clear();
-    _itemsModalities.clear();
 }
 
 QString ONF_ActionAggregateItems::uniqueName() const
@@ -62,9 +61,9 @@ void ONF_ActionAggregateItems::init()
 
         connect(option, SIGNAL(currentModalityChanged(QString)), this, SLOT(modalityChanged(QString)));
 
-        for (int i = 0 ; i < _modalities.size() ; i++)
+        for (int i = 0 ; i < _modalities->size() ; i++)
         {
-            option->addModality(_modalities.at(i));
+            option->addModality(_modalities->at(i));
         }
 
         // register the option to the superclass, so the hideOptions and showOptions
@@ -146,7 +145,7 @@ void ONF_ActionAggregateItems::drawOverlay(GraphicsViewInterface &view, QPainter
 
 CT_AbstractAction* ONF_ActionAggregateItems::copy() const
 {
-    return new ONF_ActionAggregateItems(_modalities, _items);
+    return new ONF_ActionAggregateItems(*_modalities, *_items, *_itemsModalities);
 }
 
 void ONF_ActionAggregateItems::modalityChanged(QString modality)
@@ -156,10 +155,10 @@ void ONF_ActionAggregateItems::modalityChanged(QString modality)
     for (int i = 0 ; i < itemList.size() ; i++)
     {
         CT_AbstractSingularItemDrawable* item = (CT_AbstractSingularItemDrawable*) itemList.at(i);
-        int index = _items.indexOf(item);
+        int index = _items->indexOf(item);
         if (index > 0)
         {
-            _itemsModalities[index] = modality;
+            (*_itemsModalities)[index] = modality;
         }
     }
 }

@@ -51,6 +51,7 @@
 
 // Alias for indexing models
 #define DEFin_rPos "res"
+#define DEFin_rootgrp "rootgrp"
 #define DEFin_grp "grp"
 #define DEFin_scene "scene"
 
@@ -95,7 +96,8 @@ void ONF_StepMergeScenesByModality::createInResultModelListProtected()
 {  
     CT_InResultModelGroupToCopy *resIn = createNewInResultModelForCopy(DEFin_rPos, tr("Scenes"), tr(""), true);
     resIn->setZeroOrMoreRootGroup();
-    resIn->addGroupModel("", DEFin_grp, CT_AbstractItemGroup::staticGetType(), tr("Groupe"));
+    resIn->addGroupModel("", DEFin_rootgrp);
+    resIn->addGroupModel(DEFin_rootgrp, DEFin_grp);
     resIn->addItemModel(DEFin_grp, DEFin_scene, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scene"));
 }
 
@@ -112,7 +114,7 @@ void ONF_StepMergeScenesByModality::createOutResultModelListProtected()
     if(res != NULL) {
         for (int i = 0 ; i < _modalities.size() ; i++)
         {
-            res->addItemModel(DEFin_grp, _outSceneModelName[i], new CT_Scene(), _modalities.at(i));
+            res->addItemModel(DEFin_rootgrp, _outSceneModelName[i], new CT_Scene(), _modalities.at(i));
         }
     }
 }
@@ -133,27 +135,67 @@ void ONF_StepMergeScenesByModality::compute()
     _inputScenes.clear();
 
     // Création de la liste des positions 2D
-    CT_ResultGroupIterator grpPosIt(resOut, this, DEFin_grp);
-    while (grpPosIt.hasNext() && !isStopped())
+    CT_ResultGroupIterator rootGrpIt(resOut, this, DEFin_rootgrp);
+    while (rootGrpIt.hasNext() && !isStopped())
     {
-        CT_StandardItemGroup* grpPos = (CT_StandardItemGroup*) grpPosIt.next();
-        CT_AbstractItemDrawableWithPointCloud* sceneIn = (CT_AbstractItemDrawableWithPointCloud*)grpPos->firstItemByINModelName(this, DEFin_scene);
-        if (sceneIn != NULL)
+        CT_StandardItemGroup* rootGroup = (CT_StandardItemGroup*) rootGrpIt.next();
+
+        CT_GroupIterator grpIt(rootGroup, this, DEFin_grp);
+        while (grpIt.hasNext())
         {
-            _inputScenes.append(sceneIn);
+            CT_StandardItemGroup* group = (CT_StandardItemGroup*) grpIt.next();
+            CT_AbstractItemDrawableWithPointCloud* sceneIn = (CT_AbstractItemDrawableWithPointCloud*)group->firstItemByINModelName(this, DEFin_scene);
+            if (sceneIn != NULL)
+            {
+                _inputScenes.append(sceneIn);
+            }
         }
+
+
+
+        // Début de la partie interactive
+        m_doc = NULL;
+        m_status = 0;
+        requestManualMode();
+        // Fin de la partie interactive
+
+
+        for (int i = 0 ; i < _modalities.size() ; i++)
+        {
+            CT_PointCloudIndexVector *outCloudIndex = new CT_PointCloudIndexVector();
+            outCloudIndex->setSortType(CT_PointCloudIndexVector::NotSorted);
+
+            for (int j = 0 ; j < _inputScenes.size() ; j++)
+            {
+                if (_inputScenesModalities.size() > j && _inputScenesModalities.at(j) == _modalities.at(i))
+                {
+                    CT_AbstractItemDrawableWithPointCloud* sceneIn  = (CT_AbstractItemDrawableWithPointCloud*) _inputScenes.at(j);
+                    const CT_AbstractPointCloudIndex *pointCloudIndex = sceneIn->getPointCloudIndex();
+
+                    CT_PointIterator itP(pointCloudIndex);
+                    while(itP.hasNext())
+                    {
+                        size_t index = itP.next().currentGlobalIndex();
+                        outCloudIndex->addIndex(index);
+                    }
+                }
+            }
+
+            if (outCloudIndex->size() > 0)
+            {
+                outCloudIndex->setSortType(CT_PointCloudIndexVector::SortedInAscendingOrder);
+                CT_Scene* scene = new CT_Scene(_outSceneModelName[i].completeName(), resOut, PS_REPOSITORY->registerPointCloudIndex(outCloudIndex));
+                scene->updateBoundingBox();
+                rootGroup->addItemDrawable(scene);
+            } else {
+                delete outCloudIndex;
+            }
+        }
+
+        m_status = 1;
+        requestManualMode();
+
     }
-
-
-    // Début de la partie interactive
-    m_doc = NULL;
-
-    m_status = 0;
-    requestManualMode();
-
-    m_status = 1;
-    requestManualMode();
-    // Fin de la partie interactive
 
 
     setProgress(100);
@@ -168,7 +210,7 @@ void ONF_StepMergeScenesByModality::initManualMode()
     m_doc->removeAllItemDrawable();
 
     // set the action (a copy of the action is added at all graphics view, and the action passed in parameter is deleted)
-    //m_doc->setCurrentAction(new ONF_ActionAggregateItems(_modalities, _inputScenes));
+    m_doc->setCurrentAction(new ONF_ActionAggregateItems(_modalities, _inputScenes, _inputScenesModalities));
 
     QMessageBox::information(NULL, tr("Mode manuel"), tr("Bienvenue dans le mode manuel de cette "
                                                          "étape de filtrage."), QMessageBox::Ok);
@@ -180,7 +222,6 @@ void ONF_StepMergeScenesByModality::useManualMode(bool quit)
     {
         if(quit)
         {
-//            m_itemDrawableSelected = m_doc->getSelectedItemDrawable();
         }
     }
     else if(m_status == 1)

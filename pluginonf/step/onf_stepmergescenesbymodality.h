@@ -27,7 +27,7 @@
 
 #include "ct_step/abstract/ct_abstractstep.h"
 #include "ct_tools/model/ct_autorenamemodels.h"
-#include "ct_itemdrawable/abstract/ct_abstractitemdrawablewithpointcloud.h"
+#include "ct_itemdrawable/abstract/ct_abstractsingularitemdrawable.h"
 
 
 class CT_AbstractItemGroup;
@@ -109,7 +109,8 @@ private:
     QString     _modalitiesString;
 
     QStringList _modalities;
-    QList<CT_AbstractItemDrawableWithPointCloud*> _inputScenes;
+    QList<CT_AbstractSingularItemDrawable*> _inputScenes;
+    QList<QString>                          _inputScenesModalities;
 
     QVector<CT_AutoRenameModels>     _outSceneModelName;
 

@@ -45,6 +45,7 @@
 #define DEFin_scene "scene"
 
 #define DEFout_resScene "resScene"
+#define DEFout_rootslice "rootslice"
 #define DEFout_slice "slice"
 #define DEFout_cluster "cluster"
 
@@ -118,7 +119,8 @@ void ONF_StepSlicePointCloud::createInResultModelListProtected()
 void ONF_StepSlicePointCloud::createOutResultModelListProtected()
 {
     CT_OutResultModelGroup *res_resScene = createNewOutResultModel(DEFout_resScene, tr("Scène découpée"));
-    res_resScene->setRootGroup(DEFout_slice, new CT_StandardItemGroup(), tr("Tranche"));
+    res_resScene->setRootGroup(DEFout_rootslice);
+    res_resScene->addGroupModel(DEFout_rootslice, DEFout_slice);
     res_resScene->addItemModel(DEFout_slice, DEFout_cluster, new CT_PointCluster(), tr("Points de la tranche"));
 }
 
@@ -128,7 +130,7 @@ void ONF_StepSlicePointCloud::createPostConfigurationDialog()
     CT_StepConfigurableDialog *dialog = newStandardPostConfigurationDialog();
 
     dialog->addDouble(tr("Epaisseur des tranches :"), tr("cm"), 0.1, 100000, 2, _dataContainer->_thickness, 100);
-    dialog->addDouble(tr("Espacement des tranches :"), tr("cm"), 0.1, 100000, 2, _dataContainer->_spacing, 100);
+    dialog->addDouble(tr("Espacement des tranches :"), tr("cm"), 0, 100000, 2, _dataContainer->_spacing, 100);
     dialog->addBool("","",tr("Choix interactif des paramètres"), _manual);
 }
 
@@ -213,6 +215,9 @@ void ONF_StepSlicePointCloud::compute()
         }
     }
 
+    CT_StandardItemGroup* rootGroup = new CT_StandardItemGroup(DEFout_rootslice, res_resScene);
+    res_resScene->addGroup(rootGroup);
+
     QMapIterator<QPair<double, double>, CT_PointCluster*> it(levels);
     while (it.hasNext())
     {
@@ -222,8 +227,8 @@ void ONF_StepSlicePointCloud::compute()
         if (cluster->getPointCloudIndex()->size() > 0)
         {
             CT_StandardItemGroup* group = new CT_StandardItemGroup(DEFout_slice, res_resScene);
-            res_resScene->addGroup(group);
             group->addItemDrawable(cluster);
+            rootGroup->addGroup(group);
         } else {
             delete cluster;
         }

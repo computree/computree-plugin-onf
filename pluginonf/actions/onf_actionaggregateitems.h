@@ -13,7 +13,7 @@ class ONF_ActionAggregateItems : public CT_AbstractActionForGraphicsView
     Q_OBJECT
 public:
 
-    ONF_ActionAggregateItems(const QStringList &modalities, const QList<CT_AbstractSingularItemDrawable *> &items);
+    ONF_ActionAggregateItems(QStringList &modalities, QList<CT_AbstractSingularItemDrawable *> &items, QList<QString> &itemsModalities);
 
     ~ONF_ActionAggregateItems();
 
@@ -44,9 +44,9 @@ public slots:
     void modalityChanged(QString modality);
 
 private:
-    QStringList                             _modalities;
-    QList<CT_AbstractSingularItemDrawable*> _items;
-    QList<QString>                          _itemsModalities;
+    QStringList                             *_modalities;
+    QList<CT_AbstractSingularItemDrawable*> *_items;
+    QList<QString>                          *_itemsModalities;
 
 };
 
