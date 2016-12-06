@@ -134,15 +134,7 @@ void ONF_StepFilterPointsByBoolGrid::compute()
         {
             // Indices de la scène filtrée
             CT_PointCloudIndexVector *resPointCloudIndex = new CT_PointCloudIndexVector();
-
-            // BoundingBox de la nouvelle scène
-            double xmin = std::numeric_limits<double>::max();
-            double ymin = xmin;
-            double zmin = xmin;
-
-            double xmax = -xmin;
-            double ymax = -xmin;
-            double zmax = -xmin;
+            resPointCloudIndex->setSortType(CT_PointCloudIndexVector::NotSorted);
 
             int sceneNum = 1;
 
@@ -171,13 +163,6 @@ void ONF_StepFilterPointsByBoolGrid::compute()
                     if (boolGrid->valueAtXYZ(x, y, z))
                     {
                         resPointCloudIndex->addIndex(itP.cIndex());
-
-                        if (x < xmin) {xmin = x;}
-                        if (x > xmax) {xmax = x;}
-                        if (y < ymin) {ymin = y;}
-                        if (y > ymax) {ymax = y;}
-                        if (z < zmin) {zmin = z;}
-                        if (z > zmax) {zmax = z;}
                         ++nbOfFilteredPoints;
                     }
 
@@ -191,10 +176,10 @@ void ONF_StepFilterPointsByBoolGrid::compute()
             if (resPointCloudIndex->size() > 0)
             {
                 // creation et ajout de la scene
-                CT_Scene *outScene = new CT_Scene(_ModelOut_Scene.completeName(), resultOut);
+                resPointCloudIndex->setSortType(CT_PointCloudIndexVector::SortedInAscendingOrder);
+                CT_Scene *outScene = new CT_Scene(_ModelOut_Scene.completeName(), resultOut, PS_REPOSITORY->registerPointCloudIndex(resPointCloudIndex));
 
-                outScene->setBoundingBox(xmin, ymin, zmin, xmax, ymax, zmax);
-                outScene->setPointCloudIndexRegistered(PS_REPOSITORY->registerPointCloudIndex(resPointCloudIndex));
+                outScene->updateBoundingBox();
                 group->addItemDrawable(outScene);
             }
         }

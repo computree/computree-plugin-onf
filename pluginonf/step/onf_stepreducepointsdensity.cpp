@@ -201,10 +201,8 @@ void ONF_StepReducePointsDensity::compute()
 
             if (resPointCloudIndex->size() > 0)
             {
-                CT_Scene *outScene = new CT_Scene(_outScene_ModelName.completeName(), outResult);
-
-                outScene->setBoundingBox(in_scene->minX(),in_scene->minY(),in_scene->minZ(), in_scene->maxX(),in_scene->maxY(),in_scene->maxZ());
-                outScene->setPointCloudIndexRegistered(PS_REPOSITORY->registerPointCloudIndex(resPointCloudIndex));
+                CT_Scene *outScene = new CT_Scene(_outScene_ModelName.completeName(), outResult, PS_REPOSITORY->registerPointCloudIndex(resPointCloudIndex));
+                outScene->updateBoundingBox();
 
                 grp->addItemDrawable(outScene);
 

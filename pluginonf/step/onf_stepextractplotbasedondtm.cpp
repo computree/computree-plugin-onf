@@ -141,17 +141,10 @@ void ONF_StepExtractPlotBasedOnDTM::compute()
                     PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("La scène d'entrée comporte %1 points.")).arg(n_points));
 
                     CT_PointCloudIndexVector *resPointCloudIndex = new CT_PointCloudIndexVector();
+                    resPointCloudIndex->setSortType(CT_PointCloudIndexVector::NotSorted);
 
                     // Extraction des points de la placette
                     size_t i = 0;
-
-                    double xmin = std::numeric_limits<double>::max();
-                    double ymin = std::numeric_limits<double>::max();
-                    double zmin = std::numeric_limits<double>::max();
-
-                    double xmax = -std::numeric_limits<double>::max();
-                    double ymax = -std::numeric_limits<double>::max();
-                    double zmax = -std::numeric_limits<double>::max();
 
                     CT_PointIterator itP(pointCloudIndex);
                     while(itP.hasNext() && !isStopped())
@@ -171,12 +164,6 @@ void ONF_StepExtractPlotBasedOnDTM::compute()
 
                             resPointCloudIndex->addIndex(index);
 
-                            if (point(0)<xmin) {xmin = point(0);}
-                            if (point(0)>xmax) {xmax = point(0);}
-                            if (point(1)<ymin) {ymin = point(1);}
-                            if (point(1)>ymax) {ymax = point(1);}
-                            if (point(2)<zmin) {zmin = point(2);}
-                            if (point(2)>zmax) {zmax = point(2);}
                         }
 
                         // progres de 0 à 100
@@ -186,11 +173,12 @@ void ONF_StepExtractPlotBasedOnDTM::compute()
 
                     if (resPointCloudIndex->size() > 0)
                     {
-                        // creation et ajout de la scene
-                        CT_Scene *outScene = new CT_Scene(_outSceneModel.completeName(), outResult);
+                        resPointCloudIndex->setSortType(CT_PointCloudIndexVector::SortedInAscendingOrder);
 
-                        outScene->setPointCloudIndexRegistered(PS_REPOSITORY->registerPointCloudIndex(resPointCloudIndex));
-                        outScene->setBoundingBox(xmin,ymin,zmin,xmax,ymax,zmax);
+                        // creation et ajout de la scene
+                        CT_Scene *outScene = new CT_Scene(_outSceneModel.completeName(), outResult, PS_REPOSITORY->registerPointCloudIndex(resPointCloudIndex));
+
+                        outScene->updateBoundingBox();
                         group->addItemDrawable(outScene);
 
                         PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("La scène extraite comporte %1 points.")).arg(outScene->getPointCloudIndex()->size()));
