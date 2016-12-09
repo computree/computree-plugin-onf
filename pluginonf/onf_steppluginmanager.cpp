@@ -115,6 +115,7 @@
 #include "step/onf_stepcomputehfromzandtin.h"
 #include "step/onf_stepmergescenesbymodality.h"
 #include "step/onf_stepmatchclouds.h"
+#include "step/onf_stepcomputecumulativesummary.h"
 
 
 #include "filter/onf_filterbyreturntype.h"
@@ -215,6 +216,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewGeometricalShapesStep<ONF_StepComputeDBHFromHeightAllometry>(CT_StepsMenu::LP_Stems);
 
     addNewPointsStep<ONF_StepComputeTIN>(CT_StepsMenu::LP_Create);
+    addNewMetricStep<ONF_StepComputeCumulativeSummary>(CT_StepsMenu::LP_Analyze);
 
     addNewBetaStep<ONF_StepTransformPointCloud>(CT_StepsMenu::LP_Transform);
     addNewBetaStep<ONF_StepComputeLAI2000Data>(CT_StepsMenu::LP_Analyze);
