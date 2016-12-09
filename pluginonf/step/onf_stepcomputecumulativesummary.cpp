@@ -26,7 +26,6 @@
 
 #include "ct_itemdrawable/ct_standarditemgroup.h"
 #include "ct_itemdrawable/ct_loopcounter.h"
-#include "ct_itemdrawable/ct_attributeslist.h"
 
 #include "ct_itemdrawable/tools/iterator/ct_groupiterator.h"
 #include "ct_itemdrawable/tools/iterator/ct_itemiterator.h"
@@ -39,7 +38,6 @@
 #include <QFile>
 #include <QTextStream>
 
-
 // Alias for indexing models
 #define DEFin_rscene "rscene"
 #define DEFin_grpItem "grpitem"
@@ -51,7 +49,6 @@
 
 #define DEFout_res "outres"
 #define DEFout_grp "outgrp"
-#define DEFout_summary "summary"
 
 // Constructor : initialization of parameters
 ONF_StepComputeCumulativeSummary::ONF_StepComputeCumulativeSummary(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
@@ -106,7 +103,6 @@ void ONF_StepComputeCumulativeSummary::createOutResultModelListProtected()
 {
     CT_OutResultModelGroup *resultSummary = createNewOutResultModel(DEFout_res, tr("Summary"));
     resultSummary->setRootGroup(DEFout_grp);
-    resultSummary->addItemModel(DEFout_grp, DEFout_summary, new CT_AttributesList(), tr("Summary"));
 }
 
 // Semi-automatic creation of step parameters DialogBox
@@ -124,6 +120,7 @@ void ONF_StepComputeCumulativeSummary::compute()
 
     QList<CT_ResultGroup*> outResultList = getOutResultList();
     CT_ResultGroup* rSummary = outResultList.at(0);
+    rSummary->addGroup(new CT_StandardItemGroup(DEFout_grp, rSummary));
 
 
     bool last_turn = false;
