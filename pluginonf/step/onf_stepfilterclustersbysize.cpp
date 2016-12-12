@@ -77,7 +77,7 @@ void ONF_StepFilterClustersBySize::createPostConfigurationDialog()
 {
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
 
-    configDialog->addInt(tr("Nombre de points minimum dans un cluster"), "pts",1 , 10000, _minSize);
+    configDialog->addInt(tr("Nombre de points minimum dans un cluster"), "pts",1 , 1000000, _minSize);
 }
 
 void ONF_StepFilterClustersBySize::createOutResultModelListProtected()
