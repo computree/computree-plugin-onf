@@ -26,8 +26,12 @@
 #define ONF_STEPCOMPUTEBOUNDARY_H
 
 #ifdef USE_OPENCV
+#ifdef USE_GEOS
 
 #include "ct_step/abstract/ct_abstractstep.h"
+
+#include <geos.h>
+
 
 class ONF_StepComputeBoundary: public CT_AbstractStep
 {
@@ -96,8 +100,13 @@ protected:
 private:
     double  _res;
 
+    QList<geos::geom::Polygon*>    _polygonsList;
+
+    geos::geom::GeometryFactory::unique_ptr _factory;
+    geos::geom::Polygon *createPolygon(QList<geos::geom::Coordinate> vertices);
 };
 
+#endif
 #endif
 
 #endif // ONF_STEPCOMPUTEBOUNDARY_H

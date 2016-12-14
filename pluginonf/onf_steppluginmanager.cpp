@@ -43,12 +43,14 @@
 #include "step/onf_stepextractpositionsfromdensity.h"
 #include "step/onf_stepsegmentcrownsfromstemclusters.h"
 #include "step/onf_stepvoxelclusterization.h"
-#include "step/onf_stepcomputeboundary.h"
 #include "step/onf_stepfiltermaximabyneighbourhood.h"
 #include "step/onf_stepcreatemaximacloud.h"
 #include "step/onf_stepoptimizegaussianonmaximanumber.h"
 #include "step/onf_stepconverttintodtm.h"
 #include "step/onf_stepremoveuppernoise.h"
+    #ifdef USE_GEOS
+    #include "step/onf_stepcomputeboundary.h"
+    #endif
 #endif
 
 #include "step/onf_stepchangeclusterthickness02.h"
@@ -211,7 +213,6 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewShapes2DStep<ONF_StepFilterElementsByXYArea>(CT_StepsMenu::LP_Footprints);
     addNewShapes2DStep<ONF_StepSelectBBoxByFileName>(CT_StepsMenu::LP_Footprints);
     addNewShapes2DStep<ONF_StepComputeCumulativeConvexHull>(CT_StepsMenu::LP_Footprints);
-    addNewShapes2DStep<ONF_StepComputeBoundary>(CT_StepsMenu::LP_Footprints);
     addNewGeometricalShapesStep<ONF_StepSelectGroupsByReferenceHeight>(CT_StepsMenu::LP_Filter);
     addNewWorkflowStep<ONF_StepSetAffiliationIDFromReference>("Affiliations");
     addNewGeometricalShapesStep<ONF_StepComputeDBHFromHeightAllometry>(CT_StepsMenu::LP_Stems);
@@ -253,6 +254,11 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewGeometricalShapesStep<ONF_StepMergeClustersFromPositions02>(CT_StepsMenu::LP_Crowns);
     addNewGeometricalShapesStep<ONF_StepManualInventory>(CT_StepsMenu::LP_Stems);
     addNewPointsStep<ONF_StepVoxelClusterization>(CT_StepsMenu::LP_Clusters);
+
+#ifdef USE_GEOS
+    addNewShapes2DStep<ONF_StepComputeBoundary>(CT_StepsMenu::LP_Footprints);
+#endif
+
 #endif
 
 

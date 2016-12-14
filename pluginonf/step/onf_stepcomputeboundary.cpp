@@ -25,6 +25,7 @@
 #include "onf_stepcomputeboundary.h"
 
 #ifdef USE_OPENCV
+#ifdef USE_GEOS
 
 #include "ct_itemdrawable/ct_scene.h"
 #include "ct_itemdrawable/ct_standarditemgroup.h"
@@ -46,10 +47,6 @@
 
 #include <QDebug>
 
-#include "gdal.h"
-#include "ogrsf_frmts.h"
-#include "ct_tools/ct_gdaltools.h"
-
 
 // Alias for indexing models
 #define DEFin_rscene "rscene"
@@ -67,6 +64,9 @@
 ONF_StepComputeBoundary::ONF_StepComputeBoundary(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
     _res = 5.0;
+
+    geos::geom::PrecisionModel precModel(geos::geom::PrecisionModel::FLOATING);
+    _factory = geos::geom::GeometryFactory::create(&precModel, -1);
 
 
 //    OGRGeometryH hGeometry1;
@@ -219,23 +219,42 @@ void ONF_StepComputeBoundary::compute()
     {
         const std::vector<cv::Point> &contour = contours.at(i);
 
-        QList<Eigen::Vector2d*> vertices;
+        QList<geos::geom::Coordinate> vertices;
 
         for (int j = 0 ; j < contour.size() ; j++)
         {
             const cv::Point &vert = contour.at(j);
             int xx = vert.x;
             int yy = vert.y;
-            vertices.append(new Eigen::Vector2d(raster->getCellCenterColCoord(xx), raster->getCellCenterLinCoord(yy)));
+            vertices.append(geos::geom::Coordinate(raster->getCellCenterColCoord(xx), raster->getCellCenterLinCoord(yy)));
         }
 
-        CT_Polygon2DData* dataPoly = new CT_Polygon2DData(vertices.toVector(), false);
-        CT_Polygon2D* convexHull = new CT_Polygon2D(DEFout_convexhull, rconvexHull, dataPoly);
-        CT_StandardItemGroup* outGrp = new CT_StandardItemGroup(DEFout_grp, rconvexHull);
-        outGrp->addItemDrawable(convexHull);
-        rootGrp->addGroup(outGrp);
+        geos::geom::Polygon* poly = createPolygon(vertices);
+        _polygonsList.append(poly);
+
+//        CT_Polygon2DData* dataPoly = new CT_Polygon2DData(vertices.toVector(), false);
+//        CT_Polygon2D* convexHull = new CT_Polygon2D(DEFout_convexhull, rconvexHull, dataPoly);
+//        CT_StandardItemGroup* outGrp = new CT_StandardItemGroup(DEFout_grp, rconvexHull);
+//        outGrp->addItemDrawable(convexHull);
+//        rootGrp->addGroup(outGrp);
     }
 
 }
 
+geos::geom::Polygon* ONF_StepComputeBoundary::createPolygon(QList<geos::geom::Coordinate> vertices)
+{
+    geos::geom::CoordinateSequence* temp = _factory->getCoordinateSequenceFactory()->create((std::size_t) 0, 0);
+
+    for (int i = 0 ; i < vertices.size() ; i++)
+    {
+        temp->add(vertices.at(i));
+
+    }
+    geos::geom::LinearRing *shell = _factory->createLinearRing(temp);
+    geos::geom::Polygon* poly = _factory->createPolygon(shell, NULL);
+
+    return poly;
+}
+
+#endif
 #endif
