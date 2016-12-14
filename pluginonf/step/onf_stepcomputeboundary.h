@@ -100,9 +100,10 @@ protected:
 private:
     double  _res;
 
-    QList<geos::geom::Polygon*>    _polygonsList;
+    std::vector<geos::geom::Polygon * > _polygonsList;
 
     geos::geom::GeometryFactory::unique_ptr _factory;
+
     geos::geom::Polygon *createPolygon(QList<geos::geom::Coordinate> vertices);
 };
 

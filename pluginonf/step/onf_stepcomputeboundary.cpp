@@ -45,6 +45,8 @@
 #include "opencv2/imgproc/types_c.h"
 #include "opencv2/core/core.hpp"
 
+#include "geos/operation/union/CascadedPolygonUnion.h"
+
 #include <QDebug>
 
 
@@ -67,22 +69,6 @@ ONF_StepComputeBoundary::ONF_StepComputeBoundary(CT_StepInitializeData &dataInit
 
     geos::geom::PrecisionModel precModel(geos::geom::PrecisionModel::FLOATING);
     _factory = geos::geom::GeometryFactory::create(&precModel, -1);
-
-
-//    OGRGeometryH hGeometry1;
-//    OGRGeometryH hGeometry2;
-//    char* pszWKT1 = (char*)"POLYGON ((1208064.271243039 624154.6783778917, 1208064.271243039 601260.9785661874, 1231345.9998651114 601260.9785661874, 1231345.9998651114 624154.6783778917, 1208064.271243039 624154.6783778917))";;
-//    char* pszWKT2 = (char*)"POLYGON ((1199915.6662253144 633079.3410163528, 1199915.6662253144 614453.958118695, 1219317.1067437078 614453.958118695, 1219317.1067437078 633079.3410163528, 1199915.6662253144 633079.3410163528)))";
-
-//    OGR_G_CreateFromWkt( &pszWKT1, NULL, &hGeometry1 );
-//    OGR_G_CreateFromWkt( &pszWKT2, NULL, &hGeometry2 );
-
-//    OGRGeometryH uni = OGR_G_Union(hGeometry1, hGeometry2);
-//    qDebug() << "aaaa";
-
-//    qDebug() <<  uni;
-//    qDebug() << "bbbb";
-
 }
 
 // Step description (tooltip of contextual menu)
@@ -149,8 +135,24 @@ void ONF_StepComputeBoundary::compute()
     QList<CT_ResultGroup*> inResultList = getInputResults();
     CT_ResultGroup* rscene = inResultList.at(0);
 
+    bool last_turn = false;
     CT_ResultGroup* rcounter = NULL;
     if (inResultList.size() > 1) {rcounter = inResultList.at(1);}
+    if (rcounter != NULL)
+    {
+        CT_ResultItemIterator itCounter(rcounter, this, DEF_inCounter);
+        if (itCounter.hasNext())
+        {
+            const CT_LoopCounter* counter = (const CT_LoopCounter*) itCounter.next();
+            if (counter != NULL)
+            {
+                if (counter->getCurrentTurn() == counter->getNTurns())
+                {
+                    last_turn = true;
+               }
+            }
+        }
+    }
 
     QList<CT_ResultGroup*> outResultList = getOutResultList();
     CT_ResultGroup* rconvexHull = outResultList.at(0);
@@ -229,14 +231,43 @@ void ONF_StepComputeBoundary::compute()
             vertices.append(geos::geom::Coordinate(raster->getCellCenterColCoord(xx), raster->getCellCenterLinCoord(yy)));
         }
 
-        geos::geom::Polygon* poly = createPolygon(vertices);
-        _polygonsList.append(poly);
+        if (vertices.size() > 0)
+        {
+            geos::geom::Polygon* poly = createPolygon(vertices);
+            _polygonsList.push_back(poly);
+        }
 
-//        CT_Polygon2DData* dataPoly = new CT_Polygon2DData(vertices.toVector(), false);
-//        CT_Polygon2D* convexHull = new CT_Polygon2D(DEFout_convexhull, rconvexHull, dataPoly);
-//        CT_StandardItemGroup* outGrp = new CT_StandardItemGroup(DEFout_grp, rconvexHull);
-//        outGrp->addItemDrawable(convexHull);
-//        rootGrp->addGroup(outGrp);
+    }
+
+    if (last_turn)
+    {
+        geos::operation::geounion::CascadedPolygonUnion unionPoly(&_polygonsList);
+        geos::geom::Geometry* geometry = unionPoly.Union();
+
+        for (size_t i = 0 ; i < geometry->getNumGeometries() ; i++)
+        {
+            geos::geom::Geometry* polyGeom = (geos::geom::Geometry*) geometry->getGeometryN(i);
+            geos::geom::CoordinateSequence* sequence = polyGeom->getBoundary()->getCoordinates();
+            QVector<Eigen::Vector2d *> vertices;
+
+            for (int j = 0 ; j < sequence->getSize() ; j++)
+            {
+                vertices.append(new Eigen::Vector2d(sequence->getX(j), sequence->getY(j)));
+            }
+
+            CT_Polygon2DData* dataPoly = new CT_Polygon2DData(vertices, false);
+            CT_Polygon2D* convexHull = new CT_Polygon2D(DEFout_convexhull, rconvexHull, dataPoly);
+            CT_StandardItemGroup* outGrp = new CT_StandardItemGroup(DEFout_grp, rconvexHull);
+            outGrp->addItemDrawable(convexHull);
+            rootGrp->addGroup(outGrp);
+        }
+
+
+        for (size_t i = 0 ; i < _polygonsList.size() ; i++)
+        {
+            delete _polygonsList[i];
+        }
+        _polygonsList.resize(0);
     }
 
 }
@@ -248,6 +279,11 @@ geos::geom::Polygon* ONF_StepComputeBoundary::createPolygon(QList<geos::geom::Co
     for (int i = 0 ; i < vertices.size() ; i++)
     {
         temp->add(vertices.at(i));
+
+    }
+    if (vertices.size() > 0)
+    {
+        temp->add(vertices.first());
 
     }
     geos::geom::LinearRing *shell = _factory->createLinearRing(temp);
