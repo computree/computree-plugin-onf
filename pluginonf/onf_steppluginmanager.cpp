@@ -221,7 +221,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewMetricStep<ONF_StepComputeCumulativeSummary>(CT_StepsMenu::LP_Analyze);
     addNewMetricStep<ONF_StepComputeCumulativeNRTable>(CT_StepsMenu::LP_Analyze);
 
-    addNewBetaStep<ONF_StepTransformPointCloud>(CT_StepsMenu::LP_Transform);
+    addNewPointsStep<ONF_StepTransformPointCloud>(CT_StepsMenu::LP_Transform);
     addNewBetaStep<ONF_StepComputeLAI2000Data>(CT_StepsMenu::LP_Analyze);
     addNewBetaStep<ONF_StepImportSegmaFilesForMatching>(CT_StepsMenu::LP_Others);
     addNewBetaStep<ONF_StepLoadPositionsForMatching>(CT_StepsMenu::LP_Others);
