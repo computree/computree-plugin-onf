@@ -205,8 +205,8 @@ void ONF_StepCompare3DGridsContents::compute()
                             val2 = NAN;
                         }
 
-                        if (isnan(val1)) {
-                            if (isnan(val2)) {
+                        if (std::isnan(val1)) {
+                            if (std::isnan(val2)) {
                                 gridOut->setValueAtIndex(n, 00);
                             } else if (val2 < _threshold) {
                                 gridOut->setValueAtIndex(n, 01);
@@ -214,7 +214,7 @@ void ONF_StepCompare3DGridsContents::compute()
                                 gridOut->setValueAtIndex(n, 02);
                             }
                         } else if (val1 < _threshold) {
-                            if (isnan(val2)) {
+                            if (std::isnan(val2)) {
                                 gridOut->setValueAtIndex(n, 10);
                             } else if (val2 < _threshold) {
                                 gridOut->setValueAtIndex(n, 11);
@@ -222,7 +222,7 @@ void ONF_StepCompare3DGridsContents::compute()
                                 gridOut->setValueAtIndex(n, 12);
                             }
                         } else {
-                            if (isnan(val2)) {
+                            if (std::isnan(val2)) {
                                 gridOut->setValueAtIndex(n, 20);
                             } else if (val2 < _threshold) {
                                 gridOut->setValueAtIndex(n, 21);
