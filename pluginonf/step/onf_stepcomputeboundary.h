@@ -30,7 +30,14 @@
 
 #include "ct_step/abstract/ct_abstractstep.h"
 
-#include <geos.h>
+// Prevents conflict with OpenCV typedef of int64
+#define HAVE_INT64_T_64
+
+#include "geos/geom/Coordinate.h"
+#include "geos/geom/Polygon.h"
+#include "geos/geom/GeometryFactory.h"
+
+#undef HAVE_INT64_T_64
 
 
 class ONF_StepComputeBoundary: public CT_AbstractStep

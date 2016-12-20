@@ -26,7 +26,7 @@
 #define ONF_STEPMATCHITEMSPOSITIONS_H
 
 #include "ct_step/abstract/ct_abstractstep.h"
-#include <Eigen/Eigen>
+#include "eigen/Eigen/Core"
 #include <math.h>
 
 
