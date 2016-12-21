@@ -261,7 +261,7 @@ void ONF_StepComputeCumulativeSummary::compute()
                 {
                     double val = values.at(i);
 
-                    if (isnan(val))
+                    if (std::isnan(val))
                     {
                         NAcpt++;
                     } else {

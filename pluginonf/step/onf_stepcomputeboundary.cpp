@@ -45,8 +45,6 @@
 #include "opencv2/imgproc/types_c.h"
 #include "opencv2/core/core.hpp"
 
-#include "geos/operation/union/CascadedPolygonUnion.h"
-
 #include <QDebug>
 
 

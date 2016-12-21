@@ -135,7 +135,7 @@ void ONF_StepComputeHfromZandTIN::compute()
                     CT_Point point = itP.next().currentPoint();
                     refTri = (CT_DelaunayTriangle*) triangulation->getZCoordForXY(point(0), point(1), zTin, refTri);
 
-                    if (isnan(zTin))
+                    if (std::isnan(zTin))
                     {
                         point(2)  = 0;
                     } else {

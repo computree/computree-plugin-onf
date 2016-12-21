@@ -36,6 +36,10 @@
 #include "geos/geom/Coordinate.h"
 #include "geos/geom/Polygon.h"
 #include "geos/geom/GeometryFactory.h"
+#include "geos/geom/PrecisionModel.h"
+#include "geos/geom/CoordinateSequence.h"
+#include "geos/geom/CoordinateSequenceFactory.h"
+#include "geos/operation/union/CascadedPolygonUnion.h"
 
 #undef HAVE_INT64_T_64
 
