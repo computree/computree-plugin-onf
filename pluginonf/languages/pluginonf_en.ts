@@ -2,6 +2,51 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
+    <name>ONF_ActionAggregateItems</name>
+    <message>
+        <location filename="../actions/onf_actionaggregateitems.cpp" line="32"/>
+        <location filename="../actions/onf_actionaggregateitems.cpp" line="37"/>
+        <source>Regroupement d&apos;items</source>
+        <translation>Item grouping</translation>
+    </message>
+</context>
+<context>
+    <name>ONF_ActionAggregateItemsOptions</name>
+    <message>
+        <location filename="../views/actions/onf_actionaggregateitemsoptions.ui" line="14"/>
+        <source>Form</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../views/actions/onf_actionaggregateitemsoptions.ui" line="74"/>
+        <source>Items</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../views/actions/onf_actionaggregateitemsoptions.ui" line="93"/>
+        <source>Next</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>ONF_ActionAggregateItemsOptionsSelectionDialog</name>
+    <message>
+        <location filename="../views/actions/onf_actionaggregateitemsoptionsselectiondialog.ui" line="14"/>
+        <source>Dialog</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../views/actions/onf_actionaggregateitemsoptionsselectiondialog.ui" line="35"/>
+        <source>Item</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../views/actions/onf_actionaggregateitemsoptionsselectiondialog.ui" line="54"/>
+        <source>Modality</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>ONF_ActionDefineHeightLayerOptions</name>
     <message>
         <location filename="../views/actions/onf_actiondefineheightlayeroptions.ui" line="14"/>
@@ -1584,82 +1629,374 @@ You can also choose which classifications to keep.</source>
         <translation type="vanished">Following values are computed:&lt;br&gt;- Hmean: Mean&lt;br&gt;- Hsd: Standard Error (unbiased)&lt;br&gt;_ Hskew: Skewness  (unbiased)&lt;br&gt;- Hkurt: Kurtosis  (unbiased)&lt;br&gt;- Hcv: Coefficient of variation&lt;br&gt;&lt;em&gt;N.B.: Formulas for Skewness and Kurtosis comes from R package e1071 (SAS versions).&lt;/em&gt;</translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="42"/>
         <source>Calcul d&apos;indicateurs de diagnostique</source>
-        <translation>Compute diagnostic indicators</translation>
+        <translation type="vanished">Compute diagnostic indicators</translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="47"/>
         <source>Les valeurs suivantes sont calculées :&lt;br&gt;- N : Nombre total de points- N_first : Nombre de points First- N_last : Nombre de points Last- N_int : Nombre de points Intermediate- N_only : Nombre de points Only- N_error : Nombre de points en Erreur (nombre de retours ou numéro de retour aberrant)- N_ground : Nombre de points Sol- N_veg : Nombre de Végétation - N_other : Nombre de points Autres (ni Végétation, ni Sol)- Range : Zmax - Zmin- NumberOfLines : Nombre de lignes vols couvrant la placette- N_bestLine : Nombre de points de la ligne de vols ayant le plus de points- N_secondLine : Nombre de points de la seconde ligne de vols ayant le plus de points- N_worstLine : Nombre de points de la ligne de vols ayant le moins de points</source>
-        <translation>Following values are computed: &lt;br&gt;- N: Total number of points&lt;br&gt;- N_first: Number of First points&lt;br&gt;- N_last: Number of Last points&lt;br&gt;- N_int: Number of Intermediate points&lt;br&gt;- N_only: Number of Only points&lt;br&gt;- N_error: Number of points in error (number of returns or return number not valid)&lt;br&gt;- N_ground: Number of ground pointsl&lt;br&gt;- N_veg: Number of vegetation points&lt;br&gt;- N_other: Number of points from other classifications (not vegetation neither ground)&lt;br&gt;- Range: Zmax - Zmin&lt;br&gt;- NumberOfLines: Number of lines of flight on the plot&lt;br&gt;- N_bestLine: Numlber of points of the line of flight with the most points&lt;br&gt;- N_secondLine: Numlber of points of the line of flight with the second greatest number of points&lt;br&gt;- N_worstLine: Numlber of points of the line of flight with the less points</translation>
+        <translation type="vanished">Following values are computed: &lt;br&gt;- N: Total number of points&lt;br&gt;- N_first: Number of First points&lt;br&gt;- N_last: Number of Last points&lt;br&gt;- N_int: Number of Intermediate points&lt;br&gt;- N_only: Number of Only points&lt;br&gt;- N_error: Number of points in error (number of returns or return number not valid)&lt;br&gt;- N_ground: Number of ground pointsl&lt;br&gt;- N_veg: Number of vegetation points&lt;br&gt;- N_other: Number of points from other classifications (not vegetation neither ground)&lt;br&gt;- Range: Zmax - Zmin&lt;br&gt;- NumberOfLines: Number of lines of flight on the plot&lt;br&gt;- N_bestLine: Numlber of points of the line of flight with the most points&lt;br&gt;- N_secondLine: Numlber of points of the line of flight with the second greatest number of points&lt;br&gt;- N_worstLine: Numlber of points of the line of flight with the less points</translation>
+    </message>
+</context>
+<context>
+    <name>ONF_MetricMinMaxLASFields</name>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="44"/>
+        <source>Min et Max pour chaque champ LAS</source>
+        <translation>Min and Max for each LAS field</translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="81"/>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="49"/>
+        <source>Les valeurs suivantes sont calculées :&lt;br&gt;- Intensity_Min&lt;br&gt;- Intensity_Max&lt;br&gt;- Return_Number_Min&lt;br&gt;- Return_Number_Max&lt;br&gt;- Number_of_Returns_Min&lt;br&gt;- Number_of_Returns_Max&lt;br&gt;- Classification_Flags_Min&lt;br&gt;- Classification_Flags_Max&lt;br&gt;- Scanner_Channel_Min&lt;br&gt;- Scanner_Channel_Max&lt;br&gt;- Scan_Direction_Flag_Min&lt;br&gt;- Scan_Direction_Flag_Max&lt;br&gt;- Edge_of_Flight_Line_Min&lt;br&gt;- Edge_of_Flight_Line_Max&lt;br&gt;- Classification_Min&lt;br&gt;- Classification_Max&lt;br&gt;- Scan_Angle_Rank_Min&lt;br&gt;- Scan_Angle_Rank_Max&lt;br&gt;- User_Data_Min&lt;br&gt;- User_Data_Max&lt;br&gt;- Point_Source_ID_Min&lt;br&gt;- Point_Source_ID_Max&lt;br&gt;- GPS_Time_Min&lt;br&gt;- GPS_Time_Max&lt;br&gt;- Red_Min&lt;br&gt;- Red_Max&lt;br&gt;- Green_Min&lt;br&gt;- Green_Max&lt;br&gt;- Blue_Min&lt;br&gt;- Blue_Max&lt;br&gt;</source>
+        <translation>Following values are computed:&lt;br&gt;- Intensity_Min&lt;br&gt;- Intensity_Max&lt;br&gt;- Return_Number_Min&lt;br&gt;- Return_Number_Max&lt;br&gt;- Number_of_Returns_Min&lt;br&gt;- Number_of_Returns_Max&lt;br&gt;- Classification_Flags_Min&lt;br&gt;- Classification_Flags_Max&lt;br&gt;- Scanner_Channel_Min&lt;br&gt;- Scanner_Channel_Max&lt;br&gt;- Scan_Direction_Flag_Min&lt;br&gt;- Scan_Direction_Flag_Max&lt;br&gt;- Edge_of_Flight_Line_Min&lt;br&gt;- Edge_of_Flight_Line_Max&lt;br&gt;- Classification_Min&lt;br&gt;- Classification_Max&lt;br&gt;- Scan_Angle_Rank_Min&lt;br&gt;- Scan_Angle_Rank_Max&lt;br&gt;- User_Data_Min&lt;br&gt;- User_Data_Max&lt;br&gt;- Point_Source_ID_Min&lt;br&gt;- Point_Source_ID_Max&lt;br&gt;- GPS_Time_Min&lt;br&gt;- GPS_Time_Max&lt;br&gt;- Red_Min&lt;br&gt;- Red_Max&lt;br&gt;- Green_Min&lt;br&gt;- Green_Max&lt;br&gt;- Blue_Min&lt;br&gt;- Blue_Max&lt;br&gt;</translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="227"/>
+        <source>Intensity_Min</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="228"/>
+        <source>Intensity_Max</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="229"/>
+        <source>Return_Number_Min</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="230"/>
+        <source>Return_Number_Max</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="231"/>
+        <source>Number_of_Returns_Min</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="232"/>
+        <source>Number_of_Returns_Max</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="233"/>
+        <source>Classification_Flags_Min</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="234"/>
+        <source>Classification_Flags_Max</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="235"/>
+        <source>Scanner_Channel_Min</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="236"/>
+        <source>Scanner_Channel_Max</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="237"/>
+        <source>Scan_Direction_Flag_Min</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="238"/>
+        <source>Scan_Direction_Flag_Max</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="239"/>
+        <source>Edge_of_Flight_Line_Min</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="240"/>
+        <source>Edge_of_Flight_Line_Max</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="241"/>
+        <source>Classification_Min</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="242"/>
+        <source>Classification_Max</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="243"/>
+        <source>Scan_Angle_Rank_Min</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="244"/>
+        <source>Scan_Angle_Rank_Max</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="245"/>
+        <source>User_Data_Min</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="246"/>
+        <source>User_Data_Max</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="247"/>
+        <source>Point_Source_ID_Min</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="248"/>
+        <source>Point_Source_ID_Max</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="249"/>
+        <source>GPS_Time_Min</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="250"/>
+        <source>GPS_Time_Max</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="251"/>
+        <source>Red_Min</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="252"/>
+        <source>Red_Max</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="253"/>
+        <source>Green_Min</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="254"/>
+        <source>Green_Max</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="255"/>
+        <source>Blue_Min</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricminmaxlasfields.cpp" line="256"/>
+        <source>Blue_Max</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>ONF_MetricNApexMean</name>
+    <message>
+        <location filename="../metric/onf_metricnapexmean.cpp" line="51"/>
+        <source>Moyenne des N plus hauts apex</source>
+        <translation>Mean of N highest apex</translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnapexmean.cpp" line="58"/>
+        <source>Nombre apex</source>
+        <translation>Apex number</translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnapexmean.cpp" line="59"/>
+        <source>%Hmax en dessous duquel les apex ne sont plus pris en compte</source>
+        <translation>%Hmax for apex to be considered</translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnapexmean.cpp" line="148"/>
+        <source>HmApex</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnapexmean.cpp" line="149"/>
+        <source>nApex</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>ONF_MetricNbyLASClass</name>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="44"/>
+        <source>Nombre de points par modalité LAS</source>
+        <translation>Number of points by LAS modality</translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="49"/>
+        <source>Les valeurs suivantes sont calculées :&lt;br&gt;- N : Nombre total de points&lt;br&gt;- N_first : Nombre de points First&lt;br&gt;- N_last : Nombre de points Last&lt;br&gt;- N_int : Nombre de points Intermediate&lt;br&gt;- N_only : Nombre de points Only&lt;br&gt;- N_error : Nombre de points en Erreur (nombre de retours ou numéro de retour aberrant)&lt;br&gt;- N_Cla00_NeverClassified : Nombre de points classés 0&lt;br&gt;- N_Cla01_Unclassified : Nombre de points classés 1&lt;br&gt;- N_Cla02_Ground : Nombre de points classés 2&lt;br&gt;- N_Cla03_LowVegetation : Nombre de points classés 3&lt;br&gt;- N_Cla04_MediumVegetation : Nombre de points classés 4&lt;br&gt;- N_Cla05_HighVegetation : Nombre de points classés 5&lt;br&gt;- N_Cla06_Building : Nombre de points classés 6&lt;br&gt;- N_Cla07_LowPointNoise : Nombre de points classés 7&lt;br&gt;- N_Cla08_ModelKeyPoint : Nombre de points classés 8&lt;br&gt;- N_Cla09_Water : Nombre de points classés 9&lt;br&gt;- N_Cla10_Rail : Nombre de points classés 10&lt;br&gt;- N_Cla11_RoadSurface : Nombre de points classés 11&lt;br&gt;- N_Cla12_OverlapPoint : Nombre de points classés 12&lt;br&gt;- N_Cla13_WireGuard : Nombre de points classés 13&lt;br&gt;- N_Cla14_WireConductor : Nombre de points classés 14&lt;br&gt;- N_Cla15_TransmissionTower : Nombre de points classés 15&lt;br&gt;- N_Cla16_WireStructureConnector : Nombre de points classés 16&lt;br&gt;- N_Cla17_BridgeDeck : Nombre de points classés 17&lt;br&gt;- N_Cla18_HighNoise : Nombre de points classés 18&lt;br&gt;- N_Cla19_63_Reserved : Nombre de points classés 19 à 63&lt;br&gt;- N_Cla64_255_UserDefinable : Nombre de points classés 63 à 255&lt;br&gt;- ZRange : Zmax - Zmin&lt;br&gt;- NumberOfLines : Nombre de lignes vols couvrant la placette&lt;br&gt;- N_bestLine : Nombre de points de la ligne de vols ayant le plus de points&lt;br&gt;- N_secondLine : Nombre de points de la seconde ligne de vols ayant le plus de points&lt;br&gt;- N_worstLine : Nombre de points de la ligne de vols ayant le moins de points</source>
+        <translation>Following values are computed:&lt;br&gt;- N: Total number of points&lt;br&gt;- N_first: Number of First points&lt;br&gt;- N_last: Number of Last points&lt;br&gt;- N_int: Number of Intermediate points&lt;br&gt;- N_only: Number of Only points&lt;br&gt;- N_error: Number of  Error points (number of return or return number not valid)&lt;br&gt;- N_Cla00_NeverClassified: Number of points classified 0&lt;br&gt;- N_Cla01_Unclassified: Number of points classified 1&lt;br&gt;- N_Cla02_Ground: Number of points classified 2&lt;br&gt;- N_Cla03_LowVegetation: Number of points classified 3&lt;br&gt;- N_Cla04_MediumVegetation: Number of points classified 4&lt;br&gt;- N_Cla05_HighVegetation: Number of points classified 5&lt;br&gt;- N_Cla06_Building: Number of points classified 6&lt;br&gt;- N_Cla07_LowPointNoise: Number of points classified 7&lt;br&gt;- N_Cla08_ModelKeyPoint: Number of points classified 8&lt;br&gt;- N_Cla09_Water: Number of points classified 9&lt;br&gt;- N_Cla10_Rail: Number of points classified 10&lt;br&gt;- N_Cla11_RoadSurface: Number of points classified 11&lt;br&gt;- N_Cla12_OverlapPoint: Number of points classified 12&lt;br&gt;- N_Cla13_WireGuard: Number of points classified 13&lt;br&gt;- N_Cla14_WireConductor: Number of points classified 14&lt;br&gt;- N_Cla15_TransmissionTower: Number of points classified 15&lt;br&gt;- N_Cla16_WireStructureConnector: Number of points classified 16&lt;br&gt;- N_Cla17_BridgeDeck: Number of points classified 17&lt;br&gt;- N_Cla18_HighNoise: Number of points classified 18&lt;br&gt;- N_Cla19_63_Reserved: Number of points classified 19 à 63&lt;br&gt;- N_Cla64_255_UserDefinable: Number of points classified 63 à 255&lt;br&gt;- ZRange: Zmax - Zmin&lt;br&gt;- NumberOfLines: Number of lines of flight covering the plot&lt;br&gt;- N_bestLine: Number of points for the line of flight with the most points&lt;br&gt;- N_secondLine: Number of points for the line of flight with the second most points&lt;br&gt;- N_worstLine: Number of points for the line of flight with the less points</translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="258"/>
         <source>N</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="82"/>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="259"/>
         <source>N_first</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="83"/>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="260"/>
         <source>N_last</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="84"/>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="261"/>
         <source>N_int</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="85"/>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="262"/>
         <source>N_only</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="86"/>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="263"/>
         <source>N_error</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="87"/>
-        <source>N_ground</source>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="265"/>
+        <source>N_Cla00_NeverClassified</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="88"/>
-        <source>N_veg</source>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="266"/>
+        <source>N_Cla01_Unclassified</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="89"/>
-        <source>N_other</source>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="267"/>
+        <source>N_Cla02_Ground</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="90"/>
-        <source>Range</source>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="268"/>
+        <source>N_Cla03_LowVegetation</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="91"/>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="269"/>
+        <source>N_Cla04_MediumVegetation</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="270"/>
+        <source>N_Cla05_HighVegetation</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="271"/>
+        <source>N_Cla06_Building</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="272"/>
+        <source>N_Cla07_LowPointNoise</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="273"/>
+        <source>N_Cla08_ModelKeyPoint</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="274"/>
+        <source>N_Cla09_Water</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="275"/>
+        <source>N_Cla10_Rail</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="276"/>
+        <source>N_Cla11_RoadSurface</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="277"/>
+        <source>N_Cla12_OverlapPoint</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="278"/>
+        <source>N_Cla13_WireGuard</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="279"/>
+        <source>N_Cla14_WireConductor</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="280"/>
+        <source>N_Cla15_TransmissionTower</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="281"/>
+        <source>N_Cla16_WireStructureConnector</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="282"/>
+        <source>N_Cla17_BridgeDeck</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="283"/>
+        <source>N_Cla18_HighNoise</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="284"/>
+        <source>N_Cla19_63_Reserved</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="285"/>
+        <source>N_Cla64_255_UserDefinable</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="287"/>
+        <source>ZRange</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="289"/>
         <source>NumberOfLines</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="92"/>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="290"/>
         <source>N_bestLine</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="93"/>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="291"/>
         <source>N_secondLine</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../metric/onf_metriccomputestats.cpp" line="94"/>
+        <location filename="../metric/onf_metricnbylasclass.cpp" line="292"/>
         <source>N_worstLine</source>
         <translation></translation>
     </message>
@@ -2197,6 +2534,65 @@ You can also choose which classifications to keep.</source>
     </message>
 </context>
 <context>
+    <name>ONF_StepComputeBoundary</name>
+    <message>
+        <location filename="../step/onf_stepcomputeboundary.cpp" line="75"/>
+        <source>Calculer enveloppe concave</source>
+        <translation>Compute concave hull</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputeboundary.cpp" line="81"/>
+        <source>No detailled description for this step</source>
+        <translation>Pas de description détaillée pour cette étape</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputeboundary.cpp" line="102"/>
+        <source>Scène(s)</source>
+        <translation>Scene(s)</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputeboundary.cpp" line="104"/>
+        <source>Groupe</source>
+        <translation>Group</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputeboundary.cpp" line="105"/>
+        <source>Scène</source>
+        <translation>Scene</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputeboundary.cpp" line="107"/>
+        <source>Résultat compteur</source>
+        <translation>Counter result</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputeboundary.cpp" line="109"/>
+        <source>Compteur</source>
+        <translation>Counter</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputeboundary.cpp" line="116"/>
+        <location filename="../step/onf_stepcomputeboundary.cpp" line="121"/>
+        <source>Convave Hull</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputeboundary.cpp" line="118"/>
+        <source>IMAGE Hull</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputeboundary.cpp" line="119"/>
+        <source>Dilaté Hull</source>
+        <translation>Dilated hull</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputeboundary.cpp" line="128"/>
+        <source>Résolution</source>
+        <translation>Resolution</translation>
+    </message>
+</context>
+<context>
     <name>ONF_StepComputeCrownProjection</name>
     <message>
         <location filename="../step/onf_stepcomputecrownprojection.cpp" line="63"/>
@@ -2264,6 +2660,160 @@ You can also choose which classifications to keep.</source>
     <message>
         <source>Nombre de directions</source>
         <translation type="vanished">Number of directions</translation>
+    </message>
+</context>
+<context>
+    <name>ONF_StepComputeCumulativeConvexHull</name>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativeconvexhull.cpp" line="61"/>
+        <source>Calculer enveloppe convexe cumulée</source>
+        <translation>Compute cumulative convex hull</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativeconvexhull.cpp" line="67"/>
+        <source>No detailled description for this step</source>
+        <translation>Pas de description détaillée pour cette étape</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativeconvexhull.cpp" line="88"/>
+        <source>Scène(s)</source>
+        <translation>Scene(s)</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativeconvexhull.cpp" line="90"/>
+        <source>Groupe</source>
+        <translation>Group</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativeconvexhull.cpp" line="91"/>
+        <source>Scène</source>
+        <translation>Scene</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativeconvexhull.cpp" line="93"/>
+        <source>Résultat compteur</source>
+        <translation>Counter result</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativeconvexhull.cpp" line="95"/>
+        <source>Compteur</source>
+        <translation>Counter</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativeconvexhull.cpp" line="102"/>
+        <source>Convex Hull (cumulative)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativeconvexhull.cpp" line="104"/>
+        <source>Convex Hull</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>ONF_StepComputeCumulativeNRTable</name>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativenrtable.cpp" line="73"/>
+        <source>Export N-R Table</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativenrtable.cpp" line="79"/>
+        <source>No detailled description for this step</source>
+        <translation>Pas de description détaillée pour cette étape</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativenrtable.cpp" line="100"/>
+        <source>Scène(s)</source>
+        <translation>Scene(s)</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativenrtable.cpp" line="102"/>
+        <source>Groupe</source>
+        <translation>Group</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativenrtable.cpp" line="103"/>
+        <source>Scène</source>
+        <translation>Scene</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativenrtable.cpp" line="104"/>
+        <source>Attributs LAS</source>
+        <translation>LAS attributs</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativenrtable.cpp" line="106"/>
+        <source>Résultat compteur</source>
+        <translation>Counter result</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativenrtable.cpp" line="108"/>
+        <source>Compteur</source>
+        <translation>Counter</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativenrtable.cpp" line="115"/>
+        <source>N-R Table</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativenrtable.cpp" line="124"/>
+        <source>Choose Export file</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>ONF_StepComputeCumulativeSummary</name>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativesummary.cpp" line="62"/>
+        <source>Export summary of metrics</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativesummary.cpp" line="68"/>
+        <source>No detailled description for this step</source>
+        <translation>Pas de description détaillée pour cette étape</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativesummary.cpp" line="89"/>
+        <source>Scène(s)</source>
+        <translation>Scene(s)</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativesummary.cpp" line="91"/>
+        <source>Groupe</source>
+        <translation>Group</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativesummary.cpp" line="92"/>
+        <source>Item</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativesummary.cpp" line="93"/>
+        <source>Attribut</source>
+        <translation>Attribute</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativesummary.cpp" line="95"/>
+        <source>Résultat compteur</source>
+        <translation>Counter result</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativesummary.cpp" line="97"/>
+        <source>Compteur</source>
+        <translation>Counter</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativesummary.cpp" line="104"/>
+        <source>Summary</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputecumulativesummary.cpp" line="113"/>
+        <source>Choose Export file</source>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -2455,75 +3005,114 @@ You can also choose which classifications to keep.</source>
 <context>
     <name>ONF_StepComputeDTM02</name>
     <message>
-        <location filename="../step/onf_stepcomputedtm02.cpp" line="77"/>
+        <location filename="../step/onf_stepcomputedtm02.cpp" line="73"/>
         <source>Créer MNT</source>
         <translation>Create DTM</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputedtm02.cpp" line="82"/>
+        <location filename="../step/onf_stepcomputedtm02.cpp" line="78"/>
         <source>Cette étape permet de séparer les points Sol et Végétation, et de générer :un Modèle Numérique de Terrain (MNT).&lt;br&gt;Le MNT est calculé comme une grille Zmin à la &lt;b&gt;résolution&lt;/b&gt; spécifiée. &lt;br&gt;Ce MNT peut être optionellement interpolé et/ou lissée selon les options cochées.</source>
         <translation> This step separate ground and vegetation points, and creates a Digital Terrain Model (DTM).&lt;br&gt; The DTM is computed as a Zmin grid with specified &lt;b&gt;resolution&lt;/b&gt;.&lt;br&gt; This DTM can be optionnally interpolated and / or smoothed. </translation>
     </message>
     <message>
+        <location filename="../step/onf_stepcomputedtm02.cpp" line="93"/>
         <location filename="../step/onf_stepcomputedtm02.cpp" line="97"/>
-        <location filename="../step/onf_stepcomputedtm02.cpp" line="101"/>
         <source>Points sol</source>
         <translation>Ground points</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputedtm02.cpp" line="103"/>
+        <location filename="../step/onf_stepcomputedtm02.cpp" line="99"/>
         <source>Emprise</source>
         <translation>XY area shape</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputedtm02.cpp" line="110"/>
+        <location filename="../step/onf_stepcomputedtm02.cpp" line="106"/>
         <source>Résolution de la grille :</source>
         <translation>Grid resolution:</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputedtm02.cpp" line="111"/>
+        <location filename="../step/onf_stepcomputedtm02.cpp" line="107"/>
         <source>Interpolation</source>
         <translation>Interpolation</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputedtm02.cpp" line="112"/>
+        <location filename="../step/onf_stepcomputedtm02.cpp" line="108"/>
         <source>Taille de la fenêtre d&apos;interpolation</source>
         <translation>Size of interpolation window</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputedtm02.cpp" line="112"/>
+        <location filename="../step/onf_stepcomputedtm02.cpp" line="108"/>
         <source>Cases</source>
         <translation>Cells</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputedtm02.cpp" line="113"/>
+        <location filename="../step/onf_stepcomputedtm02.cpp" line="109"/>
         <source>Lissage (filtre moyen)</source>
         <translation>Smoothing (mean filter)</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputedtm02.cpp" line="114"/>
+        <location filename="../step/onf_stepcomputedtm02.cpp" line="110"/>
         <source>Voisinage de lissage :</source>
         <translation>Smoothing neighbourhood:</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputedtm02.cpp" line="115"/>
+        <location filename="../step/onf_stepcomputedtm02.cpp" line="111"/>
         <source>Convertir valeurs NA en min(MNT) ?</source>
         <translation>Convert NA values to min(DTM)?</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputedtm02.cpp" line="123"/>
+        <location filename="../step/onf_stepcomputedtm02.cpp" line="119"/>
         <source>MNT</source>
         <translation>DTM</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputedtm02.cpp" line="219"/>
+        <location filename="../step/onf_stepcomputedtm02.cpp" line="215"/>
         <source>Interpolation du MNT terminée</source>
         <translation>DTM interpolation achieved</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepcomputedtm02.cpp" line="254"/>
+        <location filename="../step/onf_stepcomputedtm02.cpp" line="250"/>
         <source>Lissage du MNT terminé</source>
         <translation>DTM smoothing achieved</translation>
+    </message>
+</context>
+<context>
+    <name>ONF_StepComputeHfromZandTIN</name>
+    <message>
+        <location filename="../step/onf_stepcomputehfromzandtin.cpp" line="58"/>
+        <source>Calculer les hauteurs à l&apos;aide d&apos;un TIN</source>
+        <translation>Compute heights using a TIN</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputehfromzandtin.cpp" line="63"/>
+        <source>TO DO</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputehfromzandtin.cpp" line="76"/>
+        <location filename="../step/onf_stepcomputehfromzandtin.cpp" line="81"/>
+        <source>TIN</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputehfromzandtin.cpp" line="80"/>
+        <source>Scène en Z</source>
+        <translation>Scene in Z</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputehfromzandtin.cpp" line="95"/>
+        <source>Scene en H</source>
+        <translation>Scene in H</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputehfromzandtin.cpp" line="124"/>
+        <source>La scène d&apos;entrée comporte %1 points.</source>
+        <translation>The input scene contains %1 points.</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputehfromzandtin.cpp" line="155"/>
+        <source>Convertion terminée</source>
+        <translation>Conversion achieved</translation>
     </message>
 </context>
 <context>
@@ -2699,6 +3288,30 @@ You can also choose which classifications to keep.</source>
     </message>
 </context>
 <context>
+    <name>ONF_StepComputeTIN</name>
+    <message>
+        <location filename="../step/onf_stepcomputetin.cpp" line="54"/>
+        <source>Créer TIN à partir de points</source>
+        <translation>Create TIN from points</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputetin.cpp" line="59"/>
+        <source>TO DO</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputetin.cpp" line="72"/>
+        <location filename="../step/onf_stepcomputetin.cpp" line="76"/>
+        <source>Points sol</source>
+        <translation>Ground points</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcomputetin.cpp" line="89"/>
+        <source>TIN</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>ONF_StepComputeVerticalProfile</name>
     <message>
         <location filename="../step/onf_stepcomputeverticalprofile.cpp" line="64"/>
@@ -2817,6 +3430,45 @@ You can also choose which classifications to keep.</source>
     </message>
 </context>
 <context>
+    <name>ONF_StepConvertTINtoDTM</name>
+    <message>
+        <location filename="../step/onf_stepconverttintodtm.cpp" line="64"/>
+        <source>Convertir un TIN en MNT</source>
+        <translation>Convert TIN to DTM</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepconverttintodtm.cpp" line="69"/>
+        <source>TO DO</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepconverttintodtm.cpp" line="82"/>
+        <location filename="../step/onf_stepconverttintodtm.cpp" line="86"/>
+        <source>TIN</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepconverttintodtm.cpp" line="88"/>
+        <source>Emprise</source>
+        <translation>Footprint</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepconverttintodtm.cpp" line="95"/>
+        <source>Résolution de la grille :</source>
+        <translation>Grid resolution:</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepconverttintodtm.cpp" line="103"/>
+        <source>MNT</source>
+        <translation>DTM</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepconverttintodtm.cpp" line="163"/>
+        <source>Convertion terminée</source>
+        <translation>Conversion achieved</translation>
+    </message>
+</context>
+<context>
     <name>ONF_StepCorrectALSProfile</name>
     <message>
         <location filename="../step/onf_stepcorrectalsprofile.cpp" line="50"/>
@@ -2867,6 +3519,76 @@ You can also choose which classifications to keep.</source>
         <location filename="../step/onf_stepcorrectalsprofile.cpp" line="102"/>
         <source>Supprimer les données en dessous de</source>
         <translation>Remove data below</translation>
+    </message>
+</context>
+<context>
+    <name>ONF_StepCreateMaximaCloud</name>
+    <message>
+        <location filename="../step/onf_stepcreatemaximacloud.cpp" line="38"/>
+        <source>Créer un nuage de points de maxima</source>
+        <translation>Create maxima point cloud</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcreatemaximacloud.cpp" line="44"/>
+        <source>No detailled description for this step</source>
+        <translation>Pas de description détaillée pour cette étape</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcreatemaximacloud.cpp" line="65"/>
+        <location filename="../step/onf_stepcreatemaximacloud.cpp" line="69"/>
+        <source>Maxima</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcreatemaximacloud.cpp" line="67"/>
+        <source>Groupe</source>
+        <translation>Group</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcreatemaximacloud.cpp" line="68"/>
+        <source>Image (hauteurs)</source>
+        <translation>Image (heights)</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcreatemaximacloud.cpp" line="70"/>
+        <source>MNT</source>
+        <translation>DTM</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcreatemaximacloud.cpp" line="72"/>
+        <source>Emprise</source>
+        <translation>Footprint</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcreatemaximacloud.cpp" line="83"/>
+        <location filename="../step/onf_stepcreatemaximacloud.cpp" line="86"/>
+        <source>Maxima (points)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcreatemaximacloud.cpp" line="97"/>
+        <source>Créer un nuage de points</source>
+        <translation>Create point cloud</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcreatemaximacloud.cpp" line="98"/>
+        <source>Créer des points de référence</source>
+        <translation>Create reference points</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcreatemaximacloud.cpp" line="118"/>
+        <source>Un MNT a été founit, les valeurs Z des maxima seront corrigées</source>
+        <translation>A DTM has been provided, Z values of maxima will be corrected</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcreatemaximacloud.cpp" line="120"/>
+        <source>Aucun MNT n&apos;a été founit, les valeurs Z des maxima NE seront PAS corrigées</source>
+        <translation>No DTM provided, Z values of maxima will NOT be corrected</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepcreatemaximacloud.cpp" line="200"/>
+        <source>Valeur manquante dans le MNT pour un l&apos;apex : x=%1 ; y=%2</source>
+        <translation>Missing value in DTM for apex: x=%1 ; y=%</translation>
     </message>
 </context>
 <context>
@@ -4960,32 +5682,31 @@ You can also choose which classifications to keep.</source>
         <translation type="vanished">Extraction of plot</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepextractplot.cpp" line="69"/>
+        <location filename="../step/onf_stepextractplot.cpp" line="67"/>
         <source>Extraire une Placette circulaire</source>
         <translation>Extract a circular plot</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepextractplot.cpp" line="74"/>
+        <location filename="../step/onf_stepextractplot.cpp" line="72"/>
         <source>Cette étape permet d&apos;extraire les points de la scène d&apos;entrée contenus dans une placette circulaire.&lt;br&gt;On définit dans les paramètres son &lt;b&gt;centre (X,Y)&lt;/b&gt;, son &lt;b&gt;rayon&lt;/b&gt; (maximal), le &lt;b&gt;niveau Z minimum&lt;/b&gt; et le &lt;b&gt;niveau Z maximum&lt;/b&gt;.&lt;br&gt;Si on définit un &lt;b&gt;rayon de début de placette&lt;/b&gt;, cela permet d&apos;obtenir une placette annulaire.&lt;br&gt;On peut également définir un &lt;b&gt;azimut de début&lt;/b&gt; et un &lt;b&gt;azimut de fin&lt;/b&gt;, pour obtenir un secteur.</source>
         <translation>This step extracts a circular plot in the input points scene.&lt;br&gt;It defines the following parameters: &lt;b&gt;plot center (X,Y)&lt;/b&gt;, &lt;b&gt;plot radius&lt;/b&gt; (maximum), the &lt;b&gt;minimum Z level&lt;/b&gt; and the &lt;b&gt;maximum Z level&lt;/b&gt;.&lt;br&gt;The following optional parameters are also available: &lt;b&gt;beginning radius of the plot&lt;/b&gt; allowing to obtain an annulus, a &lt;b&gt;beginning azimut&lt;/b&gt; and an &lt;b&gt;ending azimut&lt;/b&gt; giving a sector. </translation>
     </message>
     <message>
-        <location filename="../step/onf_stepextractplot.cpp" line="90"/>
+        <location filename="../step/onf_stepextractplot.cpp" line="88"/>
         <source>Scène(s)</source>
         <translation>Scene(s)</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepextractplot.cpp" line="94"/>
+        <location filename="../step/onf_stepextractplot.cpp" line="92"/>
         <source>Scène</source>
         <translation>Scene</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepextractplot.cpp" line="100"/>
         <source>Scène(s) extraites</source>
-        <translation>Exctracted scene(s)</translation>
+        <translation type="vanished">Exctracted scene(s)</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepextractplot.cpp" line="103"/>
+        <location filename="../step/onf_stepextractplot.cpp" line="102"/>
         <source>Scène extraite</source>
         <translation>Extracted scene</translation>
     </message>
@@ -5036,7 +5757,7 @@ You can also choose which classifications to keep.</source>
         <translation>Maximum Z for plot:</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepextractplot.cpp" line="133"/>
+        <location filename="../step/onf_stepextractplot.cpp" line="136"/>
         <source>La scène d&apos;entrée comporte %1 points.</source>
         <translation>The input scene contains %1 points.</translation>
     </message>
@@ -5048,7 +5769,7 @@ You can also choose which classifications to keep.</source>
     <message>
         <location filename="../step/onf_stepextractplot.cpp" line="244"/>
         <source>Aucun point n&apos;est dans l&apos;emprise choisie</source>
-        <translation>Not point in selected plot</translation>
+        <translation>No point in selected plot</translation>
     </message>
 </context>
 <context>
@@ -5140,12 +5861,12 @@ You can also choose which classifications to keep.</source>
         <translation>The input scene contains %1 points.</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepextractplotbasedondtm.cpp" line="196"/>
+        <location filename="../step/onf_stepextractplotbasedondtm.cpp" line="184"/>
         <source>La scène extraite comporte %1 points.</source>
         <translation>The extracted scene contains %1 points.</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepextractplotbasedondtm.cpp" line="200"/>
+        <location filename="../step/onf_stepextractplotbasedondtm.cpp" line="188"/>
         <source>Aucun point n&apos;est dans l&apos;emprise choisie</source>
         <translation>Not point in selected plot</translation>
     </message>
@@ -5845,6 +6566,55 @@ So this step is eliminate groups of level 1 not containing enough groups of leve
     </message>
 </context>
 <context>
+    <name>ONF_StepFilterMaximaByNeighbourhood</name>
+    <message>
+        <location filename="../step/onf_stepfiltermaximabyneighbourhood.cpp" line="35"/>
+        <source>Filtrer les maxima par voisinage</source>
+        <translation>Filter maxima by neighbourhood</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepfiltermaximabyneighbourhood.cpp" line="41"/>
+        <source>No detailled description for this step</source>
+        <translation>Pas de description détaillée pour cette étape</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepfiltermaximabyneighbourhood.cpp" line="62"/>
+        <location filename="../step/onf_stepfiltermaximabyneighbourhood.cpp" line="66"/>
+        <source>Maxima</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepfiltermaximabyneighbourhood.cpp" line="64"/>
+        <source>Groupe</source>
+        <translation>Group</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepfiltermaximabyneighbourhood.cpp" line="65"/>
+        <source>Image (hauteurs)</source>
+        <translation>Image (heights)</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepfiltermaximabyneighbourhood.cpp" line="76"/>
+        <source>Maxima filtrés</source>
+        <translation>Filtered maximum</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepfiltermaximabyneighbourhood.cpp" line="84"/>
+        <source>DeltaH maximum dans un houppier</source>
+        <translation>DeltaH maximum in a crown</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepfiltermaximabyneighbourhood.cpp" line="85"/>
+        <source>Rayon de houppier minimal</source>
+        <translation>Minimum crown radius</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepfiltermaximabyneighbourhood.cpp" line="86"/>
+        <source>Rayon de houppier maximal</source>
+        <translation>Maximum crown radius</translation>
+    </message>
+</context>
+<context>
     <name>ONF_StepFilterPointsByBoolGrid</name>
     <message>
         <location filename="../step/onf_stepfilterpointsbyboolgrid.cpp" line="61"/>
@@ -5878,17 +6648,17 @@ So this step is eliminate groups of level 1 not containing enough groups of leve
         <translation>Filtered scene</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepfilterpointsbyboolgrid.cpp" line="154"/>
+        <location filename="../step/onf_stepfilterpointsbyboolgrid.cpp" line="146"/>
         <source>Grille %1, Scène %2:</source>
         <translation>Grid %1, Scene %2:</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepfilterpointsbyboolgrid.cpp" line="159"/>
+        <location filename="../step/onf_stepfilterpointsbyboolgrid.cpp" line="151"/>
         <source>La scène %1 points...</source>
         <translation>The scene contient %1 points...</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepfilterpointsbyboolgrid.cpp" line="188"/>
+        <location filename="../step/onf_stepfilterpointsbyboolgrid.cpp" line="173"/>
         <source>...%1 points ont été conservés</source>
         <translation>...%1 points have been kept</translation>
     </message>
@@ -6645,6 +7415,72 @@ The &lt;b&gt;maximum distance between two points within a group&lt;/b&gt; is spe
     </message>
 </context>
 <context>
+    <name>ONF_StepMatchClouds</name>
+    <message>
+        <location filename="../step/onf_stepmatchclouds.cpp" line="73"/>
+        <source>Match points clouds</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmatchclouds.cpp" line="78"/>
+        <source>TO DO</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmatchclouds.cpp" line="91"/>
+        <source>Source Scenes</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmatchclouds.cpp" line="95"/>
+        <source>Source Scene</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmatchclouds.cpp" line="96"/>
+        <location filename="../step/onf_stepmatchclouds.cpp" line="105"/>
+        <source>Item (name)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmatchclouds.cpp" line="97"/>
+        <location filename="../step/onf_stepmatchclouds.cpp" line="106"/>
+        <source>Name</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmatchclouds.cpp" line="100"/>
+        <source>Target Scenes</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmatchclouds.cpp" line="104"/>
+        <source>Target Scene</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmatchclouds.cpp" line="112"/>
+        <location filename="../step/onf_stepmatchclouds.cpp" line="115"/>
+        <source>Matching</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmatchclouds.cpp" line="118"/>
+        <source>Source name</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmatchclouds.cpp" line="121"/>
+        <source>Target name</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmatchclouds.cpp" line="124"/>
+        <source>Distance</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>ONF_StepMatchItemsPositions</name>
     <message>
         <location filename="../step/onf_stepmatchitemspositions.cpp" line="118"/>
@@ -7205,6 +8041,49 @@ Log C becomes the longest log: it is immediately used in the next iteration in c
     </message>
 </context>
 <context>
+    <name>ONF_StepMergeScenesByModality</name>
+    <message>
+        <location filename="../step/onf_stepmergescenesbymodality.cpp" line="70"/>
+        <source>Merge scenes interactively</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmergescenesbymodality.cpp" line="76"/>
+        <source>TO DO</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmergescenesbymodality.cpp" line="97"/>
+        <source>Scenes</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmergescenesbymodality.cpp" line="101"/>
+        <source>Scene</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmergescenesbymodality.cpp" line="126"/>
+        <source>Modalities (comma separated)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmergescenesbymodality.cpp" line="126"/>
+        <source>List all wanted modalities, separated by commas)</source>
+        <translation>List all wanted modalities, separated by commas</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmergescenesbymodality.cpp" line="215"/>
+        <source>Mode manuel</source>
+        <translation>Manual mode</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepmergescenesbymodality.cpp" line="215"/>
+        <source>Bienvenue dans le mode manuel de cette étape de filtrage.</source>
+        <translation>Welcome to the manual mode of this step.</translation>
+    </message>
+</context>
+<context>
     <name>ONF_StepModifyPositions2D</name>
     <message>
         <location filename="../step/onf_stepmodifypositions2d.cpp" line="67"/>
@@ -7238,6 +8117,75 @@ Log C becomes the longest log: it is immediately used in the next iteration in c
         <location filename="../step/onf_stepmodifypositions2d.cpp" line="159"/>
         <source>Bienvenue dans le mode manuel de cette étape</source>
         <translation>Welcome to the manual mode of this step !</translation>
+    </message>
+</context>
+<context>
+    <name>ONF_StepOptimizeGaussianOnMaximaNumber</name>
+    <message>
+        <location filename="../step/onf_stepoptimizegaussianonmaximanumber.cpp" line="35"/>
+        <source>Filtre Gaussien optimisé par le nombre de maxima</source>
+        <translation>Gaussian filter optimized by maxima number</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepoptimizegaussianonmaximanumber.cpp" line="41"/>
+        <source>No detailled description for this step</source>
+        <translation>Pas de description détaillée pour cette étape</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepoptimizegaussianonmaximanumber.cpp" line="62"/>
+        <source>Image 2D</source>
+        <translation>2D image</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepoptimizegaussianonmaximanumber.cpp" line="64"/>
+        <source>Groupe</source>
+        <translation>Group</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepoptimizegaussianonmaximanumber.cpp" line="65"/>
+        <source>Image</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepoptimizegaussianonmaximanumber.cpp" line="75"/>
+        <source>Image filtrée</source>
+        <translation>Filtered image (Gaussian)</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepoptimizegaussianonmaximanumber.cpp" line="76"/>
+        <source>Maxima</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepoptimizegaussianonmaximanumber.cpp" line="85"/>
+        <source>Sigma max</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepoptimizegaussianonmaximanumber.cpp" line="85"/>
+        <location filename="../step/onf_stepoptimizegaussianonmaximanumber.cpp" line="86"/>
+        <source>en mètres</source>
+        <translation>in meters</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepoptimizegaussianonmaximanumber.cpp" line="86"/>
+        <source>Incrément de Sigma par étape</source>
+        <translation>Sigma increment for each step</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepoptimizegaussianonmaximanumber.cpp" line="87"/>
+        <source>Ne pas détécter de maxima en dessous de</source>
+        <translation>Don&apos;t detect maxima below</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepoptimizegaussianonmaximanumber.cpp" line="87"/>
+        <source>m</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepoptimizegaussianonmaximanumber.cpp" line="89"/>
+        <source>N.B. : Portée du filtre = 7.7 x Sigma (en mètres)</source>
+        <translation>N.B.: Filter range = 7.7 x Sigma (in meters)</translation>
     </message>
 </context>
 <context>
@@ -7278,12 +8226,12 @@ Log C becomes the longest log: it is immediately used in the next iteration in c
         <translation>The input scene contains %1 points.</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepreducepointsdensity.cpp" line="211"/>
+        <location filename="../step/onf_stepreducepointsdensity.cpp" line="209"/>
         <source>La scène de densité réduite comporte %1 points.</source>
         <translation>The filtered scene contains %1 points.</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepreducepointsdensity.cpp" line="214"/>
+        <location filename="../step/onf_stepreducepointsdensity.cpp" line="212"/>
         <source>Aucun point conservé pour cette scène</source>
         <translation>No point has been kept for this scene</translation>
     </message>
@@ -7350,6 +8298,79 @@ Log C becomes the longest log: it is immediately used in the next iteration in c
         <location filename="../step/onf_steprefpointfrombarycenter02.cpp" line="84"/>
         <source>Barycentre</source>
         <translation>Barycenter</translation>
+    </message>
+</context>
+<context>
+    <name>ONF_StepRemoveUpperNoise</name>
+    <message>
+        <location filename="../step/onf_stepremoveuppernoise.cpp" line="75"/>
+        <source>Remove upper noise points</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepremoveuppernoise.cpp" line="80"/>
+        <source>TO DO</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepremoveuppernoise.cpp" line="93"/>
+        <source>Scène à débruiter</source>
+        <translation>Scene to denoise</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepremoveuppernoise.cpp" line="93"/>
+        <source>Par exemple pour des scènes où les filtres matériels sont désactivés</source>
+        <translation>For example of scenes where hardware filters are desactivated</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepremoveuppernoise.cpp" line="96"/>
+        <source>Groupe contenant la scène</source>
+        <translation>Group containing the scene</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepremoveuppernoise.cpp" line="97"/>
+        <source>Scène bruitée</source>
+        <translation>Noised scene</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepremoveuppernoise.cpp" line="107"/>
+        <source>Scène réduite</source>
+        <translation>Denoised scene</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepremoveuppernoise.cpp" line="115"/>
+        <source>Grid resolution:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepremoveuppernoise.cpp" line="116"/>
+        <source>Minimum number of points for a filled cell:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepremoveuppernoise.cpp" line="117"/>
+        <source>Minimum number of points for a valid cell:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepremoveuppernoise.cpp" line="118"/>
+        <source>Maximum gap length:</source>
+        <translation>Longueur de trouée maximale</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepremoveuppernoise.cpp" line="148"/>
+        <source>La scène d&apos;entrée comporte %1 points.</source>
+        <translation>The input scene contains %1 points.</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepremoveuppernoise.cpp" line="236"/>
+        <source>La scène de densité réduite comporte %1 points.</source>
+        <translation>The filtered scene contains %1 points.</translation>
+    </message>
+    <message>
+        <location filename="../step/onf_stepremoveuppernoise.cpp" line="239"/>
+        <source>Aucun point conservé pour cette scène</source>
+        <translation>No point has been kept for this scene</translation>
     </message>
 </context>
 <context>
@@ -8065,69 +9086,68 @@ Keep the cursor over a button to obtain informations. </translation>
 <context>
     <name>ONF_StepSlicePointCloud</name>
     <message>
-        <location filename="../step/onf_stepslicepointcloud.cpp" line="86"/>
+        <location filename="../step/onf_stepslicepointcloud.cpp" line="87"/>
         <source>Découper une scène en Tranches Horizontales</source>
         <translation>Segment scene in horizontal slices</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepslicepointcloud.cpp" line="92"/>
+        <location filename="../step/onf_stepslicepointcloud.cpp" line="93"/>
         <source>Action manuelle permettant de découper une scène d&apos;entrée en tranches horizontales.&lt;br&gt;Il est possible d&apos;en régler intéractivement :&lt;br&gt;- L&apos;épaisseur (&lt;b&gt;_thickness&lt;/b&gt;)&lt;br&gt;- L&apos;espacement entre deux tranches (&lt;b&gt;_spacing&lt;/b&gt;)&lt;br&gt;&lt;br&gt;N.B. : Cette étape peut également fonctionner en mode non interactif, avec les paramètres choisis dans la boite de configuration. </source>
         <translation>Manual action to segment an input scene in horizontal slices.&lt;br&gt;You can adjust interactively:&lt;br&gt;- &lt;b&gt;Thickness&lt;/b&gt; of slices&lt;br&gt;- &lt;b&gt;Spacing&lt;/b&gt; between two slices&lt;br&gt;N.B.: This step can also operate in non-interactive mode, using parameters defined in the configuration dialog.</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepslicepointcloud.cpp" line="111"/>
-        <location filename="../step/onf_stepslicepointcloud.cpp" line="114"/>
+        <location filename="../step/onf_stepslicepointcloud.cpp" line="112"/>
+        <location filename="../step/onf_stepslicepointcloud.cpp" line="115"/>
         <source>Scène à découper</source>
         <translation>Scene to sclice</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepslicepointcloud.cpp" line="113"/>
+        <location filename="../step/onf_stepslicepointcloud.cpp" line="114"/>
         <source>Groupe</source>
         <translation>Group</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepslicepointcloud.cpp" line="120"/>
+        <location filename="../step/onf_stepslicepointcloud.cpp" line="121"/>
         <source>Scène découpée</source>
         <translation>Sliced scene</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepslicepointcloud.cpp" line="121"/>
         <source>Tranche</source>
-        <translation>Slice</translation>
+        <translation type="vanished">Slice</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepslicepointcloud.cpp" line="122"/>
+        <location filename="../step/onf_stepslicepointcloud.cpp" line="124"/>
         <source>Points de la tranche</source>
         <translation>Points of slice</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepslicepointcloud.cpp" line="130"/>
+        <location filename="../step/onf_stepslicepointcloud.cpp" line="132"/>
         <source>Epaisseur des tranches :</source>
         <translation>Slice thickness:</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepslicepointcloud.cpp" line="130"/>
-        <location filename="../step/onf_stepslicepointcloud.cpp" line="131"/>
+        <location filename="../step/onf_stepslicepointcloud.cpp" line="132"/>
+        <location filename="../step/onf_stepslicepointcloud.cpp" line="133"/>
         <source>cm</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../step/onf_stepslicepointcloud.cpp" line="131"/>
+        <location filename="../step/onf_stepslicepointcloud.cpp" line="133"/>
         <source>Espacement des tranches :</source>
         <translation>Slice spacing:</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepslicepointcloud.cpp" line="132"/>
+        <location filename="../step/onf_stepslicepointcloud.cpp" line="134"/>
         <source>Choix interactif des paramètres</source>
         <translation>Interactively adjust parameters</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepslicepointcloud.cpp" line="257"/>
+        <location filename="../step/onf_stepslicepointcloud.cpp" line="262"/>
         <source>Mode manuel</source>
         <translation>Manual mode</translation>
     </message>
     <message>
-        <location filename="../step/onf_stepslicepointcloud.cpp" line="258"/>
+        <location filename="../step/onf_stepslicepointcloud.cpp" line="263"/>
         <source>Bienvenue dans le mode manuel de cette étape.
 Veuillez sélectionner les paramètres pour réaliser les tranches.</source>
         <translation>Welcome to the manual mode of this step.
@@ -8367,52 +9387,52 @@ Please adjust parameters to define slices. </translation>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../itemdrawable/onf_lvoxsphere.h" line="106"/>
+        <location filename="../itemdrawable/onf_lvoxsphere.h" line="105"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="../itemdrawable/onf_lvoxsphere.h" line="107"/>
+        <location filename="../itemdrawable/onf_lvoxsphere.h" line="106"/>
         <source>Xs</source>
         <translation>Xs</translation>
     </message>
     <message>
-        <location filename="../itemdrawable/onf_lvoxsphere.h" line="108"/>
+        <location filename="../itemdrawable/onf_lvoxsphere.h" line="107"/>
         <source>Ys</source>
         <translation>Ys</translation>
     </message>
     <message>
-        <location filename="../itemdrawable/onf_lvoxsphere.h" line="109"/>
+        <location filename="../itemdrawable/onf_lvoxsphere.h" line="108"/>
         <source>Zs</source>
         <translation>Zs</translation>
     </message>
     <message>
-        <location filename="../itemdrawable/onf_lvoxsphere.h" line="110"/>
+        <location filename="../itemdrawable/onf_lvoxsphere.h" line="109"/>
         <source>Radius</source>
         <translation>Rayon</translation>
     </message>
     <message>
-        <location filename="../itemdrawable/onf_lvoxsphere.h" line="111"/>
+        <location filename="../itemdrawable/onf_lvoxsphere.h" line="110"/>
         <source>ExclusionRadius</source>
         <translation>RayonExclusion</translation>
     </message>
     <message>
-        <location filename="../itemdrawable/onf_lvoxsphere.h" line="112"/>
+        <location filename="../itemdrawable/onf_lvoxsphere.h" line="111"/>
         <source>Ni</source>
         <translation>Ni</translation>
     </message>
     <message>
-        <location filename="../itemdrawable/onf_lvoxsphere.h" line="113"/>
+        <location filename="../itemdrawable/onf_lvoxsphere.h" line="112"/>
         <source>Nb</source>
         <translation>Nb</translation>
     </message>
     <message>
-        <location filename="../itemdrawable/onf_lvoxsphere.h" line="114"/>
+        <location filename="../itemdrawable/onf_lvoxsphere.h" line="113"/>
         <source>Nt</source>
         <translation>Nt</translation>
     </message>
     <message>
-        <location filename="../itemdrawable/onf_lvoxsphere.h" line="115"/>
+        <location filename="../itemdrawable/onf_lvoxsphere.h" line="114"/>
         <source>N_excluded</source>
         <translation>N_exclus</translation>
     </message>
@@ -8425,20 +9445,20 @@ Please adjust parameters to define slices. </translation>
         <translation type="vanished">Stem detection (ONF 2013)</translation>
     </message>
     <message>
-        <location filename="../onf_steppluginmanager.cpp" line="143"/>
-        <location filename="../onf_steppluginmanager.cpp" line="144"/>
-        <location filename="../onf_steppluginmanager.cpp" line="145"/>
-        <location filename="../onf_steppluginmanager.cpp" line="146"/>
-        <location filename="../onf_steppluginmanager.cpp" line="147"/>
-        <location filename="../onf_steppluginmanager.cpp" line="148"/>
-        <location filename="../onf_steppluginmanager.cpp" line="208"/>
+        <location filename="../onf_steppluginmanager.cpp" line="161"/>
+        <location filename="../onf_steppluginmanager.cpp" line="162"/>
+        <location filename="../onf_steppluginmanager.cpp" line="163"/>
+        <location filename="../onf_steppluginmanager.cpp" line="164"/>
+        <location filename="../onf_steppluginmanager.cpp" line="165"/>
+        <location filename="../onf_steppluginmanager.cpp" line="166"/>
+        <location filename="../onf_steppluginmanager.cpp" line="236"/>
         <source>Détécter (tiges) - ONF 2013</source>
         <translation>Detect (stems) - ONF 2013</translation>
     </message>
     <message>
-        <location filename="../onf_steppluginmanager.cpp" line="157"/>
-        <location filename="../onf_steppluginmanager.cpp" line="158"/>
-        <location filename="../onf_steppluginmanager.cpp" line="159"/>
+        <location filename="../onf_steppluginmanager.cpp" line="175"/>
+        <location filename="../onf_steppluginmanager.cpp" line="176"/>
+        <location filename="../onf_steppluginmanager.cpp" line="177"/>
         <source>Points de référence</source>
         <translation>Reference points</translation>
     </message>
