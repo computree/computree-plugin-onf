@@ -111,6 +111,7 @@ void ONF_StepAddTileXYAreas::compute()
         {
             if (header->hasBoundingBox()) // the header has to be geographical
             {
+                QString fileName = header->getFileName();
                 Eigen::Vector3d min, max;
                 header->getBoundingBox(min, max);
 
@@ -135,6 +136,8 @@ void ONF_StepAddTileXYAreas::compute()
 
                 CT_Box2DData* boxData = new CT_Box2DData(minBB, maxBB);
                 CT_Box2D* box2D = new CT_Box2D(_outTileXYAreaModelName.completeName(), outRes, boxData);
+
+                if (!fileName.isEmpty()) {box2D->setDisplayableName(fileName);}
                 group->addItemDrawable(box2D);
 
                 minBB(0) -= _bufferSize;
@@ -144,6 +147,8 @@ void ONF_StepAddTileXYAreas::compute()
 
                 boxData = new CT_Box2DData(minBB, maxBB);
                 box2D = new CT_Box2D(_outBufferTileXYAreaModelName.completeName(), outRes, boxData);
+
+                if (!fileName.isEmpty()) {box2D->setDisplayableName(QString("%1_Buffer").arg(fileName));}
                 group->addItemDrawable(box2D);
 
             } else {

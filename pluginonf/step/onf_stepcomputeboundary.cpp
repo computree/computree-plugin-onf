@@ -125,7 +125,7 @@ void ONF_StepComputeBoundary::createOutResultModelListProtected()
 void ONF_StepComputeBoundary::createPostConfigurationDialog()
 {
     CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
-    configDialog->addDouble(tr("Résolution"), "", 0.1, 10000, 1, _res);
+    configDialog->addDouble(tr("Résolution"), "m", 0.1, 10000, 1, _res);
 }
 
 void ONF_StepComputeBoundary::compute()
