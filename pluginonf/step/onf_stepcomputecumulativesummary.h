@@ -95,7 +95,8 @@ protected:
 private:
     CT_ModelSearchHelper::SplitHash       _hashAtt;
     QMap<QString, QVector<double> >       _dataMap;
-    QMap<QString, QString >               _namesMap;
+    QMap<QString, QString >               _namesItem;
+    QMap<QString, QString >               _namesAtt;
 
     //parameters
     QStringList     _fileName;

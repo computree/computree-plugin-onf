@@ -176,7 +176,8 @@ void ONF_StepComputeCumulativeSummary::compute()
 
             QString key = QString("ITEM_%1_ATTR_%2").arg(itemUN).arg(attrUN);
             _dataMap.insert(key, QVector<double>());
-            _namesMap.insert(key, QString("%2_%1").arg(itemDN).arg(attrDN));
+            _namesItem.insert(key, itemDN);
+            _namesAtt.insert (key, attrDN);
         }
     }
 
@@ -239,7 +240,7 @@ void ONF_StepComputeCumulativeSummary::compute()
         {
             QTextStream stream(&file);
 
-            stream << "Variable_Name\tMean\tMax\tMin\tnb_Val\tnb_NA\n";
+            stream << tr("Item\tChamp\tMoyenne\tMin\tMax\tSomme\tnb_Val\tnb_NA\n");
 
 
             QMapIterator<QString, QVector<double> > itMap(_dataMap);
@@ -249,8 +250,10 @@ void ONF_StepComputeCumulativeSummary::compute()
                 QString key = itMap.key();
                 const QVector<double> &values = itMap.value();
 
-                QString varName = _namesMap.value(key);
+                QString itemName = _namesItem.value(key);
+                QString attName = _namesAtt.value(key);
 
+                double sum = 0;
                 double mean = 0;
                 double max = -std::numeric_limits<double>::max();
                 double min = std::numeric_limits<double>::max();
@@ -266,15 +269,28 @@ void ONF_StepComputeCumulativeSummary::compute()
                         NAcpt++;
                     } else {
                         cpt++;
-                        mean += val;
+                        sum += val;
                         if (val > max) {max = val;}
                         if (val < min) {min = val;}
                     }
                 }
 
-                if (cpt > 0) {mean /= cpt;}
+                if (cpt > 0) {mean = sum / cpt;}
 
-                stream << varName << "\t" << mean << "\t" << max << "\t" << min << "\t" << cpt << "\t" << NAcpt << "\n";
+                QString sumStr = QString::number(sum, 'f');
+                QString meanStr = QString::number(mean, 'f');
+                QString maxStr = QString::number(max, 'f');
+                QString minStr = QString::number(min, 'f');
+
+                if (cpt == 0)
+                {
+                    sumStr = "";
+                    meanStr = "";
+                    maxStr = "";
+                    minStr = "";
+                }
+
+                stream << itemName << "\t" << attName << "\t" << meanStr << "\t" << minStr << "\t" << maxStr  << "\t" << sumStr << "\t" << cpt << "\t" << NAcpt << "\n";
             }
 
             file.close();
