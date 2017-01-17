@@ -158,7 +158,7 @@ void ONF_MetricNbyLASClass::computeMetric()
                 if (lasData._Return_Number == 1 && lasData._Number_of_Returns == 1) {++(m_configAndResults.n_only.value);}
                 if (lasData._Return_Number != 1 && lasData._Return_Number == lasData._Number_of_Returns && lasData._Number_of_Returns > 1) {++(m_configAndResults.n_last.value);}
                 if (lasData._Return_Number > 1 && lasData._Return_Number != lasData._Number_of_Returns && lasData._Number_of_Returns > 1) {++(m_configAndResults.n_intermediate.value);}
-                if (lasData._Return_Number < 1 || lasData._Return_Number < 1 || lasData._Return_Number > lasData._Return_Number) {++(m_configAndResults.n_error.value);}
+                if (lasData._Return_Number < 1 || lasData._Number_of_Returns < 1 || lasData._Return_Number > lasData._Number_of_Returns) {++(m_configAndResults.n_error.value);}
 
                 if (lasData._Classification == 0) {++(m_configAndResults.n_cla00.value);}
                 else if (lasData._Classification == 1) {++(m_configAndResults.n_cla01.value);}
