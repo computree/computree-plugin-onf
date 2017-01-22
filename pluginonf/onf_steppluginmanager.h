@@ -37,6 +37,9 @@ public:
     ~ONF_StepPluginManager();
 
     QString getPluginURL() const {return QString("http://rdinnovation.onf.fr/projects/plugin-onf/wiki");}
+    virtual QString getPluginOfficialName() const;
+    virtual QString getPluginBibTexCitation() const;
+
 
     virtual bool init();
 

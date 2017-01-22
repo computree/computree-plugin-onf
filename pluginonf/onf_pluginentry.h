@@ -45,6 +45,7 @@ public:
     ~ONF_PluginEntry();
 
     QString getVersion() const;
+
     CT_AbstractStepPlugin* getPlugin() const;
 
 private:

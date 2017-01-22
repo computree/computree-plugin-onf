@@ -146,6 +146,22 @@ ONF_StepPluginManager::~ONF_StepPluginManager()
     PS_LOG->removeLogListener(_logListener);
 }
 
+QString ONF_StepPluginManager::getPluginOfficialName() const
+{
+    return "ONF";
+}
+
+QString ONF_StepPluginManager::getPluginBibTexCitation() const
+{
+    return "@misc{plugONF,"
+           "title={Plugin ONF for Computree},"
+           "author={Alexandre Piboule},"
+           "organization = {ONF RDI Department},"
+           "year={2017},"
+           "url = {http://rdinnovation.onf.fr/projects/plugin-onf}}";
+}
+
+
 bool ONF_StepPluginManager::init()
 {
 
