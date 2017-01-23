@@ -149,7 +149,8 @@ HEADERS += \
     step/onf_stepcomputecumulativenrtable.h \
     step/onf_stepadjustplotposition.h \
     actions/onf_actionadjustplotposition.h \
-    views/actions/onf_actionadjustplotpositionoptions.h
+    views/actions/onf_actionadjustplotpositionoptions.h \
+    tools/onf_adjustplotpositioncylinderdrawmanager.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -282,7 +283,8 @@ SOURCES += \
     step/onf_stepcomputecumulativenrtable.cpp \
     step/onf_stepadjustplotposition.cpp \
     actions/onf_actionadjustplotposition.cpp \
-    views/actions/onf_actionadjustplotpositionoptions.cpp
+    views/actions/onf_actionadjustplotpositionoptions.cpp \
+    tools/onf_adjustplotpositioncylinderdrawmanager.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts

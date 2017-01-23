@@ -25,6 +25,7 @@
 #include "onf_stepadjustplotposition.h"
 
 #include "ct_itemdrawable/ct_pointcluster.h"
+#include "ct_itemdrawable/ct_circle2d.h"
 #include "ct_pointcloudindex/abstract/ct_abstractpointcloudindex.h"
 #include "ct_itemdrawable/tools/iterator/ct_groupiterator.h"
 #include "ct_result/ct_resultgroup.h"
@@ -43,6 +44,14 @@
 #define DEFin_resScene "resScene"
 #define DEFin_grp "grp"
 #define DEFin_scene "scene"
+
+#define DEFin_resPlot "resPlot"
+
+#define DEFin_ref "ref"
+#define DEFin_refDbh "refDbh"
+#define DEFin_refHeight "refHeight"
+#define DEFin_refID "refID"
+#define DEFin_refIDplot "refIDplot"
 
 #define DEFout_resScene "resScene"
 #define DEFout_rootslice "rootslice"
@@ -104,10 +113,20 @@ CT_VirtualAbstractStep* ONF_StepAdjustPlotPosition::createNewInstance(CT_StepIni
 // Creation and affiliation of IN models
 void ONF_StepAdjustPlotPosition::createInResultModelListProtected()
 {
-    CT_InResultModelGroup *resIn_resScene = createNewInResultModel(DEFin_resScene, tr("Scène à découper"));
-    resIn_resScene->setZeroOrMoreRootGroup();
-    resIn_resScene->addGroupModel("", DEFin_grp, CT_AbstractItemGroup::staticGetType(), tr("Groupe"));
-    resIn_resScene->addItemModel(DEFin_grp, DEFin_scene, CT_Scene::staticGetType(), tr("Scène à découper"));
+    CT_InResultModelGroup *resIn_Scene = createNewInResultModel(DEFin_resScene, tr("Scène"), "", true);
+    resIn_Scene->setZeroOrMoreRootGroup();
+    resIn_Scene->addGroupModel("", DEFin_grp, CT_AbstractItemGroup::staticGetType(), tr("Groupe"));
+    resIn_Scene->addItemModel(DEFin_grp, DEFin_scene, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène"));
+
+
+    CT_InResultModelGroup *resIn_Plot = createNewInResultModel(DEFin_resPlot, tr("Placette"), "", true);
+    resIn_Plot->setZeroOrMoreRootGroup();
+    resIn_Plot->addGroupModel("", DEFin_grp, CT_AbstractItemGroup::staticGetType(), tr("Groupe"));
+    resIn_Plot->addItemModel(DEFin_grp, DEFin_ref, CT_Circle2D::staticGetType(), tr("Arbre"));
+    resIn_Plot->addItemAttributeModel(DEFin_ref, DEFin_refDbh, QList<QString>() << CT_AbstractCategory::DATA_VALUE, CT_AbstractCategory::NUMBER, tr("DBH"));
+    resIn_Plot->addItemAttributeModel(DEFin_ref, DEFin_refHeight, QList<QString>() << CT_AbstractCategory::DATA_VALUE, CT_AbstractCategory::NUMBER, tr("Height"));
+    resIn_Plot->addItemAttributeModel(DEFin_ref, DEFin_refID, QList<QString>() << CT_AbstractCategory::DATA_ID, CT_AbstractCategory::STRING, tr("IDtree"));
+    resIn_Plot->addItemAttributeModel(DEFin_ref, DEFin_refIDplot, QList<QString>() << CT_AbstractCategory::DATA_ID, CT_AbstractCategory::STRING, tr("IDplot"));
 }
 
 // Creation and affiliation of OUT models

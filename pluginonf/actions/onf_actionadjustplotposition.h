@@ -41,6 +41,19 @@ public:
     double            _zBase;
 };
 
+class ONF_ActionAdjustPlotPosition_treePosition
+{
+public:
+    ONF_ActionAdjustPlotPosition_treePosition();
+    float            _dbh;
+    float            _height;
+    double           _x;
+    double           _y;
+    QString          _idPlot;
+    QString          _idTree;
+};
+
+
 class ONF_ActionAdjustPlotPosition : public CT_AbstractActionForGraphicsView
 {
     Q_OBJECT
