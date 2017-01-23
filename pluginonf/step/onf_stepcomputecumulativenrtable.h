@@ -95,8 +95,8 @@ protected:
 
 private:
 
-    Eigen::MatrixXi _mat;
-    int             _numberOfNegatives;
+    Eigen::Matrix<size_t, Eigen::Dynamic, Eigen::Dynamic > _mat;
+    size_t                                   _numberOfNegatives;
 
     //parameters
     QStringList     _fileName;
