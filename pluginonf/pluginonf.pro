@@ -146,7 +146,10 @@ HEADERS += \
     step/onf_stepmergescenesbymodality.h \
     step/onf_stepmatchclouds.h \
     step/onf_stepcomputecumulativesummary.h \
-    step/onf_stepcomputecumulativenrtable.h
+    step/onf_stepcomputecumulativenrtable.h \
+    step/onf_stepadjustplotposition.h \
+    actions/onf_actionadjustplotposition.h \
+    views/actions/onf_actionadjustplotpositionoptions.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -276,7 +279,10 @@ SOURCES += \
     step/onf_stepmergescenesbymodality.cpp \
     step/onf_stepmatchclouds.cpp \
     step/onf_stepcomputecumulativesummary.cpp \
-    step/onf_stepcomputecumulativenrtable.cpp
+    step/onf_stepcomputecumulativenrtable.cpp \
+    step/onf_stepadjustplotposition.cpp \
+    actions/onf_actionadjustplotposition.cpp \
+    views/actions/onf_actionadjustplotpositionoptions.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts
@@ -299,7 +305,8 @@ FORMS += \
     views/actions/onf_actionvalidateinventoryattributesdialog.ui \
     views/actions/onf_actionvalidateinventoryoptions.ui \
     views/actions/onf_actionaggregateitemsoptions.ui \
-    views/actions/onf_actionaggregateitemsoptionsselectiondialog.ui
+    views/actions/onf_actionaggregateitemsoptionsselectiondialog.ui \
+    views/actions/onf_actionadjustplotpositionoptions.ui
 
 RESOURCES += \
     resource.qrc

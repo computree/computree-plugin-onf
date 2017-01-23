@@ -119,6 +119,7 @@
 #include "step/onf_stepmatchclouds.h"
 #include "step/onf_stepcomputecumulativesummary.h"
 #include "step/onf_stepcomputecumulativenrtable.h"
+#include "step/onf_stepadjustplotposition.h"
 
 
 #include "filter/onf_filterbyreturntype.h"
@@ -180,6 +181,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewGeometricalShapesStep<ONF_StepMergeEndToEndSections04>(QObject::tr("Détécter (tiges) - ONF 2013"));
     addNewGeometricalShapesStep<ONF_StepFitAndFilterCylindersInSections>(QObject::tr("Détécter (tiges) - ONF 2013"));
     addNewGeometricalShapesStep<ONF_StepExtractDiametersFromCylinders>(QObject::tr("Détécter (tiges) - ONF 2013"));
+    addNewGeometricalShapesStep<ONF_StepAdjustPlotPosition>(CT_StepsMenu::LP_Fit);
 
     addNewGeometricalShapesStep<ONF_StepFitCirclesAndFilter>(CT_StepsMenu::LP_Fit);
     addNewBetaStep<ONF_StepComputeSphereVoxels>(CT_StepsMenu::LP_Analyze);
