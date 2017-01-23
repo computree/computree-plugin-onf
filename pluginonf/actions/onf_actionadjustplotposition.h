@@ -28,38 +28,45 @@
 
 #include "views/actions/onf_actionadjustplotpositionoptions.h"
 #include "ct_actions/abstract/ct_abstractactionforgraphicsview.h"
-#include "ct_itemdrawable/ct_scene.h"
+#include "ct_itemdrawable/ct_cylinder.h"
 
 #include <QRect>
+
+class ONF_ActionAdjustPlotPosition_treePosition
+{
+public:
+    ONF_ActionAdjustPlotPosition_treePosition()
+    {
+        _x = 0;
+        _y = 0;
+        _dbh = 0;
+        _height = 0;
+        _idPlot = "";
+        _idTree = "";
+    }
+
+    double           _x;
+    double           _y;
+    float            _dbh;
+    float            _height;
+    QString          _idPlot;
+    QString          _idTree;
+};
 
 class ONF_ActionAdjustPlotPosition_dataContainer
 {
 public:
     ONF_ActionAdjustPlotPosition_dataContainer();
-    double            _thickness;
-    double            _spacing;
-    double            _zBase;
-};
 
-class ONF_ActionAdjustPlotPosition_treePosition
-{
-public:
-    ONF_ActionAdjustPlotPosition_treePosition();
-    float            _dbh;
-    float            _height;
-    double           _x;
-    double           _y;
-    QString          _idPlot;
-    QString          _idTree;
+    QList<ONF_ActionAdjustPlotPosition_treePosition*> _positions;
 };
-
 
 class ONF_ActionAdjustPlotPosition : public CT_AbstractActionForGraphicsView
 {
     Q_OBJECT
 public:
 
-    ONF_ActionAdjustPlotPosition(QList<CT_Scene*>* sceneList, float xmin, float ymin, float zmin, float xmax, float ymax, float zmax, ONF_ActionAdjustPlotPosition_dataContainer* dataContainer);
+    ONF_ActionAdjustPlotPosition(ONF_ActionAdjustPlotPosition_dataContainer* dataContainer);
 
     ~ONF_ActionAdjustPlotPosition();
 
@@ -88,19 +95,9 @@ public slots:
     void update();
 
 private:
-    QList<CT_Scene*>* _sceneList;
-
-    float             _xmin;
-    float             _ymin;
-    float             _zmin;
-    float             _xmax;
-    float             _ymax;
-    float             _zmax;
-
-    float             _xwidth;
-    float             _ywidth;
 
     ONF_ActionAdjustPlotPosition_dataContainer* _dataContainer;
+    QList<CT_Cylinder*>                         _cylinders;
 
 private slots:
     void redrawOverlay();

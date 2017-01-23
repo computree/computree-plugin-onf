@@ -42,24 +42,11 @@ public:
     explicit ONF_ActionAdjustPlotPositionOptions(const ONF_ActionAdjustPlotPosition *action);
     ~ONF_ActionAdjustPlotPositionOptions();
 
-    double getThickness() const;
-    double getSpacing() const;
-    double getIncrement() const;
-
-    void setThickness(double t) const;
-    void setSpacing(double s) const;
-
-    void increaseIncrement();
-    void decreaseIncrement();
-
 private:
     Ui::ONF_ActionAdjustPlotPositionOptions *ui;
 
 signals:
     void parametersChanged();
-
-private slots:
-    void changeSingleStep(int button);
 
 };
 

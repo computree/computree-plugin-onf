@@ -26,8 +26,9 @@
 #define ONF_STEPADJUSTPLOTPOSITION_H
 
 #include "ct_step/abstract/ct_abstractstep.h"
-#include "ct_itemdrawable/ct_scene.h"
 #include "actions/onf_actionadjustplotposition.h"
+
+#include "ct_tools/model/ct_autorenamemodels.h"
 
 
 class ONF_StepAdjustPlotPosition: public CT_AbstractStep
@@ -96,19 +97,19 @@ protected:
 private:
 
     // Step parameters
-    double       _xmin;
-    double       _ymin;
-    double       _zmin;
-    double       _xmax;
-    double       _ymax;
-    double       _zmax;
-    bool         _manual;
 
     ONF_ActionAdjustPlotPosition_dataContainer*     _dataContainer;
 
+    CT_AutoRenameModels     _outCircleModelName;
+    CT_AutoRenameModels     _outDBHAttModelName;
+    CT_AutoRenameModels     _outHeightAttModelName;
+    CT_AutoRenameModels     _outPlotIDAttModelName;
+    CT_AutoRenameModels     _outTreeIDAttModelName;
+
+
+
     DocumentInterface*      _m_doc;
     int                     _m_status;
-    QList<CT_Scene*>*       _sceneList;
 
 };
 

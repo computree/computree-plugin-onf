@@ -34,31 +34,17 @@
 
 ONF_ActionAdjustPlotPosition_dataContainer::ONF_ActionAdjustPlotPosition_dataContainer()
 {
-    _thickness = 0;
-    _spacing = 0;
 }
 
-ONF_ActionAdjustPlotPosition::ONF_ActionAdjustPlotPosition(QList<CT_Scene *> *sceneList,
-                                                   float xmin, float ymin, float zmin, float xmax, float ymax, float zmax,
-                                                   ONF_ActionAdjustPlotPosition_dataContainer *dataContainer) : CT_AbstractActionForGraphicsView()
+ONF_ActionAdjustPlotPosition::ONF_ActionAdjustPlotPosition(ONF_ActionAdjustPlotPosition_dataContainer *dataContainer) : CT_AbstractActionForGraphicsView()
 {
-    _sceneList = sceneList;
-    _xmin = xmin;
-    _ymin = ymin;
-    _zmin = zmin;
-
-    _xmax = xmax;
-    _ymax = ymax;
-    _zmax = zmax;
-
-    _xwidth = std::abs(_xmax - _xmin);
-    _ywidth = std::abs(_ymax - _ymin);
-
     _dataContainer = dataContainer;
 }
 
 ONF_ActionAdjustPlotPosition::~ONF_ActionAdjustPlotPosition()
 {
+    qDeleteAll(_cylinders);
+    _cylinders.clear();
 }
 
 QString ONF_ActionAdjustPlotPosition::uniqueName() const
@@ -68,12 +54,12 @@ QString ONF_ActionAdjustPlotPosition::uniqueName() const
 
 QString ONF_ActionAdjustPlotPosition::title() const
 {
-    return "Action Slicing";
+    return "Ajust Plot Position";
 }
 
 QString ONF_ActionAdjustPlotPosition::description() const
 {
-    return "Action Slicing";
+    return "Ajust Plot Position";
 }
 
 QIcon ONF_ActionAdjustPlotPosition::icon() const
@@ -98,18 +84,28 @@ void ONF_ActionAdjustPlotPosition::init()
         // add the options to the graphics view
         graphicsView()->addActionOptions(option);
 
-        option->setThickness(_dataContainer->_thickness);
-        option->setSpacing(_dataContainer->_spacing);
-
         connect(option, SIGNAL(parametersChanged()), this, SLOT(update()));
 
         // register the option to the superclass, so the hideOptions and showOptions
         // is managed automatically
         registerOption(option);
-        for (int i = 0 ; i < _sceneList->size() ; i++)
+
+        for (int i = 0 ; i < _dataContainer->_positions.size() ; i++)
         {
-            document()->addItemDrawable(*(_sceneList->at(i)));
+            ONF_ActionAdjustPlotPosition_treePosition* pos = _dataContainer->_positions.at(i);
+
+            Eigen::Vector3d center(pos->_x, pos->_y, pos->_height / 2.0);
+            Eigen::Vector3d dir(0, 0, 1);
+            CT_Cylinder* cyl = new CT_Cylinder(NULL, NULL, new CT_CylinderData(center,
+                                                                               dir,
+                                                                               pos->_dbh / 200.0,
+                                                                               pos->_height));
+            _cylinders.append(cyl);
+            document()->addItemDrawable(*cyl);
+            document()->setColor(cyl, Qt::red);
         }
+
+
         document()->redrawGraphics(DocumentInterface::RO_WaitForConversionCompleted);
         dynamic_cast<GraphicsViewInterface*>(document()->views().first())->camera()->fitCameraToVisibleItems();
     }
@@ -118,9 +114,6 @@ void ONF_ActionAdjustPlotPosition::init()
 void ONF_ActionAdjustPlotPosition::update()
 {
     ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
-
-    _dataContainer->_thickness = option->getThickness();
-    _dataContainer->_spacing = option->getSpacing();
 
     redrawOverlayAnd3D();
 }
@@ -144,12 +137,10 @@ bool ONF_ActionAdjustPlotPosition::mousePressEvent(QMouseEvent *e)
     {
         if (e->buttons() & Qt::LeftButton)
         {
-            option->decreaseIncrement();
             update();
             return true;
         } else if (e->buttons() & Qt::RightButton)
         {
-            option->increaseIncrement();
             update();
             return true;
         }
@@ -178,10 +169,8 @@ bool ONF_ActionAdjustPlotPosition::wheelEvent(QWheelEvent *e)
     {
         if (e->delta() > 0)
         {
-            option->setThickness(option->getThickness() + option->getIncrement());
         } else if (e->delta() < 0)
         {
-            option->setThickness(option->getThickness() - option->getIncrement());
         }
         update();
         return true;
@@ -189,10 +178,8 @@ bool ONF_ActionAdjustPlotPosition::wheelEvent(QWheelEvent *e)
     {
         if (e->delta() > 0)
         {
-            option->setSpacing(option->getSpacing() + option->getIncrement());
         } else if (e->delta() < 0)
         {
-            option->setSpacing(option->getSpacing() - option->getIncrement());
         }
         update();
         return true;
@@ -218,26 +205,12 @@ void ONF_ActionAdjustPlotPosition::draw(GraphicsViewInterface &view, PainterInte
 {
     Q_UNUSED(view)
 
-    if (_dataContainer->_thickness == 0) {return;}
-
     painter.save();
 
     QColor oldColor = painter.getColor();
     painter.setColor(QColor(0,125,0,100));
 
-    double z_current = _zmin;
-    while (z_current <= _zmax)
-    {
-        painter.fillRectXY(Eigen::Vector2d(_xmin, _ymin), Eigen::Vector2d(_xmin+_xwidth, _ymin+_ywidth), z_current);
-        painter.fillRectXY(Eigen::Vector2d(_xmin, _ymin), Eigen::Vector2d(_xmin+_xwidth, _ymin+_ywidth), z_current + _dataContainer->_thickness);
-        painter.drawRectXZ(Eigen::Vector2d(_xmin, z_current), Eigen::Vector2d(_xmin+_xwidth, z_current+_dataContainer->_thickness), _ymin);
-        painter.drawRectXZ(Eigen::Vector2d(_xmin, z_current), Eigen::Vector2d(_xmin+_xwidth, z_current+_dataContainer->_thickness), _ymax);
-        painter.drawRectYZ(Eigen::Vector2d(_ymin, z_current), Eigen::Vector2d(_ymin+_ywidth, z_current+_dataContainer->_thickness), _xmin);
-        painter.drawRectYZ(Eigen::Vector2d(_ymin, z_current), Eigen::Vector2d(_ymin+_ywidth, z_current+_dataContainer->_thickness), _xmax);
 
-        z_current += _dataContainer->_thickness;
-        z_current += _dataContainer->_spacing;
-    }
     painter.setColor(oldColor);
     painter.restore();
 }
@@ -250,5 +223,5 @@ void ONF_ActionAdjustPlotPosition::drawOverlay(GraphicsViewInterface &view, QPai
 
 CT_AbstractAction* ONF_ActionAdjustPlotPosition::copy() const
 {
-    return new ONF_ActionAdjustPlotPosition(_sceneList, _xmin, _ymin, _zmin, _xmax, _ymax, _zmax, _dataContainer);
+    return new ONF_ActionAdjustPlotPosition(_dataContainer);
 }
