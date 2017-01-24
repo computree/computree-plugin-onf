@@ -142,6 +142,10 @@ void ONF_ActionAdjustPlotPosition::init()
             _cylinders.append(cyl);
         }
 
+        CT_Cylinder* cylEx = new CT_Cylinder(NULL, NULL, new CT_CylinderData(Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 1), 0, 0));
+        cylEx->setBaseDrawManager(_drawManager);
+        document()->addItemDrawable(*cylEx);
+
         for (int i = 0 ; i < _dataContainer->_scenes.size() ; i++)
         {
             CT_AbstractItemDrawableWithPointCloud* scene = _dataContainer->_scenes.at(i);

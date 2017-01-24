@@ -173,7 +173,7 @@ void ONF_StepAdjustPlotPosition::compute()
 
             att = circle->firstItemAttributeByINModelName(resOut_positions, this, DEFin_refHeight);
             if (att != NULL) {treePos->_height = att->toFloat(circle, NULL);}
-            if (treePos->_height <= 0) {treePos->_height = 2.0;}
+            if (treePos->_height <= 0) {treePos->_height = 5.0;}
 
             att = circle->firstItemAttributeByINModelName(resOut_positions, this, DEFin_refID);
             if (att != NULL) {treePos->_idTree = att->toFloat(circle, NULL);}
