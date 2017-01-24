@@ -138,7 +138,6 @@ void ONF_StepAdjustPlotPosition::createPostConfigurationDialog()
 void ONF_StepAdjustPlotPosition::compute()
 {
     _m_status = 0;
-
     QList<CT_ResultGroup*> inResultList = getInputResults();
     CT_ResultGroup* resIn_scene = inResultList.at(1);
 

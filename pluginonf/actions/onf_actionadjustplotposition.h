@@ -30,6 +30,7 @@
 #include "ct_actions/abstract/ct_abstractactionforgraphicsview.h"
 #include "ct_itemdrawable/ct_cylinder.h"
 #include "ct_itemdrawable/abstract/ct_abstractitemdrawablewithpointcloud.h"
+#include "ct_result/abstract/ct_abstractresult.h"
 
 #include "tools/onf_adjustplotpositioncylinderdrawmanager.h"
 #include "tools/onf_colorlinearinterpolator.h"
@@ -100,7 +101,7 @@ public:
     CT_AbstractAction* copy() const;
 
 public slots:
-    void update(double x = 0, double y = 0);
+    void update(double x, double y, bool circles, bool fixedH, double h);
 
 private:
 
@@ -122,6 +123,7 @@ private:
 private slots:
     void redrawOverlay();
     void redrawOverlayAnd3D();
+
 
 };
 

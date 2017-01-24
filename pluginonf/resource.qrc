@@ -61,5 +61,7 @@
         <file>icons/cancelTrash.png</file>
         <file>icons/trash.png</file>
         <file>icons/triple-color-icon.png</file>
+        <file>icons/left_arrow.png</file>
+        <file>icons/right_arrow.png</file>
     </qresource>
 </RCC>

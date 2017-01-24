@@ -44,28 +44,44 @@
       <item>
        <widget class="QPushButton" name="pb_up">
         <property name="text">
-         <string>Up</string>
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../../../computreev3/pluginbase/resource.qrc">
+          <normaloff>:/icons/upper.png</normaloff>:/icons/upper.png</iconset>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="pb_down">
         <property name="text">
-         <string>Down</string>
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../../../computreev3/pluginbase/resource.qrc">
+          <normaloff>:/icons/lower.png</normaloff>:/icons/lower.png</iconset>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="pb_left">
         <property name="text">
-         <string>Left</string>
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../resource.qrc">
+          <normaloff>:/icons/left_arrow.png</normaloff>:/icons/left_arrow.png</iconset>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="pb_right">
         <property name="text">
-         <string>Right</string>
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../resource.qrc">
+          <normaloff>:/icons/right_arrow.png</normaloff>:/icons/right_arrow.png</iconset>
         </property>
        </widget>
       </item>
@@ -75,13 +91,51 @@
          <string> m</string>
         </property>
         <property name="maximum">
-         <double>100.000000000000000</double>
+         <double>99.000000000000000</double>
         </property>
         <property name="singleStep">
          <double>0.250000000000000</double>
         </property>
         <property name="value">
          <double>0.250000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="cb_circles">
+        <property name="text">
+         <string>Cercles</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="cb_fixedH">
+        <property name="text">
+         <string>Hfixe</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="dsb_height">
+        <property name="suffix">
+         <string> m</string>
+        </property>
+        <property name="value">
+         <double>5.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line_2">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
         </property>
        </widget>
       </item>
@@ -103,6 +157,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../../../computreev3/pluginbase/resource.qrc"/>
+  <include location="../../resource.qrc"/>
+ </resources>
  <connections/>
 </ui>

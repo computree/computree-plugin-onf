@@ -46,13 +46,16 @@ private:
     Ui::ONF_ActionAdjustPlotPositionOptions *ui;
 
 signals:
-    void parametersChanged(double deltaX, double deltaY);
+    void parametersChanged(double deltaX, double deltaY, bool circles, bool fixedH, double h);
 
 private slots:
     void on_pb_up_clicked();
     void on_pb_down_clicked();
     void on_pb_left_clicked();
     void on_pb_right_clicked();
+    void on_cb_circles_toggled(bool checked);
+    void on_cb_fixedH_toggled(bool checked);
+    void on_dsb_height_valueChanged(double arg1);
 };
 
 #endif // ONF_ACTIONADJUSTPLOTPOSITIONOPTIONS_H

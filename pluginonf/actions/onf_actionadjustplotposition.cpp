@@ -46,12 +46,11 @@ ONF_ActionAdjustPlotPosition::ONF_ActionAdjustPlotPosition(ONF_ActionAdjustPlotP
 {
     _dataContainer = dataContainer;
     _drawManager = new ONF_AdjustPlotPositionCylinderDrawManager(tr("Tree"));
+    _drawManager->setColor(QColor(0, 190, 255));
 
     _minz = std::numeric_limits<double>::max();
     _maxz = -std::numeric_limits<double>::max();
     _range = 1;
-
-
 
     // GRAY
     QLinearGradient gr = QLinearGradient(0, 0, 1, 0);
@@ -122,7 +121,7 @@ void ONF_ActionAdjustPlotPosition::init()
         // add the options to the graphics view
         graphicsView()->addActionOptions(option);
 
-        connect(option, SIGNAL(parametersChanged(double, double)), this, SLOT(update(double, double)));
+        connect(option, SIGNAL(parametersChanged(double, double, bool, bool, double)), this, SLOT(update(double, double, bool, bool, double)));
 
         // register the option to the superclass, so the hideOptions and showOptions
         // is managed automatically
@@ -141,10 +140,6 @@ void ONF_ActionAdjustPlotPosition::init()
             cyl->setBaseDrawManager(_drawManager);
             _cylinders.append(cyl);
         }
-
-        CT_Cylinder* cylEx = new CT_Cylinder(NULL, NULL, new CT_CylinderData(Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 1), 0, 0));
-        cylEx->setBaseDrawManager(_drawManager);
-        document()->addItemDrawable(*cylEx);
 
         for (int i = 0 ; i < _dataContainer->_scenes.size() ; i++)
         {
@@ -178,19 +173,18 @@ void ONF_ActionAdjustPlotPosition::init()
 
         graphInterface->camera()->fitCameraToVisibleItems();
         graphInterface->camera()->setOrientation(0.2, 0, 0, 0.95);
-        //graphInterface->camera()->alignCameraToZAxis();
-        //graphInterface->setColorOfPoint();
         colorizePoints(_gradientHot);
     }
 }
 
-void ONF_ActionAdjustPlotPosition::update(double x, double y)
+void ONF_ActionAdjustPlotPosition::update(double x, double y, bool circles, bool fixedH, double h)
 {
     //ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
 
     _dataContainer->_transX += x;
     _dataContainer->_transY += y;
     _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+    _drawManager->setParameters(circles, fixedH, h);
     redrawOverlayAnd3D();
 }
 
@@ -235,11 +229,11 @@ bool ONF_ActionAdjustPlotPosition::mousePressEvent(QMouseEvent *e)
     {
         if (e->buttons() & Qt::LeftButton)
         {
-            update();
+            //update();
             return true;
         } else if (e->buttons() & Qt::RightButton)
         {
-            update();
+            //update();
             return true;
         }
     }
@@ -270,7 +264,7 @@ bool ONF_ActionAdjustPlotPosition::wheelEvent(QWheelEvent *e)
         } else if (e->delta() < 0)
         {
         }
-        update();
+        //update();
         return true;
     } else if (e->modifiers()  & Qt::ShiftModifier)
     {
@@ -279,7 +273,7 @@ bool ONF_ActionAdjustPlotPosition::wheelEvent(QWheelEvent *e)
         } else if (e->delta() < 0)
         {
         }
-        update();
+        //update();
         return true;
     }
 

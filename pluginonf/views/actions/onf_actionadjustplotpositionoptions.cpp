@@ -45,20 +45,59 @@ ONF_ActionAdjustPlotPositionOptions::~ONF_ActionAdjustPlotPositionOptions()
 
 void ONF_ActionAdjustPlotPositionOptions::on_pb_up_clicked()
 {
-    emit parametersChanged(0, ui->dsb_increment->value());
+    emit parametersChanged(0, ui->dsb_increment->value(),
+                           ui->cb_circles->isChecked(),
+                           ui->cb_fixedH->isChecked(),
+                           ui->dsb_height->value());
 }
 
 void ONF_ActionAdjustPlotPositionOptions::on_pb_down_clicked()
 {
-    emit parametersChanged(0, -1.0*ui->dsb_increment->value());
+    emit parametersChanged(0, -1.0*ui->dsb_increment->value(),
+                           ui->cb_circles->isChecked(),
+                           ui->cb_fixedH->isChecked(),
+                           ui->dsb_height->value());
 }
 
 void ONF_ActionAdjustPlotPositionOptions::on_pb_left_clicked()
 {
-    emit parametersChanged(-1.0*ui->dsb_increment->value(), 0);
+    emit parametersChanged(-1.0*ui->dsb_increment->value(), 0,
+                           ui->cb_circles->isChecked(),
+                           ui->cb_fixedH->isChecked(),
+                           ui->dsb_height->value());
 }
 
 void ONF_ActionAdjustPlotPositionOptions::on_pb_right_clicked()
 {
-    emit parametersChanged(ui->dsb_increment->value(), 0);
+    emit parametersChanged(ui->dsb_increment->value(), 0,
+                           ui->cb_circles->isChecked(),
+                           ui->cb_fixedH->isChecked(),
+                           ui->dsb_height->value());
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_cb_circles_toggled(bool checked)
+{
+    emit parametersChanged(0, 0,
+                           ui->cb_circles->isChecked(),
+                           ui->cb_fixedH->isChecked(),
+                           ui->dsb_height->value());
+
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_cb_fixedH_toggled(bool checked)
+{
+    emit parametersChanged(0, 0,
+                           ui->cb_circles->isChecked(),
+                           ui->cb_fixedH->isChecked(),
+                           ui->dsb_height->value());
+
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_dsb_height_valueChanged(double arg1)
+{
+    emit parametersChanged(0, 0,
+                           ui->cb_circles->isChecked(),
+                           ui->cb_fixedH->isChecked(),
+                           ui->dsb_height->value());
+
 }
