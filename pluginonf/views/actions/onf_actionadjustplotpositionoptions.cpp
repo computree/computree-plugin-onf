@@ -42,3 +42,23 @@ ONF_ActionAdjustPlotPositionOptions::~ONF_ActionAdjustPlotPositionOptions()
 }
 
 
+
+void ONF_ActionAdjustPlotPositionOptions::on_pb_up_clicked()
+{
+    emit parametersChanged(0, ui->dsb_increment->value());
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_pb_down_clicked()
+{
+    emit parametersChanged(0, -1.0*ui->dsb_increment->value());
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_pb_left_clicked()
+{
+    emit parametersChanged(-1.0*ui->dsb_increment->value(), 0);
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_pb_right_clicked()
+{
+    emit parametersChanged(ui->dsb_increment->value(), 0);
+}

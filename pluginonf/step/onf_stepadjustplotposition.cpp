@@ -39,6 +39,7 @@
 
 #include <QMessageBox>
 #include <limits>
+#include <QDebug>
 
 // Alias for indexing models
 #define DEFin_resScene "resScene"
@@ -141,11 +142,20 @@ void ONF_StepAdjustPlotPosition::compute()
     QList<CT_ResultGroup*> inResultList = getInputResults();
     CT_ResultGroup* resIn_scene = inResultList.at(1);
 
+    CT_ResultItemIterator itSc(resIn_scene, this, DEFin_scene);
+    while (itSc.hasNext())
+    {
+        CT_AbstractItemDrawableWithPointCloud* sc = (CT_AbstractItemDrawableWithPointCloud*) itSc.next();
+        if (sc != NULL)
+        {
+            _dataContainer->_scenes.append(sc);
+        }
+    }
+
     QList<CT_ResultGroup*> outResultList = getOutResultList();
     CT_ResultGroup* resOut_positions = outResultList.at(0);
 
     CT_ResultGroupIterator itGrp(resOut_positions, this, DEFin_grp);
-
     while (itGrp.hasNext())
     {
         CT_StandardItemGroup* grp = (CT_StandardItemGroup*) itGrp.next();
@@ -174,7 +184,6 @@ void ONF_StepAdjustPlotPosition::compute()
             _dataContainer->_positions.append(treePos);
         }
     }
-
 
     requestManualMode();
     _m_status = 1;

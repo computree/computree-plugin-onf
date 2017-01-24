@@ -46,8 +46,13 @@ private:
     Ui::ONF_ActionAdjustPlotPositionOptions *ui;
 
 signals:
-    void parametersChanged();
+    void parametersChanged(double deltaX, double deltaY);
 
+private slots:
+    void on_pb_up_clicked();
+    void on_pb_down_clicked();
+    void on_pb_left_clicked();
+    void on_pb_right_clicked();
 };
 
 #endif // ONF_ACTIONADJUSTPLOTPOSITIONOPTIONS_H

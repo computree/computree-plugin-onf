@@ -11,6 +11,14 @@ public:
 
     virtual void draw(GraphicsViewInterface &view, PainterInterface &painter, const CT_AbstractItemDrawable &itemDrawable) const;
 
+    void setTranslation(double x, double y);
+    void setColor(QColor color);
+
+private:
+    double  _transX;
+    double  _transY;
+    QColor  _color;
+
 protected:
 
     const static QString INDEX_CONFIG_DRAW_CYLINDER;

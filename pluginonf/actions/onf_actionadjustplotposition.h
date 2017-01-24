@@ -29,6 +29,11 @@
 #include "views/actions/onf_actionadjustplotpositionoptions.h"
 #include "ct_actions/abstract/ct_abstractactionforgraphicsview.h"
 #include "ct_itemdrawable/ct_cylinder.h"
+#include "ct_itemdrawable/abstract/ct_abstractitemdrawablewithpointcloud.h"
+
+#include "tools/onf_adjustplotpositioncylinderdrawmanager.h"
+#include "tools/onf_colorlinearinterpolator.h"
+
 
 #include <QRect>
 
@@ -59,6 +64,9 @@ public:
     ONF_ActionAdjustPlotPosition_dataContainer();
 
     QList<ONF_ActionAdjustPlotPosition_treePosition*> _positions;
+    QList<CT_AbstractItemDrawableWithPointCloud*>     _scenes;
+    double              _transX;
+    double              _transY;
 };
 
 class ONF_ActionAdjustPlotPosition : public CT_AbstractActionForGraphicsView
@@ -92,12 +100,24 @@ public:
     CT_AbstractAction* copy() const;
 
 public slots:
-    void update();
+    void update(double x = 0, double y = 0);
 
 private:
 
     ONF_ActionAdjustPlotPosition_dataContainer* _dataContainer;
-    QList<CT_Cylinder*>                         _cylinders;
+    QList<CT_AbstractItemDrawable*>             _cylinders;
+
+    ONF_AdjustPlotPositionCylinderDrawManager*  _drawManager;
+
+    ONF_ColorLinearInterpolator                _gradientGrey;
+    ONF_ColorLinearInterpolator                _gradientRainbow;
+    ONF_ColorLinearInterpolator                _gradientHot;
+
+    double _minz;
+    double _maxz;
+    double _range;
+
+    void colorizePoints(ONF_ColorLinearInterpolator &gradient);
 
 private slots:
     void redrawOverlay();

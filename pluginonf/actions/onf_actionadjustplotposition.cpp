@@ -24,27 +24,65 @@
 
 #include "actions/onf_actionadjustplotposition.h"
 #include "ct_global/ct_context.h"
+#include "ct_iterator/ct_pointiterator.h"
+#include "ct_color.h"
+
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QIcon>
 #include <QPainter>
+#include <QDebug>
 
 #include "math.h"
 
 
 ONF_ActionAdjustPlotPosition_dataContainer::ONF_ActionAdjustPlotPosition_dataContainer()
 {
+    _transX = 0;
+    _transY = 0;
 }
 
 ONF_ActionAdjustPlotPosition::ONF_ActionAdjustPlotPosition(ONF_ActionAdjustPlotPosition_dataContainer *dataContainer) : CT_AbstractActionForGraphicsView()
 {
     _dataContainer = dataContainer;
+    _drawManager = new ONF_AdjustPlotPositionCylinderDrawManager(tr("Tree"));
+
+    _minz = std::numeric_limits<double>::max();
+    _maxz = -std::numeric_limits<double>::max();
+    _range = 1;
+
+
+
+    // GRAY
+    QLinearGradient gr = QLinearGradient(0, 0, 1, 0);
+    gr.setColorAt(0, Qt::black);
+    gr.setColorAt(1, Qt::white);
+    _gradientGrey.constructFromQGradient(gr);
+
+    // HOT
+    gr = QLinearGradient(0, 0, 1, 0);
+    gr.setColorAt(0, Qt::black);
+    gr.setColorAt(0.25, Qt::red);
+    gr.setColorAt(0.75, Qt::yellow);
+    gr.setColorAt(1, Qt::white);
+    _gradientHot.constructFromQGradient(gr);
+
+    // Arcgis greenyellow - violet
+    gr = QLinearGradient(0, 0, 1, 0);
+    gr.setColorAt(0, Qt::green);
+    gr.setColorAt(0.333, Qt::yellow);
+    gr.setColorAt(0.666, Qt::red);
+    gr.setColorAt(1, Qt::blue);
+    _gradientRainbow.constructFromQGradient(gr);
+
 }
 
 ONF_ActionAdjustPlotPosition::~ONF_ActionAdjustPlotPosition()
 {
+    document()->removeAllItemDrawable();
     qDeleteAll(_cylinders);
     _cylinders.clear();
+    delete _drawManager;
 }
 
 QString ONF_ActionAdjustPlotPosition::uniqueName() const
@@ -84,7 +122,7 @@ void ONF_ActionAdjustPlotPosition::init()
         // add the options to the graphics view
         graphicsView()->addActionOptions(option);
 
-        connect(option, SIGNAL(parametersChanged()), this, SLOT(update()));
+        connect(option, SIGNAL(parametersChanged(double, double)), this, SLOT(update(double, double)));
 
         // register the option to the superclass, so the hideOptions and showOptions
         // is managed automatically
@@ -100,21 +138,76 @@ void ONF_ActionAdjustPlotPosition::init()
                                                                                dir,
                                                                                pos->_dbh / 200.0,
                                                                                pos->_height));
+            cyl->setBaseDrawManager(_drawManager);
             _cylinders.append(cyl);
-            document()->addItemDrawable(*cyl);
-            document()->setColor(cyl, Qt::red);
         }
 
+        for (int i = 0 ; i < _dataContainer->_scenes.size() ; i++)
+        {
+            CT_AbstractItemDrawableWithPointCloud* scene = _dataContainer->_scenes.at(i);
+            const CT_AbstractPointCloudIndex *pointCloudIndex = scene->getPointCloudIndex();
+
+            _minz = std::numeric_limits<double>::max();
+            _maxz = -std::numeric_limits<double>::max();
+
+            CT_PointIterator itP(pointCloudIndex);
+            while(itP.hasNext())
+            {
+                const CT_Point &point = itP.next().currentPoint();
+
+                if (point(2) > _maxz) {_maxz = point(2);}
+                if (point(2) < _minz) {_minz = point(2);}
+            }
+            _range = _maxz - _minz;
+
+            document()->addItemDrawable(*scene);
+        }
+
+        GraphicsViewInterface* graphInterface = dynamic_cast<GraphicsViewInterface*>(document()->views().first());
+
+        QColor col = Qt::black;
+        graphInterface->getOptions().setBackgroudColor(col);
+        graphInterface->getOptions().setPointSize(2);
+        graphInterface->camera()->setType(CameraInterface::ORTHOGRAPHIC);
 
         document()->redrawGraphics(DocumentInterface::RO_WaitForConversionCompleted);
-        dynamic_cast<GraphicsViewInterface*>(document()->views().first())->camera()->fitCameraToVisibleItems();
+
+        graphInterface->camera()->fitCameraToVisibleItems();
+        graphInterface->camera()->setOrientation(0.2, 0, 0, 0.95);
+        //graphInterface->camera()->alignCameraToZAxis();
+        //graphInterface->setColorOfPoint();
+        colorizePoints(_gradientHot);
     }
 }
 
-void ONF_ActionAdjustPlotPosition::update()
+void ONF_ActionAdjustPlotPosition::update(double x, double y)
 {
-    ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
+    //ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
 
+    _dataContainer->_transX += x;
+    _dataContainer->_transY += y;
+    _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+    redrawOverlayAnd3D();
+}
+
+void ONF_ActionAdjustPlotPosition::colorizePoints(ONF_ColorLinearInterpolator &gradient)
+{
+    GraphicsViewInterface* graphInterface = dynamic_cast<GraphicsViewInterface*>(document()->views().first());
+
+    for (int i = 0 ; i < _dataContainer->_scenes.size()  && _range > 0 ; i++)
+    {
+        CT_AbstractItemDrawableWithPointCloud* scene = _dataContainer->_scenes.at(i);
+        const CT_AbstractPointCloudIndex *pointCloudIndex = scene->getPointCloudIndex();
+
+        CT_PointIterator itP(pointCloudIndex);
+        while(itP.hasNext())
+        {
+            const CT_Point &point = itP.next().currentPoint();
+            size_t index = itP.currentGlobalIndex();
+            CT_Color color(gradient.intermediateColor((point(2) - _minz) / _range));
+            graphInterface->setColorOfPoint(index, color);
+        }
+    }
     redrawOverlayAnd3D();
 }
 
@@ -125,6 +218,7 @@ void ONF_ActionAdjustPlotPosition::redrawOverlay()
 
 void ONF_ActionAdjustPlotPosition::redrawOverlayAnd3D()
 {
+    //document()->updateItems(_cylinders);
     setDrawing3DChanged();
     document()->redrawGraphics();
 }
@@ -205,13 +299,11 @@ void ONF_ActionAdjustPlotPosition::draw(GraphicsViewInterface &view, PainterInte
 {
     Q_UNUSED(view)
 
+    for (int i = 0 ; i < _cylinders.size() ; i++)
+    {
+        _drawManager->draw(view, painter, *(_cylinders.at(i)));
+    }
     painter.save();
-
-    QColor oldColor = painter.getColor();
-    painter.setColor(QColor(0,125,0,100));
-
-
-    painter.setColor(oldColor);
     painter.restore();
 }
 

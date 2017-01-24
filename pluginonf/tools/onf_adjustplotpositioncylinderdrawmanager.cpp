@@ -13,7 +13,9 @@ const QString ONF_AdjustPlotPositionCylinderDrawManager::INDEX_CONFIG_TRANSPAREN
 
 ONF_AdjustPlotPositionCylinderDrawManager::ONF_AdjustPlotPositionCylinderDrawManager(QString drawConfigurationName) : CT_StandardAbstractShapeDrawManager(drawConfigurationName.isEmpty() ? CT_Cylinder::staticName() : drawConfigurationName)
 {
-    
+    _color = Qt::red;
+    _transX = 0;
+    _transY = 0;
 }
 
 ONF_AdjustPlotPositionCylinderDrawManager::~ONF_AdjustPlotPositionCylinderDrawManager()
@@ -26,44 +28,59 @@ void ONF_AdjustPlotPositionCylinderDrawManager::draw(GraphicsViewInterface &view
 
     const CT_Cylinder &item = dynamic_cast<const CT_Cylinder&>(itemDrawable);
 
-    const Eigen::Vector3d &center = item.getCenter();
-    const Eigen::Vector3d &direction = item.getDirection();
+    Eigen::Vector3d center = item.getCenter();
+    Eigen::Vector3d direction = item.getDirection();
+    direction.normalize();
+
+    center(0) += _transX;
+    center(1) += _transY;
 
     bool fixedHeight = getDrawConfiguration()->getVariableValue(INDEX_CONFIG_DRAW_SET_FIXED_HEIGHT).toBool();
     double height = getDrawConfiguration()->getVariableValue(INDEX_CONFIG_HEIGHT).toDouble();
-    Eigen::Vector3d bottom = center - (direction * height/2.0);
 
     if (!fixedHeight)
     {
         height = item.getHeight();
     }
 
+    Eigen::Vector3d bottom = center - (direction * item.getHeight()/2.0);
+
+    int transparence = getDrawConfiguration()->getVariableValue(INDEX_CONFIG_TRANSPARENCY_LEVEL).toInt();
+    if (transparence < 0) {transparence = 0;}
+    if (transparence > 255) {transparence = 255;}
+
+    QColor color = painter.getColor();
+    painter.setColor(QColor(_color.red(), _color.green(), _color.blue(), transparence));
 
     if(getDrawConfiguration()->getVariableValue(INDEX_CONFIG_DRAW_CYLINDER).toBool())
     {
-        QColor color = painter.getColor();
-
-        int transparence = getDrawConfiguration()->getVariableValue(INDEX_CONFIG_TRANSPARENCY_LEVEL).toInt();
-        if (transparence < 0) {transparence = 0;}
-        if (transparence > 255) {transparence = 255;}
-
-
-        painter.setColor(QColor(color.red(), color.green(), color.blue(), transparence));
         painter.drawCylinder3D(bottom, direction, item.getRadius(), height);
-
-        painter.setColor(color);
     }
 
     if(getDrawConfiguration()->getVariableValue(INDEX_CONFIG_DRAW_AXE).toBool())
     {
-        painter.drawLine(bottom.x(), bottom.y(), bottom.z(), 2.0*direction.x()+bottom.x(), 2.0*direction.y()+bottom.y(), 2.0*direction.z()+bottom.z());
+        painter.drawLine(bottom.x(), bottom.y(), bottom.z(), height*direction.x()+bottom.x(), height*direction.y()+bottom.y(), height*direction.z()+bottom.z());
     }
 
     if(getDrawConfiguration()->getVariableValue(INDEX_CONFIG_DRAW_BASE_CIRCLE).toBool())
     {
         painter.drawCircle3D(bottom, direction, item.getRadius());
     }
+
+    painter.setColor(color);
 }
+
+void ONF_AdjustPlotPositionCylinderDrawManager::setTranslation(double x, double y)
+{
+    _transX = x;
+    _transY = y;
+}
+
+void ONF_AdjustPlotPositionCylinderDrawManager::setColor(QColor color)
+{
+    _color = color;
+}
+
 
 CT_ItemDrawableConfiguration ONF_AdjustPlotPositionCylinderDrawManager::createDrawConfiguration(QString drawConfigurationName) const
 {
@@ -74,8 +91,8 @@ CT_ItemDrawableConfiguration ONF_AdjustPlotPositionCylinderDrawManager::createDr
     item.addNewConfiguration(ONF_AdjustPlotPositionCylinderDrawManager::staticInitConfigDrawAxe() ,QObject::tr("Dessiner l'axe"), CT_ItemDrawableConfiguration::Bool, false);
     item.addNewConfiguration(ONF_AdjustPlotPositionCylinderDrawManager::staticInitConfigDrawBaseCircle() , QObject::tr("Dessiner le cercle de base"), CT_ItemDrawableConfiguration::Bool, false);
     item.addNewConfiguration(ONF_AdjustPlotPositionCylinderDrawManager::staticInitConfigSetFixedHeight() , QObject::tr("Hauteur fixe"), CT_ItemDrawableConfiguration::Bool, false);
-    item.addNewConfiguration(ONF_AdjustPlotPositionCylinderDrawManager::staticInitConfigHeight() , QObject::tr("Hauteur"), CT_ItemDrawableConfiguration::Double, 2.0);
-    item.addNewConfiguration(ONF_AdjustPlotPositionCylinderDrawManager::staticInitConfigTransparencyLevel() , QObject::tr("Niveau de transparence [0;255]"), CT_ItemDrawableConfiguration::Double, 100);
+    item.addNewConfiguration(ONF_AdjustPlotPositionCylinderDrawManager::staticInitConfigHeight() , QObject::tr("Hauteur"), CT_ItemDrawableConfiguration::Double, 5.0);
+    item.addNewConfiguration(ONF_AdjustPlotPositionCylinderDrawManager::staticInitConfigTransparencyLevel() , QObject::tr("Niveau de transparence [0;255]"), CT_ItemDrawableConfiguration::Double, 250);
 
     return item;
 }
