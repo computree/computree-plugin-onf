@@ -101,3 +101,18 @@ void ONF_ActionAdjustPlotPositionOptions::on_dsb_height_valueChanged(double arg1
                            ui->dsb_height->value());
 
 }
+
+void ONF_ActionAdjustPlotPositionOptions::on_cb_intensity_toggled(bool checked)
+{
+    emit colorizationChanged(ui->cb_intensity->isChecked(), ui->hs_min->value(), ui->hs_max->value());
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_hs_min_valueChanged(int value)
+{
+    emit colorizationChanged(ui->cb_intensity->isChecked(), ui->hs_min->value(), ui->hs_max->value());
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_hs_max_valueChanged(int value)
+{
+    emit colorizationChanged(ui->cb_intensity->isChecked(), ui->hs_min->value(), ui->hs_max->value());
+}

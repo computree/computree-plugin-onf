@@ -47,6 +47,7 @@ private:
 
 signals:
     void parametersChanged(double deltaX, double deltaY, bool circles, bool fixedH, double h);
+    void colorizationChanged(bool intensity, int min, int max);
 
 private slots:
     void on_pb_up_clicked();
@@ -56,6 +57,9 @@ private slots:
     void on_cb_circles_toggled(bool checked);
     void on_cb_fixedH_toggled(bool checked);
     void on_dsb_height_valueChanged(double arg1);
+    void on_cb_intensity_toggled(bool checked);
+    void on_hs_min_valueChanged(int value);
+    void on_hs_max_valueChanged(int value);
 };
 
 #endif // ONF_ACTIONADJUSTPLOTPOSITIONOPTIONS_H

@@ -26,6 +26,8 @@
 
 #include "ct_itemdrawable/ct_scene.h"
 #include "ct_itemdrawable/ct_circle2d.h"
+#include "ctliblas/itemdrawable/las/ct_stdlaspointsattributescontainer.h"
+
 #include "ct_result/ct_resultgroup.h"
 #include "ct_result/model/inModel/ct_inresultmodelgroup.h"
 #include "ct_result/model/inModel/ct_inresultmodelgrouptocopy.h"
@@ -43,21 +45,18 @@
 
 // Alias for indexing models
 #define DEFin_resScene "resScene"
-#define DEFin_grp "grp"
+#define DEFin_grpSc "grpSc"
 #define DEFin_scene "scene"
+#define DEFin_lasAtt "lasAtt"
 
 #define DEFin_resPlot "resPlot"
 
+#define DEFin_grp "grp"
 #define DEFin_ref "ref"
 #define DEFin_refDbh "refDbh"
 #define DEFin_refHeight "refHeight"
 #define DEFin_refID "refID"
 #define DEFin_refIDplot "refIDplot"
-
-#define DEFout_resScene "resScene"
-#define DEFout_rootslice "rootslice"
-#define DEFout_slice "slice"
-#define DEFout_cluster "cluster"
 
 
 // Constructor : initialization of parameters
@@ -111,8 +110,9 @@ void ONF_StepAdjustPlotPosition::createInResultModelListProtected()
 
     CT_InResultModelGroup *resIn_Scene = createNewInResultModel(DEFin_resScene, tr("Scène"), "", true);
     resIn_Scene->setZeroOrMoreRootGroup();
-    resIn_Scene->addGroupModel("", DEFin_grp, CT_AbstractItemGroup::staticGetType(), tr("Groupe"));
-    resIn_Scene->addItemModel(DEFin_grp, DEFin_scene, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène"));
+    resIn_Scene->addGroupModel("", DEFin_grpSc, CT_AbstractItemGroup::staticGetType(), tr("Groupe"));
+    resIn_Scene->addItemModel(DEFin_grpSc, DEFin_scene, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène"));
+    resIn_Scene->addItemModel(DEFin_grpSc, DEFin_lasAtt, CT_StdLASPointsAttributesContainer::staticGetType(), tr("Attributs LAS"), "", CT_InAbstractItemModel::C_ChooseOneIfMultiple, CT_InAbstractItemModel::F_IsOptional);
 }
 
 // Creation and affiliation of OUT models
@@ -141,14 +141,19 @@ void ONF_StepAdjustPlotPosition::compute()
     QList<CT_ResultGroup*> inResultList = getInputResults();
     CT_ResultGroup* resIn_scene = inResultList.at(1);
 
-    CT_ResultItemIterator itSc(resIn_scene, this, DEFin_scene);
-    while (itSc.hasNext())
+    CT_ResultGroupIterator itGrpSc(resIn_scene, this, DEFin_grpSc);
+    while (itGrpSc.hasNext())
     {
-        CT_AbstractItemDrawableWithPointCloud* sc = (CT_AbstractItemDrawableWithPointCloud*) itSc.next();
+        const CT_AbstractItemGroup* grp = itGrpSc.next();
+
+        CT_AbstractItemDrawableWithPointCloud* sc = (CT_AbstractItemDrawableWithPointCloud*) grp->firstItemByINModelName(this, DEFin_scene);
+        CT_StdLASPointsAttributesContainer* lasAtt = (CT_StdLASPointsAttributesContainer*)grp->firstItemByINModelName(this, DEFin_lasAtt);
+
         if (sc != NULL)
-        {
+        {            
             _dataContainer->_scenes.append(sc);
-        }
+            _dataContainer->_LASattributes.append(lasAtt);
+        }                
     }
 
     QList<CT_ResultGroup*> outResultList = getOutResultList();

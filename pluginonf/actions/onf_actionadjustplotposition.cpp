@@ -44,13 +44,18 @@ ONF_ActionAdjustPlotPosition_dataContainer::ONF_ActionAdjustPlotPosition_dataCon
 
 ONF_ActionAdjustPlotPosition::ONF_ActionAdjustPlotPosition(ONF_ActionAdjustPlotPosition_dataContainer *dataContainer) : CT_AbstractActionForGraphicsView()
 {
+
     _dataContainer = dataContainer;
     _drawManager = new ONF_AdjustPlotPositionCylinderDrawManager(tr("Tree"));
     _drawManager->setColor(QColor(0, 190, 255));
 
-    _minz = std::numeric_limits<double>::max();
-    _maxz = -std::numeric_limits<double>::max();
-    _range = 1;
+    _minZ = std::numeric_limits<double>::max();
+    _maxZ = -std::numeric_limits<double>::max();
+    _rangeZ = 1;
+    _minI = std::numeric_limits<double>::max();
+    _maxI = -std::numeric_limits<double>::max();
+    _rangeI = 1;
+    _colorizeByIntensity = false;
 
     // GRAY
     QLinearGradient gr = QLinearGradient(0, 0, 1, 0);
@@ -122,6 +127,7 @@ void ONF_ActionAdjustPlotPosition::init()
         graphicsView()->addActionOptions(option);
 
         connect(option, SIGNAL(parametersChanged(double, double, bool, bool, double)), this, SLOT(update(double, double, bool, bool, double)));
+        connect(option, SIGNAL(colorizationChanged(bool, int, int)), this, SLOT(updateColorization(bool, int, int)));
 
         // register the option to the superclass, so the hideOptions and showOptions
         // is managed automatically
@@ -141,23 +147,50 @@ void ONF_ActionAdjustPlotPosition::init()
             _cylinders.append(cyl);
         }
 
+        _minZ = std::numeric_limits<double>::max();
+        _maxZ = -std::numeric_limits<double>::max();
+
+        _minI = std::numeric_limits<double>::max();
+        _maxI = -std::numeric_limits<double>::max();
+
         for (int i = 0 ; i < _dataContainer->_scenes.size() ; i++)
         {
-            CT_AbstractItemDrawableWithPointCloud* scene = _dataContainer->_scenes.at(i);
+            CT_AbstractItemDrawableWithPointCloud* scene = (CT_AbstractItemDrawableWithPointCloud*) _dataContainer->_scenes.at(i);
             const CT_AbstractPointCloudIndex *pointCloudIndex = scene->getPointCloudIndex();
 
-            _minz = std::numeric_limits<double>::max();
-            _maxz = -std::numeric_limits<double>::max();
+            CT_StdLASPointsAttributesContainer* LASAttributes = _dataContainer->_LASattributes.at(i);
+            CT_AbstractPointAttributesScalar* attributeIntensity = NULL;
+            CT_AbstractPointCloudIndex* pointCloudIndexLAS = NULL;
+
+            if (LASAttributes != NULL)
+            {
+                attributeIntensity = (CT_AbstractPointAttributesScalar*)LASAttributes->pointsAttributesAt(CT_LasDefine::Intensity);
+                pointCloudIndexLAS = (CT_AbstractPointCloudIndex*) attributeIntensity->getPointCloudIndex();
+            }
 
             CT_PointIterator itP(pointCloudIndex);
             while(itP.hasNext())
             {
                 const CT_Point &point = itP.next().currentPoint();
+                size_t index = itP.currentGlobalIndex();
 
-                if (point(2) > _maxz) {_maxz = point(2);}
-                if (point(2) < _minz) {_minz = point(2);}
+                if (point(2) > _maxZ) {_maxZ = point(2);}
+                if (point(2) < _minZ) {_minZ = point(2);}
+
+                if (LASAttributes != NULL)
+                {
+                    size_t localIndex = pointCloudIndexLAS->indexOf(index);
+
+                    if (localIndex < pointCloudIndexLAS->size())
+                    {
+                        double intensity = attributeIntensity->dValueAt(localIndex);
+                        if (intensity > _maxI) {_maxI = intensity;}
+                        if (intensity < _minI) {_minI = intensity;}
+                    }
+                }
             }
-            _range = _maxz - _minz;
+            _rangeZ = _maxZ - _minZ;
+            _rangeI = _maxI - _minI;
 
             document()->addItemDrawable(*scene);
         }
@@ -167,13 +200,14 @@ void ONF_ActionAdjustPlotPosition::init()
         QColor col = Qt::black;
         graphInterface->getOptions().setBackgroudColor(col);
         graphInterface->getOptions().setPointSize(2);
+        graphInterface->validateOptions();
         graphInterface->camera()->setType(CameraInterface::ORTHOGRAPHIC);
 
         document()->redrawGraphics(DocumentInterface::RO_WaitForConversionCompleted);
 
         graphInterface->camera()->fitCameraToVisibleItems();
         graphInterface->camera()->setOrientation(0.2, 0, 0, 0.95);
-        colorizePoints(_gradientHot);
+        colorizePoints(_gradientHot, 0, 100);
     }
 }
 
@@ -188,25 +222,77 @@ void ONF_ActionAdjustPlotPosition::update(double x, double y, bool circles, bool
     redrawOverlayAnd3D();
 }
 
-void ONF_ActionAdjustPlotPosition::colorizePoints(ONF_ColorLinearInterpolator &gradient)
+void ONF_ActionAdjustPlotPosition::updateColorization(bool colorizeByIntensity, int min, int max)
+{
+    _colorizeByIntensity = colorizeByIntensity;
+    if (_colorizeByIntensity)
+    {
+        colorizePoints(_gradientGrey, min, max);
+    } else {
+        colorizePoints(_gradientHot, min, max);
+    }
+}
+
+void ONF_ActionAdjustPlotPosition::colorizePoints(ONF_ColorLinearInterpolator &gradient, int min, int max)
 {
     GraphicsViewInterface* graphInterface = dynamic_cast<GraphicsViewInterface*>(document()->views().first());
 
-    for (int i = 0 ; i < _dataContainer->_scenes.size()  && _range > 0 ; i++)
+    for (int i = 0 ; i < _dataContainer->_scenes.size()  && _rangeZ > 0 ; i++)
     {
-        CT_AbstractItemDrawableWithPointCloud* scene = _dataContainer->_scenes.at(i);
+        CT_AbstractItemDrawableWithPointCloud* scene = (CT_AbstractItemDrawableWithPointCloud*) _dataContainer->_scenes.at(i);
         const CT_AbstractPointCloudIndex *pointCloudIndex = scene->getPointCloudIndex();
+
+        CT_StdLASPointsAttributesContainer* LASAttributes = _dataContainer->_LASattributes.at(i);
+        CT_AbstractPointAttributesScalar* attributeIntensity = NULL;
+        CT_AbstractPointCloudIndex* pointCloudIndexLAS = NULL;
+
+        if (_colorizeByIntensity && LASAttributes != NULL)
+        {
+            attributeIntensity = (CT_AbstractPointAttributesScalar*)LASAttributes->pointsAttributesAt(CT_LasDefine::Intensity);
+            pointCloudIndexLAS = (CT_AbstractPointCloudIndex*) attributeIntensity->getPointCloudIndex();
+        }
 
         CT_PointIterator itP(pointCloudIndex);
         while(itP.hasNext())
         {
             const CT_Point &point = itP.next().currentPoint();
             size_t index = itP.currentGlobalIndex();
-            CT_Color color(gradient.intermediateColor((point(2) - _minz) / _range));
-            graphInterface->setColorOfPoint(index, color);
+
+            double minZ = _minZ + (double)min * _rangeZ / 100.0;
+            double maxZ = _minZ + (double)max * _rangeZ / 100.0;
+            if (minZ > maxZ) {minZ = maxZ;}
+            double rangeZ = maxZ - minZ;
+
+            double ratio = (point(2) - minZ) / rangeZ;
+
+            if (point(2) < minZ) {ratio = 0;}
+            if (point(2) > maxZ) {ratio = 1;}
+
+            if (_colorizeByIntensity && LASAttributes != NULL)
+            {
+                size_t localIndex = pointCloudIndexLAS->indexOf(index);
+                if (localIndex < pointCloudIndexLAS->size())
+                {
+                    double minI = _minI + (double)min * _rangeI / 100.0;
+                    double maxI = _minI + (double)max * _rangeI / 100.0;
+                    if (minI > maxI) {minI = maxI;}
+                    double rangeI = maxI - minI;
+
+                    double intensity = attributeIntensity->dValueAt(localIndex);
+                    ratio = (intensity - minI) / rangeI;
+
+                    if (intensity < minI) {ratio = 0;}
+                    if (intensity > maxI) {ratio = 1;}
+                }
+            }
+
+
+            CT_Color color(gradient.intermediateColor(ratio));
+            graphInterface->setColorOfPoint(index, color);            
         }
     }
     redrawOverlayAnd3D();
+    graphInterface->dirtyColorsOfItemDrawablesWithPoints();
 }
 
 void ONF_ActionAdjustPlotPosition::redrawOverlay()
@@ -216,7 +302,7 @@ void ONF_ActionAdjustPlotPosition::redrawOverlay()
 
 void ONF_ActionAdjustPlotPosition::redrawOverlayAnd3D()
 {
-    //document()->updateItems(_cylinders);
+    //document()->updateItems(_dataContainer->_scenes);
     setDrawing3DChanged();
     document()->redrawGraphics();
 }

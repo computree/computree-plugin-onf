@@ -30,6 +30,7 @@
 #include "ct_actions/abstract/ct_abstractactionforgraphicsview.h"
 #include "ct_itemdrawable/ct_cylinder.h"
 #include "ct_itemdrawable/abstract/ct_abstractitemdrawablewithpointcloud.h"
+#include "ctliblas/itemdrawable/las/ct_stdlaspointsattributescontainer.h"
 #include "ct_result/abstract/ct_abstractresult.h"
 
 #include "tools/onf_adjustplotpositioncylinderdrawmanager.h"
@@ -65,7 +66,8 @@ public:
     ONF_ActionAdjustPlotPosition_dataContainer();
 
     QList<ONF_ActionAdjustPlotPosition_treePosition*> _positions;
-    QList<CT_AbstractItemDrawableWithPointCloud*>     _scenes;
+    QList<CT_AbstractItemDrawable*>     _scenes;
+    QList<CT_StdLASPointsAttributesContainer*>        _LASattributes;
     double              _transX;
     double              _transY;
 };
@@ -102,6 +104,7 @@ public:
 
 public slots:
     void update(double x, double y, bool circles, bool fixedH, double h);
+    void updateColorization(bool colorizeByIntensity, int min, int max);
 
 private:
 
@@ -114,11 +117,16 @@ private:
     ONF_ColorLinearInterpolator                _gradientRainbow;
     ONF_ColorLinearInterpolator                _gradientHot;
 
-    double _minz;
-    double _maxz;
-    double _range;
+    double _minZ;
+    double _maxZ;
+    double _rangeZ;
+    double _minI;
+    double _maxI;
+    double _rangeI;
+    bool   _colorizeByIntensity;
 
-    void colorizePoints(ONF_ColorLinearInterpolator &gradient);
+
+    void colorizePoints(ONF_ColorLinearInterpolator &gradient, int min, int max);
 
 private slots:
     void redrawOverlay();

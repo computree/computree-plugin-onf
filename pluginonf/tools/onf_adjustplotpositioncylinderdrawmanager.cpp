@@ -12,7 +12,7 @@ ONF_AdjustPlotPositionCylinderDrawManager::ONF_AdjustPlotPositionCylinderDrawMan
     _transY = 0;
     _circles = false;
     _fixedH = false;
-    _h = 5.0;
+    _h = 3.0;
 }
 
 ONF_AdjustPlotPositionCylinderDrawManager::~ONF_AdjustPlotPositionCylinderDrawManager()
@@ -49,13 +49,14 @@ void ONF_AdjustPlotPositionCylinderDrawManager::draw(GraphicsViewInterface &view
     {
         Eigen::Vector3d level = bottom;
 
-        for (double h = 0 ; h < height ; h += 0.25)
+        for (double h = 0 ; h < height ; h += 0.50)
         {
             level(2) = h;
             painter.drawCircle3D(level, direction, item.getRadius());
         }
     } else {
         painter.drawCylinder3D(bottom, direction, item.getRadius(), height);
+        painter.drawCircle3D(bottom, direction, item.getRadius());
     }
 
     painter.setColor(color);
