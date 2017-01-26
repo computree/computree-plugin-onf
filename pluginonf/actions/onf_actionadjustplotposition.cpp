@@ -26,6 +26,7 @@
 #include "ct_global/ct_context.h"
 #include "ct_iterator/ct_pointiterator.h"
 #include "ct_color.h"
+#include "ct_math/ct_mathpoint.h"
 
 #include <QMouseEvent>
 #include <QKeyEvent>
@@ -47,7 +48,16 @@ ONF_ActionAdjustPlotPosition::ONF_ActionAdjustPlotPosition(ONF_ActionAdjustPlotP
 
     _dataContainer = dataContainer;
     _drawManager = new ONF_AdjustPlotPositionCylinderDrawManager(tr("Tree"));
-    _drawManager->setColor(QColor(0, 190, 255));
+    _selectedPos = NULL;
+
+    _cylinderColor = QColor(0, 200, 255);
+    _selectedCylinderColor = QColor(0, 80, 255);
+
+    _drawManager->setColor(_cylinderColor);
+    _drawManager->setSelectionColor(_selectedCylinderColor);
+    _currentPoint(0) = std::numeric_limits<double>::max();
+    _currentPoint(1) = std::numeric_limits<double>::max();
+    _currentPoint(2) = std::numeric_limits<double>::max();
 
     _minZ = std::numeric_limits<double>::max();
     _maxZ = -std::numeric_limits<double>::max();
@@ -79,6 +89,19 @@ ONF_ActionAdjustPlotPosition::ONF_ActionAdjustPlotPosition(ONF_ActionAdjustPlotP
     gr.setColorAt(1, Qt::blue);
     _gradientRainbow.constructFromQGradient(gr);
 
+    // HSV
+    gr = QLinearGradient(0, 0, 1, 0);
+    gr.setColorAt(0, Qt::red);
+    gr.setColorAt(0.166, Qt::yellow);
+    gr.setColorAt(0.333, Qt::green);
+    gr.setColorAt(0.5, Qt::cyan);
+    gr.setColorAt(0.666, Qt::blue);
+    gr.setColorAt(0.833, Qt::magenta);
+    gr.setColorAt(1, Qt::red);
+    _gradientHSV.constructFromQGradient(gr);
+
+    _currentZGradient = _gradientHot;
+    _currentIGradient = _gradientGrey;
 }
 
 ONF_ActionAdjustPlotPosition::~ONF_ActionAdjustPlotPosition()
@@ -116,6 +139,7 @@ QString ONF_ActionAdjustPlotPosition::type() const
 
 void ONF_ActionAdjustPlotPosition::init()
 {
+
     CT_AbstractActionForGraphicsView::init();
 
     if(nOptions() == 0)
@@ -128,6 +152,8 @@ void ONF_ActionAdjustPlotPosition::init()
 
         connect(option, SIGNAL(parametersChanged(double, double, bool, bool, double)), this, SLOT(update(double, double, bool, bool, double)));
         connect(option, SIGNAL(colorizationChanged(bool, int, int)), this, SLOT(updateColorization(bool, int, int)));
+        connect(option, SIGNAL(askForTranslation(bool)), this, SLOT(applyTranslation(bool)));
+        connect(option, SIGNAL(setGradient(bool, QString, int, int)), this, SLOT(setGradient(bool, QString, int, int)));
 
         // register the option to the superclass, so the hideOptions and showOptions
         // is managed automatically
@@ -146,6 +172,7 @@ void ONF_ActionAdjustPlotPosition::init()
             cyl->setBaseDrawManager(_drawManager);
             _cylinders.append(cyl);
             pos->_cyl = cyl;
+            //document()->addItemDrawable(*cyl);
         }
 
         _minZ = std::numeric_limits<double>::max();
@@ -196,19 +223,19 @@ void ONF_ActionAdjustPlotPosition::init()
             document()->addItemDrawable(*scene);
         }
 
-        GraphicsViewInterface* graphInterface = dynamic_cast<GraphicsViewInterface*>(document()->views().first());
+        GraphicsViewInterface* view = dynamic_cast<GraphicsViewInterface*>(document()->views().first());
 
         QColor col = Qt::black;
-        graphInterface->getOptions().setBackgroudColor(col);
-        graphInterface->getOptions().setPointSize(2);
-        graphInterface->validateOptions();
-        graphInterface->camera()->setType(CameraInterface::ORTHOGRAPHIC);
+        view->getOptions().setBackgroudColor(col);
+        view->getOptions().setPointSize(2);
+        view->validateOptions();
+        view->camera()->setType(CameraInterface::ORTHOGRAPHIC);
 
         document()->redrawGraphics(DocumentInterface::RO_WaitForConversionCompleted);
 
-        graphInterface->camera()->fitCameraToVisibleItems();
-        graphInterface->camera()->setOrientation(0.2, 0, 0, 0.95);
-        colorizePoints(_gradientHot, 0, 100);
+        view->camera()->fitCameraToVisibleItems();
+        view->camera()->setOrientation(0.2, 0, 0, 0.95);
+        colorizePoints(_currentZGradient, 0, 100);
     }
 }
 
@@ -228,15 +255,72 @@ void ONF_ActionAdjustPlotPosition::updateColorization(bool colorizeByIntensity, 
     _colorizeByIntensity = colorizeByIntensity;
     if (_colorizeByIntensity)
     {
-        colorizePoints(_gradientGrey, min, max);
+        colorizePoints(_currentIGradient, min, max);
     } else {
-        colorizePoints(_gradientHot, min, max);
+        colorizePoints(_currentZGradient, min, max);
     }
+}
+
+void ONF_ActionAdjustPlotPosition::applyTranslation(bool reset)
+{
+    if (reset)
+    {
+        _dataContainer->_transX = 0;
+        _dataContainer->_transY = 0;
+        _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+        redrawOverlayAnd3D();
+    } else if (_currentPoint(0) < std::numeric_limits<double>::max() && _selectedPos != NULL)
+    {
+        _dataContainer->_transX += _currentPoint(0) - (_selectedPos->_x + _dataContainer->_transX);
+        _dataContainer->_transY += _currentPoint(1) - (_selectedPos->_y + _dataContainer->_transY);
+        _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+        redrawOverlayAnd3D();
+    }
+}
+
+void ONF_ActionAdjustPlotPosition::setGradient(bool intensity, QString name, int min, int max)
+{
+    if (name == "grey")
+    {
+        if (intensity)
+        {
+            _currentIGradient = _gradientGrey;
+        } else {
+            _currentZGradient = _gradientGrey;
+        }
+    } else if (name == "hot")
+    {
+        if (intensity)
+        {
+            _currentIGradient = _gradientHot;
+        } else {
+            _currentZGradient = _gradientHot;
+        }
+    } else if (name == "rainbow")
+    {
+        if (intensity)
+        {
+            _currentIGradient = _gradientRainbow;
+        } else {
+            _currentZGradient = _gradientRainbow;
+        }
+    } else if (name == "hsv")
+    {
+        if (intensity)
+        {
+            _currentIGradient = _gradientHSV;
+        } else {
+            _currentZGradient = _gradientHSV;
+        }
+    }
+
+    updateColorization(_colorizeByIntensity, min, max);
+    redrawOverlayAnd3D();
 }
 
 void ONF_ActionAdjustPlotPosition::colorizePoints(ONF_ColorLinearInterpolator &gradient, int min, int max)
 {
-    GraphicsViewInterface* graphInterface = dynamic_cast<GraphicsViewInterface*>(document()->views().first());
+    GraphicsViewInterface *view = graphicsView();
 
     for (int i = 0 ; i < _dataContainer->_scenes.size()  && _rangeZ > 0 ; i++)
     {
@@ -289,11 +373,11 @@ void ONF_ActionAdjustPlotPosition::colorizePoints(ONF_ColorLinearInterpolator &g
 
 
             CT_Color color(gradient.intermediateColor(ratio));
-            graphInterface->setColorOfPoint(index, color);            
+            view->setColorOfPoint(index, color);
         }
     }
     redrawOverlayAnd3D();
-    graphInterface->dirtyColorsOfItemDrawablesWithPoints();
+    view->dirtyColorsOfItemDrawablesWithPoints();
 }
 
 void ONF_ActionAdjustPlotPosition::redrawOverlay()
@@ -303,32 +387,14 @@ void ONF_ActionAdjustPlotPosition::redrawOverlay()
 
 void ONF_ActionAdjustPlotPosition::redrawOverlayAnd3D()
 {
-    //document()->updateItems(_dataContainer->_scenes);
     setDrawing3DChanged();
     document()->redrawGraphics();
 }
 
 bool ONF_ActionAdjustPlotPosition::mousePressEvent(QMouseEvent *e)
 {
-    ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
-
-    if (e->buttons() & Qt::LeftButton)
-    {
-        if (e->modifiers()  & Qt::ShiftModifier)
-        {
-            GraphicsViewInterface* graphInterface = dynamic_cast<GraphicsViewInterface*>(document()->views().first());
-
-            bool found = false;
-            Eigen::Vector3d point = graphInterface->pointUnderPixel(e->pos(), found);
-
-            if (found)
-            {
-                ONF_ActionAdjustPlotPosition_treePosition* pos = getPositionFromPoint(point);
-            }
-            //update();
-            return true;
-        }
-    }
+    _lastPos = e->pos();
+    _buttonsPressed = e->buttons();
 
     return false;
 }
@@ -341,35 +407,69 @@ bool ONF_ActionAdjustPlotPosition::mouseMoveEvent(QMouseEvent *e)
 
 bool ONF_ActionAdjustPlotPosition::mouseReleaseEvent(QMouseEvent *e)
 {
-    Q_UNUSED(e);
+    GraphicsViewInterface *view = graphicsView();
+
+    QPoint dir = e->pos() - _lastPos;
+    if (dir.manhattanLength() < 3)
+    {
+        if (_buttonsPressed == Qt::RightButton)
+        {
+            Eigen::Vector3d origin, direction;
+            view->convertClickToLine(e->pos(), origin, direction);
+            _selectedPos = getPositionFromDirection(origin, direction);
+
+            if (_selectedPos != NULL)
+            {
+                _drawManager->setselectedCylinder(_selectedPos->_cyl);
+                redrawOverlayAnd3D();
+            }
+
+            //            bool found = false;
+            //            Eigen::Vector3d point = view->pointUnderPixel(e->pos(), found);
+
+            //            if (found)
+            //            {
+            //                _selectedPos = getPositionFromPoint(point);
+            //                _drawManager->setselectedCylinder(_selectedPos->_cyl);
+            //                redrawOverlayAnd3D();
+            //            }
+            //update();
+            //return true;
+
+
+        } else if (_buttonsPressed == Qt::LeftButton)
+        {
+            view->setSelectionMode(GraphicsViewInterface::SELECT_ONE_POINT);
+
+            view->setSelectRegionWidth(3);
+            view->setSelectRegionHeight(3);
+            view->select(e->pos());
+
+            CT_CIR pcir = view->getSelectedPoints();
+            CT_PointIterator it(pcir);
+
+            if (it.hasNext())
+            {
+                it.next();
+                _currentPoint = it.currentPoint();
+            } else {
+                _currentPoint(0) = std::numeric_limits<double>::max();
+                _currentPoint(1) = std::numeric_limits<double>::max();
+                _currentPoint(2) = std::numeric_limits<double>::max();
+            }
+
+            redrawOverlayAnd3D();
+        }
+    }
+
     return false;
 }
 
 bool ONF_ActionAdjustPlotPosition::wheelEvent(QWheelEvent *e)
 {
-    ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
-
-    if (e->modifiers()  & Qt::ControlModifier)
-    {
-        if (e->delta() > 0)
-        {
-        } else if (e->delta() < 0)
-        {
-        }
-        //update();
-        return true;
-    } else if (e->modifiers()  & Qt::ShiftModifier)
-    {
-        if (e->delta() > 0)
-        {
-        } else if (e->delta() < 0)
-        {
-        }
-        //update();
-        return true;
-    }
-
+    Q_UNUSED(e);
     return false;
+
 }
 
 bool ONF_ActionAdjustPlotPosition::keyPressEvent(QKeyEvent *e)
@@ -387,14 +487,22 @@ bool ONF_ActionAdjustPlotPosition::keyReleaseEvent(QKeyEvent *e)
 
 void ONF_ActionAdjustPlotPosition::draw(GraphicsViewInterface &view, PainterInterface &painter)
 {
-    Q_UNUSED(view)
-
     for (int i = 0 ; i < _cylinders.size() ; i++)
     {
-        _drawManager->draw(view, painter, *(_cylinders.at(i)));
+        _cylinders.at(i)->draw(view, painter);
     }
-    painter.save();
-    painter.restore();
+
+    if (_currentPoint(0) < std::numeric_limits<double>::max())
+    {
+
+        QColor oldColor = painter.getColor();
+        double size = 0.2;
+        painter.setColor(_selectedCylinderColor);
+        painter.drawPartOfSphere(_currentPoint(0), _currentPoint(1), _currentPoint(2), size, -M_PI, M_PI, -M_PI, M_PI, true);
+        //painter.drawCube(_currentPoint(0) - size, _currentPoint(1) - size, _currentPoint(2) - size,_currentPoint(0) + size, _currentPoint(1) + size, _currentPoint(2) + size, GL_FRONT_AND_BACK, GL_FILL);
+        painter.setColor(oldColor);
+
+    }
 }
 
 void ONF_ActionAdjustPlotPosition::drawOverlay(GraphicsViewInterface &view, QPainter &painter)
@@ -427,4 +535,43 @@ ONF_ActionAdjustPlotPosition_treePosition* ONF_ActionAdjustPlotPosition::getPosi
     }
     return pos;
 }
+
+ONF_ActionAdjustPlotPosition_treePosition* ONF_ActionAdjustPlotPosition::getPositionFromDirection(Eigen::Vector3d &origin, Eigen::Vector3d &direction)
+{
+    ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
+
+    double minDist = std::numeric_limits<double>::max();
+    ONF_ActionAdjustPlotPosition_treePosition* pos = NULL;
+    for (int i = 0 ; i < _dataContainer->_positions.size() ; i++)
+    {
+        ONF_ActionAdjustPlotPosition_treePosition* treePos = _dataContainer->_positions.at(i);
+        double x = treePos->_x + _dataContainer->_transX;
+        double y = treePos->_y + _dataContainer->_transY;
+
+        double treeHeight = treePos->_height;
+
+        if (option->isFixedHeight())
+        {
+            treeHeight = option->fixedHeight();
+        }
+
+        for (double h = 0 ; h < treeHeight ; h += 0.1)
+        {
+            Eigen::Vector3d point(x, y, h);
+
+            double distance = CT_MathPoint::distancePointLine(point, direction, origin);
+            if (distance  < minDist)
+            {
+                minDist = distance;
+                pos = treePos;
+            }
+        }
+
+    }
+
+    if (minDist > 5.0) {return NULL;}
+
+    return pos;
+}
+
 

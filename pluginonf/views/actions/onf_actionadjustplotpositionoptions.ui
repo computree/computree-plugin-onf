@@ -47,7 +47,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../resource.qrc">
+         <iconset resource="../../../../computreev3/pluginbase/resource.qrc">
           <normaloff>:/icons/upper.png</normaloff>:/icons/upper.png</iconset>
         </property>
        </widget>
@@ -58,7 +58,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../resource.qrc">
+         <iconset resource="../../../../computreev3/pluginbase/resource.qrc">
           <normaloff>:/icons/lower.png</normaloff>:/icons/lower.png</iconset>
         </property>
        </widget>
@@ -102,7 +102,31 @@
        </widget>
       </item>
       <item>
-       <widget class="Line" name="line">
+       <widget class="QPushButton" name="pb_translate">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../resource.qrc">
+          <normaloff>:/icons/moveTo.png</normaloff>:/icons/moveTo.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pb_reset">
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>RAZ</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line_3">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
@@ -210,6 +234,50 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="pb_grey">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../resource.qrc">
+          <normaloff>:/icons/grey.png</normaloff>:/icons/grey.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pb_hot">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../resource.qrc">
+          <normaloff>:/icons/hot.png</normaloff>:/icons/hot.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pb_rainbow">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../resource.qrc">
+          <normaloff>:/icons/rainbow.png</normaloff>:/icons/rainbow.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pb_hsv">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../resource.qrc">
+          <normaloff>:/icons/hsv.png</normaloff>:/icons/hsv.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -228,6 +296,7 @@
   </layout>
  </widget>
  <resources>
+  <include location="../../../../computreev3/pluginbase/resource.qrc"/>
   <include location="../../resource.qrc"/>
  </resources>
  <connections/>

@@ -63,5 +63,10 @@
         <file>icons/triple-color-icon.png</file>
         <file>icons/left_arrow.png</file>
         <file>icons/right_arrow.png</file>
+        <file>icons/moveTo.png</file>
+        <file>icons/grey.png</file>
+        <file>icons/hot.png</file>
+        <file>icons/rainbow.png</file>
+        <file>icons/hsv.png</file>
     </qresource>
 </RCC>

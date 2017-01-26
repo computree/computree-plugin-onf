@@ -42,12 +42,18 @@ public:
     explicit ONF_ActionAdjustPlotPositionOptions(const ONF_ActionAdjustPlotPosition *action);
     ~ONF_ActionAdjustPlotPositionOptions();
 
+    bool isFixedHeight() const;
+    double fixedHeight() const;
+
 private:
     Ui::ONF_ActionAdjustPlotPositionOptions *ui;
 
 signals:
     void parametersChanged(double deltaX, double deltaY, bool circles, bool fixedH, double h);
     void colorizationChanged(bool intensity, int min, int max);
+
+    void askForTranslation(bool reset);
+    void setGradient(bool intensity, QString name, int min, int max);
 
 private slots:
     void on_pb_up_clicked();
@@ -60,6 +66,12 @@ private slots:
     void on_cb_intensity_toggled(bool checked);
     void on_hs_min_valueChanged(int value);
     void on_hs_max_valueChanged(int value);
+    void on_pb_translate_clicked();
+    void on_pb_reset_clicked();
+    void on_pb_grey_clicked();
+    void on_pb_hot_clicked();
+    void on_pb_rainbow_clicked();
+    void on_pb_hsv_clicked();
 };
 
 #endif // ONF_ACTIONADJUSTPLOTPOSITIONOPTIONS_H

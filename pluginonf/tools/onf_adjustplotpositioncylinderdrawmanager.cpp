@@ -1,6 +1,5 @@
 #include "onf_adjustplotpositioncylinderdrawmanager.h"
 
-#include "ct_itemdrawable/ct_cylinder.h"
 
 #include <QObject>
 
@@ -13,6 +12,7 @@ ONF_AdjustPlotPositionCylinderDrawManager::ONF_AdjustPlotPositionCylinderDrawMan
     _circles = false;
     _fixedH = false;
     _h = 3.0;
+    _selectedCylinder = NULL;
 }
 
 ONF_AdjustPlotPositionCylinderDrawManager::~ONF_AdjustPlotPositionCylinderDrawManager()
@@ -43,7 +43,12 @@ void ONF_AdjustPlotPositionCylinderDrawManager::draw(GraphicsViewInterface &view
 
 
     QColor color = painter.getColor();
-    painter.setColor(_color);
+    if (&item == _selectedCylinder)
+    {
+        painter.setColor(_selectionColor);
+    } else {
+        painter.setColor(_color);
+    }
 
     if(_circles)
     {
@@ -78,6 +83,16 @@ void ONF_AdjustPlotPositionCylinderDrawManager::setParameters(bool circles, bool
 void ONF_AdjustPlotPositionCylinderDrawManager::setColor(QColor color)
 {
     _color = color;
+}
+
+void ONF_AdjustPlotPositionCylinderDrawManager::setSelectionColor(QColor color)
+{
+    _selectionColor = color;
+}
+
+void ONF_AdjustPlotPositionCylinderDrawManager::setselectedCylinder(CT_Cylinder *selectedCylinder)
+{
+    _selectedCylinder = selectedCylinder;
 }
 
 

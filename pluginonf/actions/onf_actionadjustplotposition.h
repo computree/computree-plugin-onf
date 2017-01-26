@@ -107,6 +107,8 @@ public:
 public slots:
     void update(double x, double y, bool circles, bool fixedH, double h);
     void updateColorization(bool colorizeByIntensity, int min, int max);
+    void applyTranslation(bool reset);
+    void setGradient(bool intensity, QString name, int min, int max);
 
 private:
 
@@ -116,8 +118,15 @@ private:
     ONF_AdjustPlotPositionCylinderDrawManager*  _drawManager;
 
     ONF_ColorLinearInterpolator                _gradientGrey;
-    ONF_ColorLinearInterpolator                _gradientRainbow;
     ONF_ColorLinearInterpolator                _gradientHot;
+    ONF_ColorLinearInterpolator                _gradientRainbow;
+    ONF_ColorLinearInterpolator                _gradientHSV;
+
+    ONF_ColorLinearInterpolator                _currentZGradient;
+    ONF_ColorLinearInterpolator                _currentIGradient;
+
+    QColor                                     _cylinderColor;
+    QColor                                     _selectedCylinderColor;
 
     double _minZ;
     double _maxZ;
@@ -127,9 +136,15 @@ private:
     double _rangeI;
     bool   _colorizeByIntensity;
 
+    Qt::MouseButtons  _buttonsPressed;
+    QPoint            _lastPos;
+    ONF_ActionAdjustPlotPosition_treePosition*   _selectedPos;
+    Eigen::Vector3d                              _currentPoint;
+
 
     void colorizePoints(ONF_ColorLinearInterpolator &gradient, int min, int max);    
-    ONF_ActionAdjustPlotPosition_treePosition* getPositionFromPoint(Eigen::Vector3d &point);
+    ONF_ActionAdjustPlotPosition_treePosition* getPositionFromPoint(Eigen::Vector3d &point);    
+    ONF_ActionAdjustPlotPosition_treePosition *getPositionFromDirection(Eigen::Vector3d &origin, Eigen::Vector3d &direction);
 
 private slots:
     void redrawOverlay();

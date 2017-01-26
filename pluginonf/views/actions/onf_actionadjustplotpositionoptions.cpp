@@ -41,7 +41,15 @@ ONF_ActionAdjustPlotPositionOptions::~ONF_ActionAdjustPlotPositionOptions()
     delete ui;
 }
 
+bool ONF_ActionAdjustPlotPositionOptions::isFixedHeight() const
+{
+    return ui->cb_fixedH->isChecked();
+}
 
+double ONF_ActionAdjustPlotPositionOptions::fixedHeight() const
+{
+    return ui->dsb_height->value();
+}
 
 void ONF_ActionAdjustPlotPositionOptions::on_pb_up_clicked()
 {
@@ -77,6 +85,7 @@ void ONF_ActionAdjustPlotPositionOptions::on_pb_right_clicked()
 
 void ONF_ActionAdjustPlotPositionOptions::on_cb_circles_toggled(bool checked)
 {
+    Q_UNUSED(checked);
     emit parametersChanged(0, 0,
                            ui->cb_circles->isChecked(),
                            ui->cb_fixedH->isChecked(),
@@ -86,6 +95,7 @@ void ONF_ActionAdjustPlotPositionOptions::on_cb_circles_toggled(bool checked)
 
 void ONF_ActionAdjustPlotPositionOptions::on_cb_fixedH_toggled(bool checked)
 {
+    Q_UNUSED(checked);
     emit parametersChanged(0, 0,
                            ui->cb_circles->isChecked(),
                            ui->cb_fixedH->isChecked(),
@@ -95,6 +105,7 @@ void ONF_ActionAdjustPlotPositionOptions::on_cb_fixedH_toggled(bool checked)
 
 void ONF_ActionAdjustPlotPositionOptions::on_dsb_height_valueChanged(double arg1)
 {
+    Q_UNUSED(arg1);
     emit parametersChanged(0, 0,
                            ui->cb_circles->isChecked(),
                            ui->cb_fixedH->isChecked(),
@@ -104,15 +115,49 @@ void ONF_ActionAdjustPlotPositionOptions::on_dsb_height_valueChanged(double arg1
 
 void ONF_ActionAdjustPlotPositionOptions::on_cb_intensity_toggled(bool checked)
 {
-    emit colorizationChanged(ui->cb_intensity->isChecked(), ui->hs_min->value(), ui->hs_max->value());
+    Q_UNUSED(checked);
+   emit colorizationChanged(ui->cb_intensity->isChecked(), ui->hs_min->value(), ui->hs_max->value());
 }
 
 void ONF_ActionAdjustPlotPositionOptions::on_hs_min_valueChanged(int value)
 {
+    Q_UNUSED(value);
     emit colorizationChanged(ui->cb_intensity->isChecked(), ui->hs_min->value(), ui->hs_max->value());
 }
 
 void ONF_ActionAdjustPlotPositionOptions::on_hs_max_valueChanged(int value)
 {
+    Q_UNUSED(value);
     emit colorizationChanged(ui->cb_intensity->isChecked(), ui->hs_min->value(), ui->hs_max->value());
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_pb_translate_clicked()
+{
+    emit askForTranslation(false);
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_pb_reset_clicked()
+{
+    emit askForTranslation(true);
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_pb_grey_clicked()
+{
+    emit setGradient(ui->cb_intensity->isChecked(), "grey", ui->hs_min->value(), ui->hs_max->value());
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_pb_hot_clicked()
+{
+    emit setGradient(ui->cb_intensity->isChecked(), "hot", ui->hs_min->value(), ui->hs_max->value());
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_pb_rainbow_clicked()
+{
+    emit setGradient(ui->cb_intensity->isChecked(), "rainbow", ui->hs_min->value(), ui->hs_max->value());
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_pb_hsv_clicked()
+{
+    emit setGradient(ui->cb_intensity->isChecked(), "hsv", ui->hs_min->value(), ui->hs_max->value());
+
 }
