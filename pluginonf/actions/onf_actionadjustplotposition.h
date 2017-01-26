@@ -29,6 +29,7 @@
 #include "views/actions/onf_actionadjustplotpositionoptions.h"
 #include "ct_actions/abstract/ct_abstractactionforgraphicsview.h"
 #include "ct_itemdrawable/ct_cylinder.h"
+#include "ct_itemdrawable/ct_standarditemgroup.h"
 #include "ct_itemdrawable/abstract/ct_abstractitemdrawablewithpointcloud.h"
 #include "ctliblas/itemdrawable/las/ct_stdlaspointsattributescontainer.h"
 #include "ct_result/abstract/ct_abstractresult.h"
@@ -48,18 +49,22 @@ public:
         _y = 0;
         _dbh = 0;
         _height = 0;
+        _trueheight = 0;
         _idPlot = "";
         _idTree = "";
         _cyl = NULL;
+        _grp = NULL;
     }
 
     double           _x;
     double           _y;
     float            _dbh;
     float            _height;
+    float            _trueheight;
     QString          _idPlot;
     QString          _idTree;
     CT_Cylinder*     _cyl;
+    CT_StandardItemGroup* _grp;
 };
 
 class ONF_ActionAdjustPlotPosition_dataContainer

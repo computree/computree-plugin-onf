@@ -123,10 +123,12 @@ void ONF_StepAdjustPlotPosition::createOutResultModelListProtected()
     if(res != NULL)
     {
         res->addItemModel(DEFin_grp, _outCircleModelName, new CT_Circle2D(), tr("Arbre déplacé"));
-        res->addItemAttributeModel(_outCircleModelName, _outDBHAttModelName, new CT_StdItemAttributeT<float>(CT_AbstractCategory::DATA_VALUE), tr("DBH"));
-        res->addItemAttributeModel(_outCircleModelName, _outHeightAttModelName, new CT_StdItemAttributeT<float>(CT_AbstractCategory::DATA_VALUE), tr("Height"));
-        res->addItemAttributeModel(_outCircleModelName, _outPlotIDAttModelName, new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_ID), tr("IDtree"));
-        res->addItemAttributeModel(_outCircleModelName, _outTreeIDAttModelName, new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_ID), tr("IDplot"));
+        res->addItemAttributeModel(_outCircleModelName, _outDBHAttModelName, new CT_StdItemAttributeT<float>(CT_AbstractCategory::DATA_NUMBER), tr("DBH"));
+        res->addItemAttributeModel(_outCircleModelName, _outHeightAttModelName, new CT_StdItemAttributeT<float>(CT_AbstractCategory::DATA_NUMBER), tr("Height"));
+        res->addItemAttributeModel(_outCircleModelName, _outPlotIDAttModelName, new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_ID), tr("IDplot"));
+        res->addItemAttributeModel(_outCircleModelName, _outTreeIDAttModelName, new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_ID), tr("IDtree"));
+        res->addItemAttributeModel(_outCircleModelName, _outTransXAttModelName, new CT_StdItemAttributeT<float>(CT_AbstractCategory::DATA_NUMBER), tr("TransX"));
+        res->addItemAttributeModel(_outCircleModelName, _outTransYAttModelName, new CT_StdItemAttributeT<float>(CT_AbstractCategory::DATA_NUMBER), tr("TransY"));
     }
 }
 
@@ -173,24 +175,47 @@ void ONF_StepAdjustPlotPosition::compute()
 
             CT_AbstractItemAttribute* att = circle->firstItemAttributeByINModelName(resOut_positions, this, DEFin_refDbh);
             if (att != NULL) {treePos->_dbh = att->toFloat(circle, NULL);}
-            if (treePos->_dbh <= 0) {treePos->_dbh = 0.075;}
+            if (treePos->_dbh <= 0) {treePos->_dbh = 7.5;}
 
             att = circle->firstItemAttributeByINModelName(resOut_positions, this, DEFin_refHeight);
             if (att != NULL) {treePos->_height = att->toFloat(circle, NULL);}
+            treePos->_trueheight = treePos->_height;
             if (treePos->_height <= 0) {treePos->_height = 5.0;}
 
             att = circle->firstItemAttributeByINModelName(resOut_positions, this, DEFin_refID);
-            if (att != NULL) {treePos->_idTree = att->toFloat(circle, NULL);}
+            if (att != NULL) {treePos->_idTree = att->toString(circle, NULL);}
 
             att = circle->firstItemAttributeByINModelName(resOut_positions, this, DEFin_refIDplot);
-            if (att != NULL) {treePos->_idPlot = att->toFloat(circle, NULL);}
+            if (att != NULL) {treePos->_idPlot = att->toString(circle, NULL);}
 
             _dataContainer->_positions.append(treePos);
+            treePos->_grp = grp;
         }
     }
 
     requestManualMode();
     _m_status = 1;
+
+    double transX = _dataContainer->_transX;
+    double transY = _dataContainer->_transY;
+
+    for (int i = 0 ; i < _dataContainer->_positions.size() ; i++)
+    {
+        ONF_ActionAdjustPlotPosition_treePosition* treePos = _dataContainer->_positions.at(i);
+
+        if (treePos->_grp != NULL)
+        {
+            CT_Circle2D* circle = new CT_Circle2D(_outCircleModelName.completeName(), resOut_positions, new CT_Circle2DData(Eigen::Vector2d(treePos->_x + transX, treePos->_y + transY), treePos->_dbh / 200.0));
+            circle->addItemAttribute(new CT_StdItemAttributeT<float>(_outDBHAttModelName.completeName(), CT_AbstractCategory::DATA_NUMBER, resOut_positions, treePos->_dbh));
+            circle->addItemAttribute(new CT_StdItemAttributeT<float>(_outHeightAttModelName.completeName(), CT_AbstractCategory::DATA_NUMBER, resOut_positions, treePos->_trueheight));
+            circle->addItemAttribute(new CT_StdItemAttributeT<QString>(_outPlotIDAttModelName.completeName(), CT_AbstractCategory::DATA_ID, resOut_positions, treePos->_idPlot));
+            circle->addItemAttribute(new CT_StdItemAttributeT<QString>(_outTreeIDAttModelName.completeName(), CT_AbstractCategory::DATA_ID, resOut_positions, treePos->_idTree));
+            circle->addItemAttribute(new CT_StdItemAttributeT<float>(_outTransXAttModelName.completeName(), CT_AbstractCategory::DATA_NUMBER, resOut_positions, transX));
+            circle->addItemAttribute(new CT_StdItemAttributeT<float>(_outTransYAttModelName.completeName(), CT_AbstractCategory::DATA_NUMBER, resOut_positions, transY));
+
+            treePos->_grp->addItemDrawable(circle);
+        }
+    }
 
 
     requestManualMode();

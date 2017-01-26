@@ -105,6 +105,8 @@ private:
     CT_AutoRenameModels     _outHeightAttModelName;
     CT_AutoRenameModels     _outPlotIDAttModelName;
     CT_AutoRenameModels     _outTreeIDAttModelName;
+    CT_AutoRenameModels     _outTransXAttModelName;
+    CT_AutoRenameModels     _outTransYAttModelName;
 
 
 
