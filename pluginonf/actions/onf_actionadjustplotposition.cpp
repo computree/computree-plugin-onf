@@ -145,6 +145,7 @@ void ONF_ActionAdjustPlotPosition::init()
                                                                                pos->_height));
             cyl->setBaseDrawManager(_drawManager);
             _cylinders.append(cyl);
+            pos->_cyl = cyl;
         }
 
         _minZ = std::numeric_limits<double>::max();

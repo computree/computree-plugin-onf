@@ -50,6 +50,7 @@ public:
         _height = 0;
         _idPlot = "";
         _idTree = "";
+        _cyl = NULL;
     }
 
     double           _x;
@@ -58,6 +59,7 @@ public:
     float            _height;
     QString          _idPlot;
     QString          _idTree;
+    CT_Cylinder*     _cyl;
 };
 
 class ONF_ActionAdjustPlotPosition_dataContainer
