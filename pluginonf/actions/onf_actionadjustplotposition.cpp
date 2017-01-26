@@ -311,14 +311,19 @@ bool ONF_ActionAdjustPlotPosition::mousePressEvent(QMouseEvent *e)
 {
     ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
 
-    if ((e->modifiers() & Qt::ControlModifier) || (e->modifiers()  & Qt::ShiftModifier))
+    if (e->buttons() & Qt::LeftButton)
     {
-        if (e->buttons() & Qt::LeftButton)
+        if (e->modifiers()  & Qt::ShiftModifier)
         {
-            //update();
-            return true;
-        } else if (e->buttons() & Qt::RightButton)
-        {
+            GraphicsViewInterface* graphInterface = dynamic_cast<GraphicsViewInterface*>(document()->views().first());
+
+            bool found = false;
+            Eigen::Vector3d point = graphInterface->pointUnderPixel(e->pos(), found);
+
+            if (found)
+            {
+                ONF_ActionAdjustPlotPosition_treePosition* pos = getPositionFromPoint(point);
+            }
             //update();
             return true;
         }
@@ -401,3 +406,24 @@ CT_AbstractAction* ONF_ActionAdjustPlotPosition::copy() const
 {
     return new ONF_ActionAdjustPlotPosition(_dataContainer);
 }
+
+ONF_ActionAdjustPlotPosition_treePosition* ONF_ActionAdjustPlotPosition::getPositionFromPoint(Eigen::Vector3d &point)
+{
+    double minDist = std::numeric_limits<double>::max();
+    ONF_ActionAdjustPlotPosition_treePosition* pos = NULL;
+    for (int i = 0 ; i < _dataContainer->_positions.size() ; i++)
+    {
+        ONF_ActionAdjustPlotPosition_treePosition* treePos = _dataContainer->_positions.at(i);
+        double x = treePos->_x + _dataContainer->_transX;
+        double y = treePos->_y + _dataContainer->_transY;
+
+        double distance = sqrt(pow(x - point(0), 2) + pow(y - point(1), 2));
+        if (distance  < minDist)
+        {
+            minDist = distance;
+            pos = treePos;
+        }
+    }
+    return pos;
+}
+

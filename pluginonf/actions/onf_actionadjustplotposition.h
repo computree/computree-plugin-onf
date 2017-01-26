@@ -126,7 +126,8 @@ private:
     bool   _colorizeByIntensity;
 
 
-    void colorizePoints(ONF_ColorLinearInterpolator &gradient, int min, int max);
+    void colorizePoints(ONF_ColorLinearInterpolator &gradient, int min, int max);    
+    ONF_ActionAdjustPlotPosition_treePosition* getPositionFromPoint(Eigen::Vector3d &point);
 
 private slots:
     void redrawOverlay();
