@@ -30,6 +30,8 @@
 
 #include "ct_step/abstract/ct_abstractstep.h"
 #include "ct_tools/model/ct_autorenamemodels.h"
+#include "ct_itemdrawable/ct_scene.h"
+#include "ct_itemdrawable/ct_image2d.h"
 
 
 class ONF_StepRemoveUpperNoise : public CT_AbstractStep
@@ -65,6 +67,8 @@ public:
      */
     CT_VirtualAbstractStep* createNewInstance(CT_StepInitializeData &dataInit);
 
+    CT_Image2D<float> *getFilteredPointIndices(CT_AbstractItemDrawableWithPointCloud *in_scene, double offset, double progressVal, double progressOffset);
+    
 protected:
 
     /*! \brief Input results specification

@@ -40,9 +40,7 @@
 #include "ct_iterator/ct_resultgroupiterator.h"
 
 #include "ct_result/ct_resultgroup.h"
-#include "ct_itemdrawable/ct_scene.h"
 #include "ct_itemdrawable/ct_grid3d_sparse.h"
-#include "ct_itemdrawable/ct_image2d.h"
 
 #include "ct_pointcloudindex/ct_pointcloudindexvector.h"
 #include "ct_view/ct_stepconfigurabledialog.h"
@@ -64,10 +62,10 @@
 
 ONF_StepRemoveUpperNoise::ONF_StepRemoveUpperNoise(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
-    _resolution = 2.0;
+    _resolution = 5.0;
     _threshold = 1;
-    _thresholdValid = 100;
-    _length = 3.0;
+    _thresholdValid = 5;
+    _length = 5.0;
 }
 
 QString ONF_StepRemoveUpperNoise::getStepDescription() const
@@ -118,6 +116,69 @@ void ONF_StepRemoveUpperNoise::createPostConfigurationDialog()
     configDialog->addDouble(tr("Maximum gap length:"), "m", 0, 10000, 2, _length);
 }
 
+CT_Image2D<float>* ONF_StepRemoveUpperNoise::getFilteredPointIndices(CT_AbstractItemDrawableWithPointCloud *in_scene, double offset, double progressVal, double progressOffset)
+{
+    double demiProgressVal = progressVal / 2.0;
+
+    // Réupération de la liste de points du nuage
+    const CT_AbstractPointCloudIndex* pointCloudIndexVector = in_scene->getPointCloudIndex();
+
+    CT_PointIterator itP(pointCloudIndexVector);
+    size_t n_points = itP.size(); // nombre de points du nuage
+
+    CT_Grid3D_Sparse<int>* densityGrd = CT_Grid3D_Sparse<int>::createGrid3DFromXYZCoords(NULL, NULL, in_scene->minX() - offset, in_scene->minY() - offset, in_scene->minZ() - offset, in_scene->maxX()+_resolution, in_scene->maxY()+_resolution, in_scene->maxZ()+_resolution, _resolution, -1, 0);
+
+    // Boucle sur les points
+    int i = 0;
+    while(itP.hasNext() && !isStopped())
+    {
+        itP.next(); // point suivant
+        const CT_Point &point = itP.currentPoint(); // accès aux coordonnées du points, sous forme de référence constante
+
+        densityGrd->addValueAtXYZ(point(0), point(1), point(2), 1);
+        ++i;
+        // Mise à jour de la barre de progression
+        setProgress(progressOffset + demiProgressVal * i / n_points);
+    }
+
+    CT_Image2D<float>* safeMaxHeight = new CT_Image2D<float>(NULL, NULL, densityGrd->minX(), densityGrd->minY(), densityGrd->xdim(), densityGrd->ydim(), _resolution, 0, NAN, in_scene->minZ());
+
+    for (size_t x = 0 ; x < densityGrd->xdim() ; x++)
+    {
+        for (size_t y = 0 ; y < densityGrd->ydim() ; y++)
+        {
+            size_t safez = 0;
+            for (size_t z = 0 ; z < densityGrd->zdim() ; z++)
+            {
+                int density = densityGrd->value(x, y, z);
+                if (density >= _thresholdValid) {safez = z;}
+                //if (safez == 0 && density > _threshold) {safez = z;}
+            }
+
+            float safeHeight = densityGrd->getCellCenterZ(safez) + _resolution / 2.0;
+
+            for (size_t z = safez + 1 ; z < densityGrd->zdim() ; z++)
+            {
+                int density = densityGrd->value(x, y, z);
+                safeHeight = densityGrd->getCellCenterZ(safez) + _resolution / 2.0;
+                float newHeight = densityGrd->getCellCenterZ(z) + _resolution / 2.0;
+
+                if ((newHeight - safeHeight) < _length && density >= _threshold)
+                {
+                    safez = z;
+                    safeHeight = newHeight;
+                }
+            }
+
+            safeMaxHeight->setValueAtCoords(densityGrd->getCellCenterX(x), densityGrd->getCellCenterY(y), safeHeight);
+        }
+    }
+
+    delete densityGrd;
+
+    return safeMaxHeight;
+}
+
 void ONF_StepRemoveUpperNoise::compute()
 {
 
@@ -138,88 +199,39 @@ void ONF_StepRemoveUpperNoise::compute()
 
         if (in_scene != NULL) // on vérifie que ça existe
         {
-            // Réupération de la liste de points du nuage
             const CT_AbstractPointCloudIndex* pointCloudIndexVector = in_scene->getPointCloudIndex();
-
-            // Création d'un itérateur sur les points du nuage
-            CT_PointIterator itP(pointCloudIndexVector);
-            size_t n_points = itP.size(); // nombre de points du nuage
-
+            size_t n_points = pointCloudIndexVector->size(); // nombre de points du nuage
             PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("La scène d'entrée comporte %1 points.")).arg(n_points));
 
-            CT_Grid3D_Sparse<int>* densityGrd = CT_Grid3D_Sparse<int>::createGrid3DFromXYZCoords(NULL, NULL, in_scene->minX(), in_scene->minY(), in_scene->minZ(), in_scene->maxX()+_resolution, in_scene->maxY()+_resolution, in_scene->maxZ()+_resolution, _resolution, -1, 0);
-
-            // Boucle sur les poi;ts
-            int i = 0;
-            while(itP.hasNext() && !isStopped())
-            {
-                itP.next(); // point suivant
-                const CT_Point &point = itP.currentPoint(); // accès aux coordonnées du points, sous forme de référence constante
-
-                densityGrd->addValueAtXYZ(point(0), point(1), point(2), 1);
-                ++i;
-                // Mise à jour de la barre de progression
-                setProgress(50 * i / n_points);
-            }
-
-            CT_Image2D<float>* safeMaxHeight = new CT_Image2D<float>(NULL, NULL, densityGrd->minX(), densityGrd->minY(), densityGrd->xdim(), densityGrd->ydim(), _resolution, 0, NAN, in_scene->minZ());
-
-            for (size_t x = 0 ; x < densityGrd->xdim() ; x++)
-            {
-                for (size_t y = 0 ; y < densityGrd->ydim() ; y++)
-                {
-                    size_t safez = 0;
-                    for (size_t z = 0 ; z < densityGrd->zdim() ; z++)
-                    {
-                        int density = densityGrd->value(x, y, z);
-                        if (density >= _thresholdValid) {safez = z;}
-                        //if (safez == 0 && density > _threshold) {safez = z;}
-                    }
-
-                    float safeHeight = densityGrd->getCellCenterZ(safez) + _resolution / 2.0;
-
-                    for (size_t z = safez + 1 ; z < densityGrd->zdim() ; z++)
-                    {
-                        int density = densityGrd->value(x, y, z);
-                        safeHeight = densityGrd->getCellCenterZ(safez) + _resolution / 2.0;
-                        float newHeight = densityGrd->getCellCenterZ(z) + _resolution / 2.0;
-
-                        if ((newHeight - safeHeight) < _length && density >= _threshold)
-                        {
-                            safez = z;
-                            safeHeight = newHeight;
-                        }
-                    }
-
-                    safeMaxHeight->setValueAtCoords(densityGrd->getCellCenterX(x), densityGrd->getCellCenterY(y), safeHeight);
-                }
-            }
-
+            // Détermination des points à filter
+            // Deux fois pour eviter les effets de seuils en bords de voxels
+            CT_Image2D<float>* safeMaxHeight1 = getFilteredPointIndices(in_scene, 0, 20.0, 0.0);
+            CT_Image2D<float>* safeMaxHeight2 = getFilteredPointIndices(in_scene, _resolution / 2.0, 20.0, 21.0);
 
             // Création du nuage de points pour la scène de sortie
             CT_PointCloudIndexVector *resPointCloudIndex = new CT_PointCloudIndexVector();
             resPointCloudIndex->setSortType(CT_AbstractCloudIndex::NotSorted);
 
-            i = 0;
-            CT_PointIterator itP2(pointCloudIndexVector);
-            while(itP2.hasNext() && !isStopped())
+            size_t i = 0;
+            CT_PointIterator itP(pointCloudIndexVector);
+            while(itP.hasNext() && !isStopped())
             {
-                itP2.next(); // point suivant
-                const CT_Point &point = itP2.currentPoint(); // accès aux coordonnées du points, sous forme de référence constante
-                size_t pointIndex = itP2.cIndex(); // Accès à l'indice du points (dans le dépôt)
+                itP.next(); // point suivant
+                const CT_Point &point = itP.currentPoint();
 
-                if (point(2) <= safeMaxHeight->valueAtCoords(point(0), point(1)))
+                if (point(2) <= safeMaxHeight1->valueAtCoords(point(0), point(1)) || point(2) <= safeMaxHeight2->valueAtCoords(point(0), point(1)))
                 {
+                    size_t pointIndex = itP.cIndex();
                     resPointCloudIndex->addIndex(pointIndex);
                 }
 
                 ++i;
                 // Mise à jour de la barre de progression
-                setProgress(50 + 40 * i / n_points);
+                setProgress(41 + 50 * i / n_points);
             }
 
-            delete densityGrd;
-            delete safeMaxHeight;
+            delete safeMaxHeight1;
+            delete safeMaxHeight2;
 
             if (resPointCloudIndex->size() > 0)
             {
@@ -234,6 +246,7 @@ void ONF_StepRemoveUpperNoise::compute()
                 grp->addItemDrawable(outScene);
 
                 PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("La scène de densité réduite comporte %1 points.")).arg(outScene->getPointCloudIndex()->size()));
+                PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("Nombre de points filtrés : %1")).arg(n_points - outScene->getPointCloudIndex()->size()));
             } else {
 
                 PS_LOG->addMessage(LogInterface::info, LogInterface::step, tr("Aucun point conservé pour cette scène"));

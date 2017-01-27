@@ -56,27 +56,39 @@ public:
         _grp = NULL;
     }
 
-    double           _x;
-    double           _y;
-    float            _dbh;
-    float            _height;
-    float            _trueheight;
-    QString          _idPlot;
-    QString          _idTree;
-    CT_Cylinder*     _cyl;
-    CT_StandardItemGroup* _grp;
+    ~ONF_ActionAdjustPlotPosition_treePosition()
+    {
+        _cyl = NULL;
+        _grp = NULL;
+    }
+
+    double                  _x;
+    double                  _y;
+    float                   _dbh;
+    float                   _height;
+    float                   _trueheight;
+    QString                 _idPlot;
+    QString                 _idTree;
+    CT_Cylinder*            _cyl;
+    CT_StandardItemGroup*   _grp;
 };
 
 class ONF_ActionAdjustPlotPosition_dataContainer
 {
 public:
     ONF_ActionAdjustPlotPosition_dataContainer();
+    ~ONF_ActionAdjustPlotPosition_dataContainer()
+    {
+        _positions.clear();
+        _scenes.clear();
+        _LASattributes.clear();
+    }
 
-    QList<ONF_ActionAdjustPlotPosition_treePosition*> _positions;
-    QList<CT_AbstractItemDrawable*>     _scenes;
-    QList<CT_StdLASPointsAttributesContainer*>        _LASattributes;
-    double              _transX;
-    double              _transY;
+    QList<ONF_ActionAdjustPlotPosition_treePosition*>   _positions;
+    QList<CT_AbstractItemDrawable*>                     _scenes;
+    QList<CT_StdLASPointsAttributesContainer*>          _LASattributes;
+    double                                              _transX;
+    double                                              _transY;
 };
 
 class ONF_ActionAdjustPlotPosition : public CT_AbstractActionForGraphicsView
@@ -141,10 +153,10 @@ private:
     double _rangeI;
     bool   _colorizeByIntensity;
 
-    Qt::MouseButtons  _buttonsPressed;
-    QPoint            _lastPos;
-    ONF_ActionAdjustPlotPosition_treePosition*   _selectedPos;
-    Eigen::Vector3d                              _currentPoint;
+    Qt::MouseButtons                                _buttonsPressed;
+    QPoint                                          _lastPos;
+    ONF_ActionAdjustPlotPosition_treePosition*      _selectedPos;
+    Eigen::Vector3d                                 _currentPoint;
 
 
     void colorizePoints(ONF_ColorLinearInterpolator &gradient, int min, int max);    

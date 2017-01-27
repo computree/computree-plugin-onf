@@ -62,7 +62,7 @@
 // Constructor : initialization of parameters
 ONF_StepAdjustPlotPosition::ONF_StepAdjustPlotPosition(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
-    _dataContainer = new ONF_ActionAdjustPlotPosition_dataContainer();
+    _dataContainer = NULL;
 
     setManual(true);
 
@@ -72,7 +72,6 @@ ONF_StepAdjustPlotPosition::ONF_StepAdjustPlotPosition(CT_StepInitializeData &da
 
 ONF_StepAdjustPlotPosition::~ONF_StepAdjustPlotPosition()
 {
-    delete _dataContainer;
 }
 
 // Step description (tooltip of contextual menu)
@@ -139,6 +138,8 @@ void ONF_StepAdjustPlotPosition::createPostConfigurationDialog()
 
 void ONF_StepAdjustPlotPosition::compute()
 {
+    _dataContainer = new ONF_ActionAdjustPlotPosition_dataContainer();
+
     _m_status = 0;
     QList<CT_ResultGroup*> inResultList = getInputResults();
     CT_ResultGroup* resIn_scene = inResultList.at(1);
@@ -215,8 +216,11 @@ void ONF_StepAdjustPlotPosition::compute()
 
             treePos->_grp->addItemDrawable(circle);
         }
+
+        delete treePos;
     }
 
+    delete _dataContainer;
 
     requestManualMode();
 }

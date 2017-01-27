@@ -42,6 +42,7 @@
 
 // Alias for indexing models
 #define DEFout_refRes "refRes"
+#define DEFout_grpPlot "grpPlot"
 #define DEFout_grpRef "grpRef"
 #define DEFout_ref "ref"
 #define DEFout_refDbh "refval"
@@ -151,8 +152,9 @@ void ONF_StepLoadTreeMap::createInResultModelListProtected()
 void ONF_StepLoadTreeMap::createOutResultModelListProtected()
 {
     CT_OutResultModelGroup *res_refRes = createNewOutResultModel(DEFout_refRes, tr("Positions de référence"));
-    res_refRes->setRootGroup(DEFout_grpRef, new CT_StandardItemGroup(), tr("Groupe"));
-    res_refRes->addItemModel(DEFout_grpRef, DEFout_ref, new CT_Circle2D(), tr("Position de référence"));
+    res_refRes->setRootGroup(DEFout_grpPlot, new CT_StandardItemGroup(), tr("Plot"));
+    res_refRes->addGroupModel(DEFout_grpPlot, DEFout_grpRef, new CT_StandardItemGroup(), tr("Tree"));
+    res_refRes->addItemModel(DEFout_grpRef, DEFout_ref, new CT_Circle2D(), tr("Position"));
     res_refRes->addItemAttributeModel(DEFout_ref, DEFout_refDbh, new CT_StdItemAttributeT<float>(CT_AbstractCategory::DATA_NUMBER), tr("DBH"));
     res_refRes->addItemAttributeModel(DEFout_ref, DEFout_refHeight, new CT_StdItemAttributeT<float>(CT_AbstractCategory::DATA_NUMBER), tr("Height"));
     res_refRes->addItemAttributeModel(DEFout_ref, DEFout_refID, new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_ID), tr("IDtree"));
@@ -235,7 +237,9 @@ void ONF_StepLoadTreeMap::compute()
 
 
     QList<CT_ResultGroup*> outResultList = getOutResultList();
-    CT_ResultGroup* res_refRes = outResultList.at(0);
+    CT_ResultGroup* resOut = outResultList.at(0);
+    CT_StandardItemGroup* grp_Plot= new CT_StandardItemGroup(DEFout_grpPlot, resOut);
+    resOut->addGroup(grp_Plot);
 
     PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("Placette en cours de traitement : %1")).arg(_plotID));
 
@@ -307,16 +311,16 @@ void ONF_StepLoadTreeMap::compute()
 
                             if (okX && okY && okVal)
                             {
-                                CT_StandardItemGroup* grp_grpRef= new CT_StandardItemGroup(DEFout_grpRef, res_refRes);
-                                res_refRes->addGroup(grp_grpRef);
+                                CT_StandardItemGroup* grp_Tree= new CT_StandardItemGroup(DEFout_grpRef, resOut);
+                                grp_Plot->addGroup(grp_Tree);
 
-                                CT_Circle2D* item_ref = new CT_Circle2D(DEFout_ref, res_refRes, new CT_Circle2DData(Eigen::Vector2d(x,y), val/200.0));
-                                grp_grpRef->addItemDrawable(item_ref);
+                                CT_Circle2D* item_ref = new CT_Circle2D(DEFout_ref, resOut, new CT_Circle2DData(Eigen::Vector2d(x,y), val/200.0));
+                                grp_Tree->addItemDrawable(item_ref);
 
-                                item_ref->addItemAttribute(new CT_StdItemAttributeT<float>(DEFout_refDbh, CT_AbstractCategory::DATA_NUMBER, res_refRes, val));
-                                item_ref->addItemAttribute(new CT_StdItemAttributeT<float>(DEFout_refHeight, CT_AbstractCategory::DATA_NUMBER, res_refRes, height));
-                                item_ref->addItemAttribute(new CT_StdItemAttributeT<QString>(DEFout_refID, CT_AbstractCategory::DATA_ID, res_refRes, id));
-                                item_ref->addItemAttribute(new CT_StdItemAttributeT<QString>(DEFout_refIDplot, CT_AbstractCategory::DATA_ID, res_refRes, plot));
+                                item_ref->addItemAttribute(new CT_StdItemAttributeT<float>(DEFout_refDbh, CT_AbstractCategory::DATA_NUMBER, resOut, val));
+                                item_ref->addItemAttribute(new CT_StdItemAttributeT<float>(DEFout_refHeight, CT_AbstractCategory::DATA_NUMBER, resOut, height));
+                                item_ref->addItemAttribute(new CT_StdItemAttributeT<QString>(DEFout_refID, CT_AbstractCategory::DATA_ID, resOut, id));
+                                item_ref->addItemAttribute(new CT_StdItemAttributeT<QString>(DEFout_refIDplot, CT_AbstractCategory::DATA_ID, resOut, plot));
                             } else {
                                 PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("Ligne %1 du fichier REF non valide")).arg(cpt));
                             }
