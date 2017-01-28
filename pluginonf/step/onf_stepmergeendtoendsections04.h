@@ -66,6 +66,8 @@ public:
      */
     QString getStepDetailledDescription() const;
 
+    QStringList getStepRISCitations() const;
+
     /*! \brief Step copy
      *
      * Step copy, used when a step is added by step contextual menu

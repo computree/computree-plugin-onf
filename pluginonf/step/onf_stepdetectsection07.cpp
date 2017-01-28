@@ -25,6 +25,8 @@
 
 #include "onf_stepdetectsection07.h"
 
+#include "tools/onf_citations.h"
+
 #include "ct_itemdrawable/model/outModel/ct_outstdgroupmodel.h"
 
 #include "ct_result/model/inModel/ct_inresultmodelgroup.h"
@@ -81,6 +83,12 @@ QString ONF_StepDetectSection07::getStepDetailledDescription() const
               "</ul>"
               "N.B. : Les clusters ayant la plus grande boite englobante XY sont prioritaires.");
 }
+
+QStringList ONF_StepDetectSection07::getStepRISCitations() const
+{
+    return QStringList() << ONF_citations::citation()._citationOthmaniEtAl2001;
+}
+
 
 CT_VirtualAbstractStep* ONF_StepDetectSection07::createNewInstance(CT_StepInitializeData &dataInit)
 {

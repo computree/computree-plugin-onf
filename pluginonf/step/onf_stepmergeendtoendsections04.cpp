@@ -27,6 +27,7 @@
 #include "step/onf_stepchangeclusterthickness02.h"
 #include "step/onf_steprefpointfrombarycenter02.h"
 
+#include "tools/onf_citations.h"
 
 #include "ct_result/ct_resultgroup.h"
 
@@ -74,6 +75,12 @@ QString ONF_StepMergeEndToEndSections04::getStepDetailledDescription() const
 {
     return tr("No detailled description for this step");
 }
+
+QStringList ONF_StepMergeEndToEndSections04::getStepRISCitations() const
+{
+    return QStringList() << ONF_citations::citation()._citationOthmaniEtAl2001;
+}
+
 
 CT_VirtualAbstractStep* ONF_StepMergeEndToEndSections04::createNewInstance(CT_StepInitializeData &dataInit)
 {

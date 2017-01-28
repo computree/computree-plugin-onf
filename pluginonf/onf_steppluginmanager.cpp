@@ -140,6 +140,17 @@ ONF_StepPluginManager::ONF_StepPluginManager() : CT_AbstractStepPlugin()
 
     // défini le chemin vers le fichier
     _logListener->setFilePath("log_onf.log");
+
+    _citationOthmaniEtAl2001 = "TY  - CONF\n"
+                               "T1  - Towards automated and operational forest inventories with T-Lidar\n"
+                               "A1  - Othmani, Ahlem\n"
+                               "A1  - Piboule, Alexandre\n"
+                               "A1  - Krebs, M\n"
+                               "A1  - Stolz, C\n"
+                               "A1  - Voon, LFC Lew Yan\n"
+                               "JO  - 11th International Conference on LiDAR Applications for Assessing Forest Ecosystems (SilviLaser 2011)\n"
+                               "Y1  - 2011"
+                               "ER  - \n";
 }
 
 ONF_StepPluginManager::~ONF_StepPluginManager()
@@ -152,14 +163,15 @@ QString ONF_StepPluginManager::getPluginOfficialName() const
     return "ONF";
 }
 
-QString ONF_StepPluginManager::getPluginBibTexCitation() const
+QString ONF_StepPluginManager::getPluginRISCitation() const
 {
-    return "@misc{plugONF,"
-           "title={Plugin ONF for Computree},"
-           "author={Alexandre Piboule},"
-           "organization = {ONF RDI Department},"
-           "year={2017},"
-           "url = {http://rdinnovation.onf.fr/projects/plugin-onf}}";
+    return "TY  - COMP\n"
+           "TI  - Plugin ONF for Computree\n"
+           "AU  - Piboule, Alexandre\n"
+           "PB  - ONF RDI Department\n"
+           "PY  - 2017\n"
+           "UR  - http://rdinnovation.onf.fr/projects/plugin-onf\n"
+           "ER  - \n";
 }
 
 

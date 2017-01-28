@@ -38,10 +38,12 @@ public:
 
     QString getPluginURL() const {return QString("http://rdinnovation.onf.fr/projects/plugin-onf/wiki");}
     virtual QString getPluginOfficialName() const;
-    virtual QString getPluginBibTexCitation() const;
+    virtual QString getPluginRISCitation() const;
 
 
     virtual bool init();
+
+    QString _citationOthmaniEtAl2001;
 
 protected:
 

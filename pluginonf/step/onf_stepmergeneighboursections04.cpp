@@ -27,6 +27,7 @@
 #include "step/onf_stepchangeclusterthickness02.h"
 #include "step/onf_steprefpointfrombarycenter02.h"
 
+#include "tools/onf_citations.h"
 
 #include "ct_result/ct_resultgroup.h"
 #include "ct_result/model/inModel/ct_inresultmodelgroup.h"
@@ -105,6 +106,11 @@ QString ONF_StepMergeNeighbourSections04::getStepDetailledDescription() const
               "</ul>"
               "En cas de fusion, les clusters et les barycentres sont recréés à partir de tous les points des deux billons sources pour former une nouvelle billon C.<br>"
               "La billon C devient la de facto la plus longue : elle est donc aussitôt utilisée dans l'itération suivant dans la comparaison avec la prochaine billon (plus petite) de la liste.");
+}
+
+QStringList ONF_StepMergeNeighbourSections04::getStepRISCitations() const
+{
+    return QStringList() << ONF_citations::citation()._citationOthmaniEtAl2001;
 }
 
 CT_VirtualAbstractStep* ONF_StepMergeNeighbourSections04::createNewInstance(CT_StepInitializeData &dataInit)

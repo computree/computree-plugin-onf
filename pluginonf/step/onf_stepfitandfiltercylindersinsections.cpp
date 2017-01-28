@@ -25,6 +25,8 @@
 
 #include "onf_stepfitandfiltercylindersinsections.h"
 
+#include "tools/onf_citations.h"
+
 #include "ct_result/model/inModel/ct_inresultmodelgrouptocopy.h"
 #include "ct_result/model/outModel/tools/ct_outresultmodelgrouptocopypossibilities.h"
 
@@ -81,6 +83,12 @@ QString ONF_StepFitAndFilterCylindersInSections::getStepDetailledDescription() c
 {
     return tr("No detailled description for this step");
 }
+
+QStringList ONF_StepFitAndFilterCylindersInSections::getStepRISCitations() const
+{
+    return QStringList() << ONF_citations::citation()._citationOthmaniEtAl2001;
+}
+
 
 CT_VirtualAbstractStep* ONF_StepFitAndFilterCylindersInSections::createNewInstance(CT_StepInitializeData &dataInit)
 {
