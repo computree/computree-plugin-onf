@@ -168,7 +168,7 @@ QString ONF_StepPluginManager::getPluginRISCitation() const
     return "TY  - COMP\n"
            "TI  - Plugin ONF for Computree\n"
            "AU  - Piboule, Alexandre\n"
-           "PB  - ONF RDI Department\n"
+           "PB  - Office National des Forêts, RDI Department\n"
            "PY  - 2017\n"
            "UR  - http://rdinnovation.onf.fr/projects/plugin-onf\n"
            "ER  - \n";
