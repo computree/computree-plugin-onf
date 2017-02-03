@@ -509,6 +509,44 @@ void ONF_ActionAdjustPlotPosition::drawOverlay(GraphicsViewInterface &view, QPai
 {
     Q_UNUSED(view);
     Q_UNUSED(painter);
+
+    painter.save();
+
+    int add = painter.fontMetrics().height()+2;
+    int y = add;
+    QString txt;
+
+    if (_selectedPos != NULL)
+    {
+        painter.setPen(QColor(255,0,0,127));
+        txt = QString("Interactive mode");
+        painter.drawText(2, y, txt);
+        y += add;
+
+        painter.setPen(QColor(255,255,255,127));
+
+        txt = QString("Plot: %1 ; Tree: %2").arg(_selectedPos->_idPlot).arg(_selectedPos->_idTree);
+        painter.drawText(2, y, txt);
+        y += add;
+
+        txt = QString("DBH: %1 cm").arg(_selectedPos->_dbh);
+        painter.drawText(2, y, txt);
+        y += add;
+
+        txt = QString("  H: %1 m").arg(_selectedPos->_height);
+        painter.drawText(2, y, txt);
+    }
+
+    if (_currentPoint(0) < std::numeric_limits<double>::max())
+    {
+        painter.setPen(QColor(255,255,255,127));
+
+        txt = QString("Selected points: X=%1 ; Y=%2").arg(_currentPoint(0)).arg(_currentPoint(1));
+        painter.drawText(2, y, txt);
+        y += add;
+    }
+
+    painter.restore();
 }
 
 CT_AbstractAction* ONF_ActionAdjustPlotPosition::copy() const

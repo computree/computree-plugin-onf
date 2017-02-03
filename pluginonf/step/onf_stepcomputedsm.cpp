@@ -52,6 +52,7 @@
 #include <stdlib.h>
 #include <limits>
 
+
 #define DEF_SearchInResult   "ires"
 #define DEF_SearchInGroup   "igrp"
 #define DEF_SearchInMNT   "imnt"
@@ -62,6 +63,7 @@ ONF_StepComputeDSM::ONF_StepComputeDSM(CT_StepInitializeData &dataInit) : CT_Abs
     _interpol = true;
     _nCells = 10;
     _convertNA = true;
+
 }
 
 QString ONF_StepComputeDSM::getStepDescription() const

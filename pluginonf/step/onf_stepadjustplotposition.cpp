@@ -237,10 +237,10 @@ void ONF_StepAdjustPlotPosition::initManualMode()
         _m_doc->setCurrentAction(action, false);
     }
 
-    QMessageBox::information(NULL,
-                             tr("Mode manuel"),
-                             tr("Bienvenue dans le mode manuel de cette étape.\n"),
-                             QMessageBox::Ok);
+//    QMessageBox::information(NULL,
+//                             tr("Mode manuel"),
+//                             tr("Bienvenue dans le mode manuel de cette étape.\n"),
+//                             QMessageBox::Ok);
 }
 
 void ONF_StepAdjustPlotPosition::useManualMode(bool quit)
