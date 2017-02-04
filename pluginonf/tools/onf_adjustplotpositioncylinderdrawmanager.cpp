@@ -24,6 +24,7 @@ void ONF_AdjustPlotPositionCylinderDrawManager::draw(GraphicsViewInterface &view
     CT_StandardAbstractShapeDrawManager::draw(view, painter, itemDrawable);
 
     const CT_Cylinder &item = dynamic_cast<const CT_Cylinder&>(itemDrawable);
+    CT_Cylinder* cyl = (CT_Cylinder*) &item;
 
     Eigen::Vector3d center = item.getCenter();
     Eigen::Vector3d direction = item.getDirection();
@@ -46,6 +47,10 @@ void ONF_AdjustPlotPositionCylinderDrawManager::draw(GraphicsViewInterface &view
     if (&item == _selectedCylinder)
     {
         painter.setColor(_selectionColor);
+
+    } else if (_highlightedCylinders.contains(cyl))
+    {
+        painter.setColor(_highlightColor);
     } else {
         painter.setColor(_color);
     }
@@ -90,9 +95,20 @@ void ONF_AdjustPlotPositionCylinderDrawManager::setSelectionColor(QColor color)
     _selectionColor = color;
 }
 
+void ONF_AdjustPlotPositionCylinderDrawManager::setHighlightColor(QColor color)
+{
+    _highlightColor = color;
+}
+
 void ONF_AdjustPlotPositionCylinderDrawManager::setselectedCylinder(CT_Cylinder *selectedCylinder)
 {
     _selectedCylinder = selectedCylinder;
+}
+
+void ONF_AdjustPlotPositionCylinderDrawManager::setHighlightedCylinder(QList<CT_Cylinder *> selectedCylinder)
+{
+    _highlightedCylinders.clear();
+    _highlightedCylinders.append(selectedCylinder);
 }
 
 

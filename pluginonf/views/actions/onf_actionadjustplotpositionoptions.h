@@ -42,8 +42,11 @@ public:
     explicit ONF_ActionAdjustPlotPositionOptions(const ONF_ActionAdjustPlotPosition *action);
     ~ONF_ActionAdjustPlotPositionOptions();
 
+    void setTranslation(double dx, double dy);
     bool isFixedHeight() const;
     double fixedHeight() const;
+    double translationIncrement() const;
+    bool hidePointsOutsideLimits() const;
 
 private:
     Ui::ONF_ActionAdjustPlotPositionOptions *ui;
@@ -54,6 +57,7 @@ signals:
 
     void askForTranslation(bool reset);
     void setGradient(bool intensity, QString name, int min, int max);
+    void changeHighlightedNumber(int n);
 
 private slots:
     void on_pb_up_clicked();
@@ -72,6 +76,8 @@ private slots:
     void on_pb_hot_clicked();
     void on_pb_rainbow_clicked();
     void on_pb_hsv_clicked();
+    void on_sb_highlightedNumber_valueChanged(int arg1);
+    void on_cb_hidePoints_toggled(bool checked);
 };
 
 #endif // ONF_ACTIONADJUSTPLOTPOSITIONOPTIONS_H

@@ -49,12 +49,15 @@ ONF_ActionAdjustPlotPosition::ONF_ActionAdjustPlotPosition(ONF_ActionAdjustPlotP
     _dataContainer = dataContainer;
     _drawManager = new ONF_AdjustPlotPositionCylinderDrawManager(tr("Tree"));
     _selectedPos = NULL;
+    _movePlot = false;
 
-    _cylinderColor = QColor(0, 200, 255);
-    _selectedCylinderColor = QColor(0, 80, 255);
+    _cylinderColor = QColor(0, 100, 255);
+    _highlightedCylindersColor = QColor(0, 255, 255);
+    _selectedCylinderColor = QColor(255, 0, 255);
 
     _drawManager->setColor(_cylinderColor);
     _drawManager->setSelectionColor(_selectedCylinderColor);
+    _drawManager->setHighlightColor(_highlightedCylindersColor);
     _currentPoint(0) = std::numeric_limits<double>::max();
     _currentPoint(1) = std::numeric_limits<double>::max();
     _currentPoint(2) = std::numeric_limits<double>::max();
@@ -154,6 +157,7 @@ void ONF_ActionAdjustPlotPosition::init()
         connect(option, SIGNAL(colorizationChanged(bool, int, int)), this, SLOT(updateColorization(bool, int, int)));
         connect(option, SIGNAL(askForTranslation(bool)), this, SLOT(applyTranslation(bool)));
         connect(option, SIGNAL(setGradient(bool, QString, int, int)), this, SLOT(setGradient(bool, QString, int, int)));
+        connect(option, SIGNAL(changeHighlightedNumber(int)), this, SLOT(changeHighlightedNumber(int)));
 
         // register the option to the superclass, so the hideOptions and showOptions
         // is managed automatically
@@ -174,6 +178,8 @@ void ONF_ActionAdjustPlotPosition::init()
             pos->_cyl = cyl;
             //document()->addItemDrawable(*cyl);
         }
+
+        qSort(_cylinders.begin(), _cylinders.end(), ONF_ActionAdjustPlotPosition::lessThan);
 
         _minZ = std::numeric_limits<double>::max();
         _maxZ = -std::numeric_limits<double>::max();
@@ -227,7 +233,7 @@ void ONF_ActionAdjustPlotPosition::init()
 
         QColor col = Qt::black;
         view->getOptions().setBackgroudColor(col);
-        view->getOptions().setPointSize(2);
+        view->getOptions().setPointSize(1);
         view->validateOptions();
         view->camera()->setType(CameraInterface::ORTHOGRAPHIC);
 
@@ -236,17 +242,20 @@ void ONF_ActionAdjustPlotPosition::init()
         view->camera()->fitCameraToVisibleItems();
         view->camera()->setOrientation(0.2, 0, 0, 0.95);
         colorizePoints(_currentZGradient, 0, 100);
+
+        changeHighlightedNumber(6);
     }
 }
 
 void ONF_ActionAdjustPlotPosition::update(double x, double y, bool circles, bool fixedH, double h)
 {
-    //ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
+    ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
 
     _dataContainer->_transX += x;
     _dataContainer->_transY += y;
     _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
     _drawManager->setParameters(circles, fixedH, h);
+    option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
     redrawOverlayAnd3D();
 }
 
@@ -263,17 +272,23 @@ void ONF_ActionAdjustPlotPosition::updateColorization(bool colorizeByIntensity, 
 
 void ONF_ActionAdjustPlotPosition::applyTranslation(bool reset)
 {
+    ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
+
     if (reset)
     {
         _dataContainer->_transX = 0;
         _dataContainer->_transY = 0;
         _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+        option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+
         redrawOverlayAnd3D();
     } else if (_currentPoint(0) < std::numeric_limits<double>::max() && _selectedPos != NULL)
     {
         _dataContainer->_transX += _currentPoint(0) - (_selectedPos->_x + _dataContainer->_transX);
         _dataContainer->_transY += _currentPoint(1) - (_selectedPos->_y + _dataContainer->_transY);
         _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+        option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+
         redrawOverlayAnd3D();
     }
 }
@@ -318,8 +333,27 @@ void ONF_ActionAdjustPlotPosition::setGradient(bool intensity, QString name, int
     redrawOverlayAnd3D();
 }
 
+void ONF_ActionAdjustPlotPosition::changeHighlightedNumber(int n)
+{
+    QList<CT_Cylinder*> list;
+
+    for (int i = 0 ; i < n && i < _cylinders.size(); i++)
+    {
+        CT_Cylinder* cyl = dynamic_cast<CT_Cylinder*>(_cylinders.at(i));
+
+        if (cyl != NULL)
+        {
+            list.append(cyl);
+        }
+    }
+
+    _drawManager->setHighlightedCylinder(list);
+    redrawOverlayAnd3D();
+}
+
 void ONF_ActionAdjustPlotPosition::colorizePoints(ONF_ColorLinearInterpolator &gradient, int min, int max)
 {
+    ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
     GraphicsViewInterface *view = graphicsView();
 
     for (int i = 0 ; i < _dataContainer->_scenes.size()  && _rangeZ > 0 ; i++)
@@ -373,6 +407,12 @@ void ONF_ActionAdjustPlotPosition::colorizePoints(ONF_ColorLinearInterpolator &g
 
 
             CT_Color color(gradient.intermediateColor(ratio));
+
+            if (option->hidePointsOutsideLimits() && (ratio >= 1 || ratio <= 0))
+            {
+                color.set(color.r(), color.g(), color.b(), 0);
+            }
+
             view->setColorOfPoint(index, color);
         }
     }
@@ -391,23 +431,80 @@ void ONF_ActionAdjustPlotPosition::redrawOverlayAnd3D()
     document()->redrawGraphics();
 }
 
+
+
 bool ONF_ActionAdjustPlotPosition::mousePressEvent(QMouseEvent *e)
 {
+    ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
     _lastPos = e->pos();
     _buttonsPressed = e->buttons();
+
+    if (e->buttons() == Qt::LeftButton)
+    {
+        if (e->modifiers() & Qt::ControlModifier)
+        {
+            _movePlot = true;
+        }
+    }
 
     return false;
 }
 
 bool ONF_ActionAdjustPlotPosition::mouseMoveEvent(QMouseEvent *e)
 {
-    Q_UNUSED(e);
+    ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
+
+    QPoint lastPos = _lastPos;
+    _lastPos = e->pos();
+
+    if (e->buttons() == Qt::LeftButton)
+    {
+        if (e->modifiers() & Qt::ControlModifier)
+        {
+            double xl, yl;
+            double x, y;
+            if (getCoordsForMousePosition(lastPos, xl, yl) && getCoordsForMousePosition(e->pos(), x, y))
+            {
+                _dataContainer->_transX += x - xl;
+                _dataContainer->_transY += y - yl;
+                _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+                option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+                redrawOverlayAnd3D();
+
+                return true;
+            }
+        } else
+        {
+            _movePlot = false;
+        }
+    } else {
+        _movePlot = false;
+    }
+
     return false;
 }
 
 bool ONF_ActionAdjustPlotPosition::mouseReleaseEvent(QMouseEvent *e)
 {
     GraphicsViewInterface *view = graphicsView();
+    ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
+
+    if (_movePlot)
+    {
+        double xl, yl;
+        double x, y;
+        if (getCoordsForMousePosition(_lastPos, xl, yl) && getCoordsForMousePosition(e->pos(), x, y))
+        {
+            _dataContainer->_transX += x - xl;
+            _dataContainer->_transY += y - yl;
+            _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+            option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+            redrawOverlayAnd3D();
+        }
+        _movePlot = false;
+    }
+
+    _movePlot = false;
 
     QPoint dir = e->pos() - _lastPos;
     if (dir.manhattanLength() < 3)
@@ -421,6 +518,9 @@ bool ONF_ActionAdjustPlotPosition::mouseReleaseEvent(QMouseEvent *e)
             if (_selectedPos != NULL)
             {
                 _drawManager->setselectedCylinder(_selectedPos->_cyl);
+                redrawOverlayAnd3D();
+            } else {
+                _drawManager->setselectedCylinder(NULL);
                 redrawOverlayAnd3D();
             }
 
@@ -474,9 +574,45 @@ bool ONF_ActionAdjustPlotPosition::wheelEvent(QWheelEvent *e)
 
 bool ONF_ActionAdjustPlotPosition::keyPressEvent(QKeyEvent *e)
 {
-    Q_UNUSED(e);
-    return false;
+    ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
 
+    if((e->key() == Qt::Key_Up) && !e->isAutoRepeat())
+    {
+        _dataContainer->_transY += option->translationIncrement();
+        _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+        option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+        redrawOverlayAnd3D();
+        return true;
+    }
+
+    if((e->key() == Qt::Key_Down) && !e->isAutoRepeat())
+    {
+        _dataContainer->_transY -= option->translationIncrement();
+        _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+        option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+        redrawOverlayAnd3D();
+        return true;
+    }
+
+    if((e->key() == Qt::Key_Left) && !e->isAutoRepeat())
+    {
+        _dataContainer->_transX -= option->translationIncrement();
+        _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+        option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+        redrawOverlayAnd3D();
+        return true;
+    }
+
+    if((e->key() == Qt::Key_Right) && !e->isAutoRepeat())
+    {
+        _dataContainer->_transX += option->translationIncrement();
+        _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+        option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+        redrawOverlayAnd3D();
+        return true;
+    }
+
+    return false;
 }
 
 bool ONF_ActionAdjustPlotPosition::keyReleaseEvent(QKeyEvent *e)
@@ -508,7 +644,6 @@ void ONF_ActionAdjustPlotPosition::draw(GraphicsViewInterface &view, PainterInte
 void ONF_ActionAdjustPlotPosition::drawOverlay(GraphicsViewInterface &view, QPainter &painter)
 {
     Q_UNUSED(view);
-    Q_UNUSED(painter);
 
     painter.save();
 
@@ -518,12 +653,7 @@ void ONF_ActionAdjustPlotPosition::drawOverlay(GraphicsViewInterface &view, QPai
 
     if (_selectedPos != NULL)
     {
-        painter.setPen(QColor(255,0,0,127));
-        txt = QString("Interactive mode");
-        painter.drawText(2, y, txt);
-        y += add;
-
-        painter.setPen(QColor(255,255,255,127));
+        painter.setPen(QColor(255,255,255));
 
         txt = QString("Plot: %1 ; Tree: %2").arg(_selectedPos->_idPlot).arg(_selectedPos->_idTree);
         painter.drawText(2, y, txt);
@@ -533,18 +663,21 @@ void ONF_ActionAdjustPlotPosition::drawOverlay(GraphicsViewInterface &view, QPai
         painter.drawText(2, y, txt);
         y += add;
 
-        txt = QString("  H: %1 m").arg(_selectedPos->_height);
-        painter.drawText(2, y, txt);
-    }
-
-    if (_currentPoint(0) < std::numeric_limits<double>::max())
-    {
-        painter.setPen(QColor(255,255,255,127));
-
-        txt = QString("Selected points: X=%1 ; Y=%2").arg(_currentPoint(0)).arg(_currentPoint(1));
+        txt = QString("H: %1 m").arg(_selectedPos->_height);
         painter.drawText(2, y, txt);
         y += add;
     }
+
+    //    if (_currentPoint(0) < std::numeric_limits<double>::max())
+    //    {
+    //        painter.setPen(QColor(255,255,255,127));
+    //        QString xstr = QString::number(_currentPoint(0), 'f', 2);
+    //        QString ystr = QString::number(_currentPoint(1), 'f', 2);
+
+    //        txt = QString("Selected points: X=%1 ; Y=%2").arg(xstr).arg(ystr);
+    //        painter.drawText(2, y, txt);
+    //        y += add;
+    //    }
 
     painter.restore();
 }
@@ -611,5 +744,22 @@ ONF_ActionAdjustPlotPosition_treePosition* ONF_ActionAdjustPlotPosition::getPosi
 
     return pos;
 }
+
+bool ONF_ActionAdjustPlotPosition::getCoordsForMousePosition(QPoint p, double &x, double &y)
+{
+    Eigen::Vector3d origin, direction;
+    GraphicsViewInterface *view = graphicsView();
+    view->convertClickToLine(p, origin, direction);
+
+    if (direction.z() == 0) {return false;}
+
+    double coef = (0.0 - origin.z())/direction.z();
+
+    x = origin.x() + coef*direction.x();
+    y = origin.y() + coef*direction.y();
+
+    return true;
+}
+
 
 

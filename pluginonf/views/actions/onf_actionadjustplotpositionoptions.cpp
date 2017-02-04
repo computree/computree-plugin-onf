@@ -41,6 +41,12 @@ ONF_ActionAdjustPlotPositionOptions::~ONF_ActionAdjustPlotPositionOptions()
     delete ui;
 }
 
+void ONF_ActionAdjustPlotPositionOptions::setTranslation(double dx, double dy)
+{
+    ui->dsb_dx->setValue(dx);
+    ui->dsb_dy->setValue(dy);
+}
+
 bool ONF_ActionAdjustPlotPositionOptions::isFixedHeight() const
 {
     return ui->cb_fixedH->isChecked();
@@ -49,6 +55,16 @@ bool ONF_ActionAdjustPlotPositionOptions::isFixedHeight() const
 double ONF_ActionAdjustPlotPositionOptions::fixedHeight() const
 {
     return ui->dsb_height->value();
+}
+
+double ONF_ActionAdjustPlotPositionOptions::translationIncrement() const
+{
+    return ui->dsb_increment->value();
+}
+
+bool ONF_ActionAdjustPlotPositionOptions::hidePointsOutsideLimits() const
+{
+    return ui->cb_hidePoints->isChecked();
 }
 
 void ONF_ActionAdjustPlotPositionOptions::on_pb_up_clicked()
@@ -160,4 +176,15 @@ void ONF_ActionAdjustPlotPositionOptions::on_pb_hsv_clicked()
 {
     emit setGradient(ui->cb_intensity->isChecked(), "hsv", ui->hs_min->value(), ui->hs_max->value());
 
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_sb_highlightedNumber_valueChanged(int arg1)
+{
+    changeHighlightedNumber(ui->sb_highlightedNumber->value());
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_cb_hidePoints_toggled(bool checked)
+{
+    Q_UNUSED(checked);
+    emit colorizationChanged(ui->cb_intensity->isChecked(), ui->hs_min->value(), ui->hs_max->value());
 }

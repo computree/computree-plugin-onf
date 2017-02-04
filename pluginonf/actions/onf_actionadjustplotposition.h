@@ -126,6 +126,7 @@ public slots:
     void updateColorization(bool colorizeByIntensity, int min, int max);
     void applyTranslation(bool reset);
     void setGradient(bool intensity, QString name, int min, int max);
+    void changeHighlightedNumber(int n);
 
 private:
 
@@ -144,6 +145,7 @@ private:
 
     QColor                                     _cylinderColor;
     QColor                                     _selectedCylinderColor;
+    QColor                                     _highlightedCylindersColor;
 
     double _minZ;
     double _maxZ;
@@ -157,11 +159,24 @@ private:
     QPoint                                          _lastPos;
     ONF_ActionAdjustPlotPosition_treePosition*      _selectedPos;
     Eigen::Vector3d                                 _currentPoint;
+    bool                                            _movePlot;
 
 
     void colorizePoints(ONF_ColorLinearInterpolator &gradient, int min, int max);    
     ONF_ActionAdjustPlotPosition_treePosition* getPositionFromPoint(Eigen::Vector3d &point);    
     ONF_ActionAdjustPlotPosition_treePosition *getPositionFromDirection(Eigen::Vector3d &origin, Eigen::Vector3d &direction);
+    bool getCoordsForMousePosition(QPoint p, double &x, double &y);
+
+
+    static bool lessThan(CT_AbstractItemDrawable* i1, CT_AbstractItemDrawable* i2)
+    {
+        CT_Cylinder* cyl1 = dynamic_cast<CT_Cylinder*>(i1);
+        CT_Cylinder* cyl2 = dynamic_cast<CT_Cylinder*>(i2);
+
+        if (cyl1 == NULL || cyl2 == NULL ) {return true;}
+
+        return cyl1->getRadius() > cyl2->getRadius();
+    }
 
 private slots:
     void redrawOverlay();

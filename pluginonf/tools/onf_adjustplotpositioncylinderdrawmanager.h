@@ -16,18 +16,22 @@ public:
     void setParameters(bool circles, bool fixedH, double h);
     void setColor(QColor color);
     void setSelectionColor(QColor color);
+    void setHighlightColor(QColor color);
     void setselectedCylinder(CT_Cylinder* selectedCylinder);
+    void setHighlightedCylinder(QList<CT_Cylinder*> selectedCylinder);
 
 private:
     double  _transX;
     double  _transY;
     QColor  _color;
     QColor  _selectionColor;
+    QColor  _highlightColor;
     bool _circles;
     bool _fixedH;
     double _h;
 
-    CT_Cylinder*    _selectedCylinder;
+    CT_Cylinder*           _selectedCylinder;
+    QList<CT_Cylinder*>    _highlightedCylinders;
 
 protected:
 
