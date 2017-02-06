@@ -67,7 +67,7 @@
 // Constructor : initialization of parameters
 ONF_StepComputeBoundaryV2::ONF_StepComputeBoundaryV2(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
-    _res = 5.0;
+    _res = 10.0;
     _outRaster = NULL;
 }
 
@@ -102,7 +102,7 @@ CT_VirtualAbstractStep* ONF_StepComputeBoundaryV2::createNewInstance(CT_StepInit
 void ONF_StepComputeBoundaryV2::createInResultModelListProtected()
 {
 
-    CT_InResultModelGroup *resIn_footprint = createNewInResultModel(DEFin_rfootprint, tr("Emprise totale"));
+    CT_InResultModelGroup *resIn_footprint = createNewInResultModel(DEFin_rfootprint, tr("Emprise totale"), "", true);
     resIn_footprint->setZeroOrMoreRootGroup();
     resIn_footprint->addGroupModel("", DEFin_grpfootprint, CT_AbstractItemGroup::staticGetType(), tr("Groupe"));
     resIn_footprint->addItemModel(DEFin_grpfootprint, DEFin_footprint, CT_AbstractSingularItemDrawable::staticGetType(), tr("Emprise"));
@@ -141,10 +141,6 @@ void ONF_StepComputeBoundaryV2::compute()
     CT_ResultGroup* rfootprint = inResultList.at(0);
     CT_ResultGroup* rscene = inResultList.at(1);
 
-    QList<CT_ResultGroup*> outResultList = getOutResultList();
-    CT_ResultGroup* rconvexHull = outResultList.at(0);
-    CT_StandardItemGroup* outGrp = NULL;
-
     bool last_turn = false;
     bool first_turn = true;
     CT_ResultGroup* rcounter = NULL;
@@ -159,9 +155,7 @@ void ONF_StepComputeBoundaryV2::compute()
             {
                 if (counter->getCurrentTurn() > 1)
                 {
-                    first_turn= false;
-                } else {
-                    _outRaster = NULL;
+                    first_turn = false;
                 }
                 if (counter->getCurrentTurn() == counter->getNTurns())
                 {
@@ -173,9 +167,7 @@ void ONF_StepComputeBoundaryV2::compute()
 
     if (first_turn)
     {
-
-        outGrp = new CT_StandardItemGroup(DEFout_grp, rconvexHull);
-        rconvexHull->addGroup(outGrp);
+        _outRaster = NULL;
 
         // Compute cumulated Bounding Box
         double xmin = std::numeric_limits<double>::max();
@@ -218,8 +210,7 @@ void ONF_StepComputeBoundaryV2::compute()
             xmax2 += 2.0*_res;
             ymax2 += 2.0*_res;
 
-            _outRaster = CT_Image2D<uchar>::createImage2DFromXYCoords(DEFout_raster, rconvexHull, xmin2, ymin2, xmax2, ymax2, _res, 0, false, false);
-            outGrp->addItemDrawable(_outRaster);
+            _outRaster = CT_Image2D<uchar>::createImage2DFromXYCoords(NULL, NULL, xmin2, ymin2, xmax2, ymax2, _res, 0, false, false);
         }
     }
 
@@ -245,17 +236,16 @@ void ONF_StepComputeBoundaryV2::compute()
 
         if (last_turn)
         {
-            qDebug() << "01";
+            QList<CT_ResultGroup*> outResultList = getOutResultList();
+            CT_ResultGroup* rconvexHull = outResultList.at(0);
+            CT_StandardItemGroup* outGrp = new CT_StandardItemGroup(DEFout_grp, rconvexHull);
+            rconvexHull->addGroup(outGrp);
 
-            cv::Mat raster2 = _outRaster->getMat().clone();
-
-            qDebug() << "02";
+            cv::Mat_<uchar> raster2 = _outRaster->getMat().clone();
+            cv::dilate(_outRaster->getMat(), raster2, cv::getStructuringElement(cv::MORPH_RECT, cv::Size2d(3,3)));
             std::vector<std::vector<cv::Point> > contours;
-            qDebug() << "03";
-            cv::dilate(_outRaster->getMat(), _outRaster->getMat(), cv::getStructuringElement(cv::MORPH_RECT, cv::Size2d(3,3)));
-            qDebug() << "04";
-            cv::findContours(_outRaster->getMat(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-            qDebug() << "05";
+            cv::findContours(raster2, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+            raster2.release();
 
             for (int i = 0 ; i < contours.size() ; i++)
             {
@@ -268,6 +258,7 @@ void ONF_StepComputeBoundaryV2::compute()
                     const cv::Point &vert = contour.at(j);
                     int xx = vert.x;
                     int yy = vert.y;
+
                     vertices.append(new Eigen::Vector2d(_outRaster->getCellCenterColCoord(xx), _outRaster->getCellCenterLinCoord(yy)));
                 }
 
@@ -280,6 +271,10 @@ void ONF_StepComputeBoundaryV2::compute()
                     outGrp->addGroup(outGrpHull);
                 }
             }
+
+            _outRaster->changeResult(rconvexHull);
+            _outRaster->setModel(DEFout_raster);
+            outGrp->addItemDrawable(_outRaster);
         }
     }
 

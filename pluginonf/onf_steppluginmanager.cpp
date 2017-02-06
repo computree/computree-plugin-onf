@@ -48,9 +48,7 @@
 #include "step/onf_stepoptimizegaussianonmaximanumber.h"
 #include "step/onf_stepconverttintodtm.h"
 #include "step/onf_stepremoveuppernoise.h"
-    #ifdef USE_GEOS
-    #include "step/onf_stepcomputeboundaryv2.h"
-    #endif
+#include "step/onf_stepcomputeboundaryv2.h"
 #endif
 
 #include "step/onf_stepchangeclusterthickness02.h"
@@ -284,10 +282,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewGeometricalShapesStep<ONF_StepMergeClustersFromPositions02>(CT_StepsMenu::LP_Crowns);
     addNewGeometricalShapesStep<ONF_StepManualInventory>(CT_StepsMenu::LP_Stems);
     addNewPointsStep<ONF_StepVoxelClusterization>(CT_StepsMenu::LP_Clusters);
-
-#ifdef USE_GEOS
     addNewShapes2DStep<ONF_StepComputeBoundaryV2>(CT_StepsMenu::LP_Footprints);
-#endif
 
 #endif
 
