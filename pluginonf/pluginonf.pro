@@ -152,7 +152,8 @@ HEADERS += \
     views/actions/onf_actionadjustplotpositionoptions.h \
     tools/onf_adjustplotpositioncylinderdrawmanager.h \
     tools/onf_colorlinearinterpolator.h \
-    tools/onf_citations.h
+    tools/onf_citations.h \
+    step/onf_stepcomputeboundaryv2.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -288,7 +289,8 @@ SOURCES += \
     views/actions/onf_actionadjustplotpositionoptions.cpp \
     tools/onf_adjustplotpositioncylinderdrawmanager.cpp \
     tools/onf_colorlinearinterpolator.cpp \
-    tools/onf_citations.cpp
+    tools/onf_citations.cpp \
+    step/onf_stepcomputeboundaryv2.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts

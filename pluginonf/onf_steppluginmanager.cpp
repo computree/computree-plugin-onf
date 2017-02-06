@@ -49,7 +49,7 @@
 #include "step/onf_stepconverttintodtm.h"
 #include "step/onf_stepremoveuppernoise.h"
     #ifdef USE_GEOS
-    #include "step/onf_stepcomputeboundary.h"
+    #include "step/onf_stepcomputeboundaryv2.h"
     #endif
 #endif
 
@@ -286,7 +286,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewPointsStep<ONF_StepVoxelClusterization>(CT_StepsMenu::LP_Clusters);
 
 #ifdef USE_GEOS
-    addNewShapes2DStep<ONF_StepComputeBoundary>(CT_StepsMenu::LP_Footprints);
+    addNewShapes2DStep<ONF_StepComputeBoundaryV2>(CT_StepsMenu::LP_Footprints);
 #endif
 
 #endif
