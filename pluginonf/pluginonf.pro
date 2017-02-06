@@ -153,7 +153,8 @@ HEADERS += \
     tools/onf_adjustplotpositioncylinderdrawmanager.h \
     tools/onf_colorlinearinterpolator.h \
     tools/onf_citations.h \
-    step/onf_stepcomputeboundaryv2.h
+    step/onf_stepcomputeboundaryv2.h \
+    step/onf_steppolygonfrommask.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -290,7 +291,8 @@ SOURCES += \
     tools/onf_adjustplotpositioncylinderdrawmanager.cpp \
     tools/onf_colorlinearinterpolator.cpp \
     tools/onf_citations.cpp \
-    step/onf_stepcomputeboundaryv2.cpp
+    step/onf_stepcomputeboundaryv2.cpp \
+    step/onf_steppolygonfrommask.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts

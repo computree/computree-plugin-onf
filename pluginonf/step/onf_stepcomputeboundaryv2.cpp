@@ -124,6 +124,7 @@ void ONF_StepComputeBoundaryV2::createOutResultModelListProtected()
     CT_OutResultModelGroup *resultConvexHull = createNewOutResultModel(DEFout_res, tr("Convave Hull"));
     resultConvexHull->setRootGroup(DEFout_grp);
     resultConvexHull->addItemModel(DEFout_grp, DEFout_raster, new CT_Image2D<uchar>(), tr("Raster"));
+    resultConvexHull->addItemModel(DEFout_grp, "toto", new CT_Image2D<uchar>(), tr("Raster2"));
     resultConvexHull->addGroupModel(DEFout_grp, DEFout_grpHull);
     resultConvexHull->addItemModel(DEFout_grpHull, DEFout_hull, new CT_Polygon2D(), tr("Convave Hull"));
 }
@@ -242,10 +243,15 @@ void ONF_StepComputeBoundaryV2::compute()
             rconvexHull->addGroup(outGrp);
 
             cv::Mat_<uchar> raster2 = _outRaster->getMat().clone();
-            cv::dilate(_outRaster->getMat(), raster2, cv::getStructuringElement(cv::MORPH_RECT, cv::Size2d(3,3)));
+            //cv::dilate(_outRaster->getMat(), raster2, cv::getStructuringElement(cv::MORPH_RECT, cv::Size2d(3,3)));
             std::vector<std::vector<cv::Point> > contours;
-            cv::findContours(raster2, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+            cv::findContours(_outRaster->getMat(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
             raster2.release();
+
+            CT_Image2D<uchar>* raster00 = new CT_Image2D<uchar>("toto", rconvexHull, _outRaster->minX(), _outRaster->minY(), _outRaster->colDim(), _outRaster->linDim(), _outRaster->resolution(), 0, false, false);
+            cv::Scalar color(1);
+            cv::drawContours(raster00->getMat(), contours, -1, color, 1);
+            outGrp->addItemDrawable(raster00);
 
             for (int i = 0 ; i < contours.size() ; i++)
             {
