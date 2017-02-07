@@ -114,6 +114,16 @@ void ONF_StepPolygonFromMask::compute()
 
                 double demiRes = mask->resolution() / 2.0;
 
+                int xxLast = 0;
+                int yyLast = 0;
+
+                if (contour.size() > 0)
+                {
+                    const cv::Point &vert = contour.at(contour.size() - 1);
+                    xxLast = vert.x;
+                    yyLast = vert.y;
+                }
+
                 for (int j = 0 ; j < contour.size() ; j++)
                 {
                     const cv::Point &vert = contour.at(j);
@@ -129,59 +139,75 @@ void ONF_StepPolygonFromMask::compute()
                     sides[2] = (mask->value(xx-1, yy) == false);
                     sides[3] = (mask->value(xx, yy+1) == false);
 
-                    if (sides[0] && sides[1] && sides[2] && sides[3])
+                    if (sides[0] && sides[2] && !sides[1] && !sides[3])
+                    {
+                        if (yy < yyLast)
+                        {
+                            vertices.append(new Eigen::Vector2d(x + demiRes, y + demiRes));
+                        } else {
+                            vertices.append(new Eigen::Vector2d(x - demiRes, y - demiRes));
+                        }
+                    } else if (sides[1] && sides[3] && !sides[0] && !sides[2])
+                    {
+                        if (xx < xxLast)
+                        {
+                            vertices.append(new Eigen::Vector2d(x - demiRes, y + demiRes));
+                        } else {
+                            vertices.append(new Eigen::Vector2d(x + demiRes, y - demiRes));
+                        }
+                    } else if (sides[0] && sides[1] && sides[2] && sides[3])
                     {
                         vertices.append(new Eigen::Vector2d(x + demiRes, y + demiRes));
                         vertices.append(new Eigen::Vector2d(x - demiRes, y + demiRes));
                         vertices.append(new Eigen::Vector2d(x - demiRes, y - demiRes));
                         vertices.append(new Eigen::Vector2d(x + demiRes, y - demiRes));
-                    } else {
-                        if (sides[0] && !sides[3])
-                        {
-                            vertices.append(new Eigen::Vector2d(x + demiRes, y + demiRes));
-                            if (sides[1])
-                            {
-                                vertices.append(new Eigen::Vector2d(x - demiRes, y + demiRes));
-                                if (sides[2])
-                                {
-                                    vertices.append(new Eigen::Vector2d(x - demiRes, y - demiRes));
-                                }
-                            }
-                        } else if (sides[1] && !sides[0])
+                    } else if (sides[0] && !sides[3])
+                    {
+                        vertices.append(new Eigen::Vector2d(x + demiRes, y + demiRes));
+                        if (sides[1])
                         {
                             vertices.append(new Eigen::Vector2d(x - demiRes, y + demiRes));
                             if (sides[2])
                             {
                                 vertices.append(new Eigen::Vector2d(x - demiRes, y - demiRes));
-                                if (sides[3])
-                                {
-                                    vertices.append(new Eigen::Vector2d(x + demiRes, y - demiRes));
-                                }
                             }
-                        } else if (sides[2] && !sides[1])
+                        }
+                    } else if (sides[1] && !sides[0])
+                    {
+                        vertices.append(new Eigen::Vector2d(x - demiRes, y + demiRes));
+                        if (sides[2])
                         {
                             vertices.append(new Eigen::Vector2d(x - demiRes, y - demiRes));
                             if (sides[3])
                             {
                                 vertices.append(new Eigen::Vector2d(x + demiRes, y - demiRes));
-                                if (sides[0])
-                                {
-                                    vertices.append(new Eigen::Vector2d(x + demiRes, y + demiRes));
-                                }
                             }
-                        } else if (sides[3] && !sides[2])
+                        }
+                    } else if (sides[2] && !sides[1])
+                    {
+                        vertices.append(new Eigen::Vector2d(x - demiRes, y - demiRes));
+                        if (sides[3])
                         {
                             vertices.append(new Eigen::Vector2d(x + demiRes, y - demiRes));
                             if (sides[0])
                             {
                                 vertices.append(new Eigen::Vector2d(x + demiRes, y + demiRes));
-                                if (sides[1])
-                                {
-                                    vertices.append(new Eigen::Vector2d(x - demiRes, y + demiRes));
-                                }
+                            }
+                        }
+                    } else if (sides[3] && !sides[2])
+                    {
+                        vertices.append(new Eigen::Vector2d(x + demiRes, y - demiRes));
+                        if (sides[0])
+                        {
+                            vertices.append(new Eigen::Vector2d(x + demiRes, y + demiRes));
+                            if (sides[1])
+                            {
+                                vertices.append(new Eigen::Vector2d(x - demiRes, y + demiRes));
                             }
                         }
                     }
+                    xxLast = xx;
+                    yyLast = yy;
                 }
 
                 if (vertices.size() > 0)
@@ -195,7 +221,7 @@ void ONF_StepPolygonFromMask::compute()
             }
         }
     }
-
 }
+
 
 #endif
