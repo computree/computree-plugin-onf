@@ -77,7 +77,7 @@ protected:
      *
      * DialogBox asking for step parameters
      */
-    void createPostConfigurationDialog();
+    void createPreConfigurationDialog();
 
     /*! \brief Output results specification
      *
@@ -95,6 +95,8 @@ private:
 
     CT_AutoRenameModels     _outPolygonGrpModelName;
     CT_AutoRenameModels     _outPolygonModelName;
+
+    int                     _mode;
 
 };
 

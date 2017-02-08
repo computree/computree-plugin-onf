@@ -61,8 +61,6 @@
 #define DEFout_res "outres"
 #define DEFout_grp "outgrp"
 #define DEFout_raster "outraster"
-#define DEFout_grpHull "outgrpHull"
-#define DEFout_hull "outHull"
 
 // Constructor : initialization of parameters
 ONF_StepComputeBoundaryV2::ONF_StepComputeBoundaryV2(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
@@ -74,13 +72,13 @@ ONF_StepComputeBoundaryV2::ONF_StepComputeBoundaryV2(CT_StepInitializeData &data
 // Step description (tooltip of contextual menu)
 QString ONF_StepComputeBoundaryV2::getStepDescription() const
 {
-    return tr("Calculer enveloppe concave");
+    return tr("Calculer un raster d'emprise");
 }
 
 // Step detailled description
 QString ONF_StepComputeBoundaryV2::getStepDetailledDescription() const
 {
-    return tr("No detailled description for this step");
+    return tr("Calcul d'un raster logique, avec une valeur 1 pour toute cellule contenant au moins un point");
 }
 
 // Step URL
@@ -101,7 +99,6 @@ CT_VirtualAbstractStep* ONF_StepComputeBoundaryV2::createNewInstance(CT_StepInit
 // Creation and affiliation of IN models
 void ONF_StepComputeBoundaryV2::createInResultModelListProtected()
 {
-
     CT_InResultModelGroup *resIn_footprint = createNewInResultModel(DEFin_rfootprint, tr("Emprise totale"), "", true);
     resIn_footprint->setZeroOrMoreRootGroup();
     resIn_footprint->addGroupModel("", DEFin_grpfootprint, CT_AbstractItemGroup::staticGetType(), tr("Groupe"));
@@ -121,12 +118,9 @@ void ONF_StepComputeBoundaryV2::createInResultModelListProtected()
 // Creation and affiliation of OUT models
 void ONF_StepComputeBoundaryV2::createOutResultModelListProtected()
 {
-    CT_OutResultModelGroup *resultConvexHull = createNewOutResultModel(DEFout_res, tr("Convave Hull"));
+    CT_OutResultModelGroup *resultConvexHull = createNewOutResultModel(DEFout_res, tr("Footprint"));
     resultConvexHull->setRootGroup(DEFout_grp);
-    resultConvexHull->addItemModel(DEFout_grp, DEFout_raster, new CT_Image2D<uchar>(), tr("Raster"));
-    resultConvexHull->addItemModel(DEFout_grp, "toto", new CT_Image2D<uchar>(), tr("Raster2"));
-    resultConvexHull->addGroupModel(DEFout_grp, DEFout_grpHull);
-    resultConvexHull->addItemModel(DEFout_grpHull, DEFout_hull, new CT_Polygon2D(), tr("Convave Hull"));
+    resultConvexHull->addItemModel(DEFout_grp, DEFout_raster, new CT_Image2D<uchar>(), tr("Footprint Raster"));
 }
 
 // Semi-automatic creation of step parameters DialogBox
@@ -142,10 +136,10 @@ void ONF_StepComputeBoundaryV2::compute()
     CT_ResultGroup* rfootprint = inResultList.at(0);
     CT_ResultGroup* rscene = inResultList.at(1);
 
-    bool last_turn = false;
+    bool last_turn = true;
     bool first_turn = true;
     CT_ResultGroup* rcounter = NULL;
-    if (inResultList.size() > 1) {rcounter = inResultList.at(2);}
+    if (inResultList.size() > 2) {rcounter = inResultList.at(2);}
     if (rcounter != NULL)
     {
         CT_ResultItemIterator itCounter(rcounter, this, DEF_inCounter);
@@ -158,9 +152,9 @@ void ONF_StepComputeBoundaryV2::compute()
                 {
                     first_turn = false;
                 }
-                if (counter->getCurrentTurn() == counter->getNTurns())
+                if (counter->getCurrentTurn() != counter->getNTurns())
                 {
-                    last_turn = true;
+                    last_turn = false;
                 }
             }
         }
@@ -241,42 +235,6 @@ void ONF_StepComputeBoundaryV2::compute()
             CT_ResultGroup* rconvexHull = outResultList.at(0);
             CT_StandardItemGroup* outGrp = new CT_StandardItemGroup(DEFout_grp, rconvexHull);
             rconvexHull->addGroup(outGrp);
-
-            cv::Mat_<uchar> raster2 = _outRaster->getMat().clone();
-            //cv::dilate(_outRaster->getMat(), raster2, cv::getStructuringElement(cv::MORPH_RECT, cv::Size2d(3,3)));
-            std::vector<std::vector<cv::Point> > contours;
-            cv::findContours(_outRaster->getMat(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-            raster2.release();
-
-            CT_Image2D<uchar>* raster00 = new CT_Image2D<uchar>("toto", rconvexHull, _outRaster->minX(), _outRaster->minY(), _outRaster->colDim(), _outRaster->linDim(), _outRaster->resolution(), 0, false, false);
-            cv::Scalar color(1);
-            cv::drawContours(raster00->getMat(), contours, -1, color, 1);
-            outGrp->addItemDrawable(raster00);
-
-            for (int i = 0 ; i < contours.size() ; i++)
-            {
-                const std::vector<cv::Point> &contour = contours.at(i);
-
-                QVector<Eigen::Vector2d *> vertices;
-
-                for (int j = 0 ; j < contour.size() ; j++)
-                {
-                    const cv::Point &vert = contour.at(j);
-                    int xx = vert.x;
-                    int yy = vert.y;
-
-                    vertices.append(new Eigen::Vector2d(_outRaster->getCellCenterColCoord(xx), _outRaster->getCellCenterLinCoord(yy)));
-                }
-
-                if (vertices.size() > 0 && outGrp != NULL)
-                {
-                    CT_Polygon2DData* dataPoly = new CT_Polygon2DData(vertices, false);
-                    CT_Polygon2D* convexHull = new CT_Polygon2D(DEFout_hull, rconvexHull, dataPoly);
-                    CT_StandardItemGroup* outGrpHull = new CT_StandardItemGroup(DEFout_grpHull, rconvexHull);
-                    outGrpHull->addItemDrawable(convexHull);
-                    outGrp->addGroup(outGrpHull);
-                }
-            }
 
             _outRaster->changeResult(rconvexHull);
             _outRaster->setModel(DEFout_raster);

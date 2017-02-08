@@ -48,6 +48,7 @@
 
 ONF_StepPolygonFromMask::ONF_StepPolygonFromMask(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
+    _mode = 0;
 }
 
 QString ONF_StepPolygonFromMask::getStepDescription() const
@@ -68,6 +69,16 @@ CT_VirtualAbstractStep* ONF_StepPolygonFromMask::createNewInstance(CT_StepInitia
 
 //////////////////// PROTECTED //////////////////
 
+void ONF_StepPolygonFromMask::createPreConfigurationDialog()
+{
+    CT_StepConfigurableDialog *configDialog = newStandardPreConfigurationDialog();
+
+    CT_ButtonGroup &bg_mode = configDialog->addButtonGroup(_mode);
+
+    configDialog->addExcludeValue("", "", tr("Un unique polygone par masque"), bg_mode, 0);
+    configDialog->addExcludeValue("", "", tr("Un ou plusieurs polygones par masque"), bg_mode, 1);
+}
+
 void ONF_StepPolygonFromMask::createInResultModelListProtected()
 {
     CT_InResultModelGroupToCopy * resultModel = createNewInResultModelForCopy(DEF_SearchInResult, tr("Dalles"));
@@ -76,18 +87,20 @@ void ONF_StepPolygonFromMask::createInResultModelListProtected()
     resultModel->addItemModel(DEF_SearchInGroup, DEF_SearchInMask, CT_Image2D<uchar>::staticGetType(), tr("Masque"));
 }
 
-void ONF_StepPolygonFromMask::createPostConfigurationDialog()
-{
-    //CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
-}
 
 void ONF_StepPolygonFromMask::createOutResultModelListProtected()
 {
     CT_OutResultModelGroupToCopyPossibilities *res = createNewOutResultModelToCopy(DEF_SearchInResult);
 
     if(res != NULL) {
-        res->addGroupModel(DEF_SearchInGroup, _outPolygonGrpModelName);
-        res->addItemModel(_outPolygonGrpModelName, _outPolygonModelName, new CT_Polygon2D(), tr("Polygone"));
+        res->addGroupModel(DEF_SearchInGroup, _outPolygonGrpModelName, new CT_StandardItemGroup(), tr("Groupe"));
+
+        if (_mode == 0)
+        {
+            res->addItemModel(DEF_SearchInGroup, _outPolygonModelName, new CT_Polygon2D(), tr("Polygone"));
+        } else {
+            res->addItemModel(_outPolygonGrpModelName, _outPolygonModelName, new CT_Polygon2D(), tr("Polygone"));
+        }
     }
 }
 
@@ -106,7 +119,10 @@ void ONF_StepPolygonFromMask::compute()
             std::vector<std::vector<cv::Point> > contours;
             cv::findContours(mask->getMat(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
-            for (int i = 0 ; i < contours.size() ; i++)
+            int n = contours.size();
+            if (_mode == 0) {n = 1;}
+
+            for (int i = 0 ; i < n ; i++)
             {
                 const std::vector<cv::Point> &contour = contours.at(i);
 
@@ -214,9 +230,15 @@ void ONF_StepPolygonFromMask::compute()
                 {
                     CT_Polygon2DData* dataPoly = new CT_Polygon2DData(vertices, false);
                     CT_Polygon2D* poly = new CT_Polygon2D(_outPolygonModelName.completeName(), outRes, dataPoly);
-                    CT_StandardItemGroup* outGrpPoly = new CT_StandardItemGroup(_outPolygonGrpModelName.completeName(), outRes);
-                    outGrpPoly->addItemDrawable(poly);
-                    group->addGroup(outGrpPoly);
+
+                    if (_mode == 0)
+                    {
+                        group->addItemDrawable(poly);
+                    } else {
+                        CT_StandardItemGroup* outGrpPoly = new CT_StandardItemGroup(_outPolygonGrpModelName.completeName(), outRes);
+                        outGrpPoly->addItemDrawable(poly);
+                        group->addGroup(outGrpPoly);
+                    }
                 }
             }
         }
