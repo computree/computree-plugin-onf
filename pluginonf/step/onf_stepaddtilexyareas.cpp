@@ -125,8 +125,8 @@ void ONF_StepAddTileXYAreas::compute()
 
                 Eigen::Vector2d minBB, maxBB;
 
-                double baseX = min(0) + 0.1*_tileSize;
-                double baseY = min(1) + 0.1*_tileSize;
+                double baseX = min(0) + 0.1*_tileSize; // Sécurité au cas où il y quelques points à gauche du dallage théorique (dans le header)
+                double baseY = min(1) + 0.1*_tileSize; // Sécurité au cas où il y quelques points en bas du dallage théorique (dans le header)
 
                 minBB(0) = std::floor((baseX - _xRefCoord) / _tileSize) * _tileSize + _xRefCoord;
                 minBB(1) = std::floor((baseY - _yRefCoord) / _tileSize) * _tileSize + _yRefCoord;
