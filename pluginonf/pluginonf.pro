@@ -154,7 +154,8 @@ HEADERS += \
     tools/onf_colorlinearinterpolator.h \
     tools/onf_citations.h \
     step/onf_stepcomputeboundaryv2.h \
-    step/onf_steppolygonfrommask.h
+    step/onf_steppolygonfrommask.h \
+    step/onf_stepcomputepointheightattribute.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -292,7 +293,8 @@ SOURCES += \
     tools/onf_colorlinearinterpolator.cpp \
     tools/onf_citations.cpp \
     step/onf_stepcomputeboundaryv2.cpp \
-    step/onf_steppolygonfrommask.cpp
+    step/onf_steppolygonfrommask.cpp \
+    step/onf_stepcomputepointheightattribute.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts

@@ -125,14 +125,21 @@ void ONF_StepAddTileXYAreas::compute()
 
                 Eigen::Vector2d minBB, maxBB;
 
-                minBB(0) = std::floor((min(0) - _xRefCoord) / _tileSize) * _tileSize + _xRefCoord;
-                minBB(1) = std::floor((min(1) - _yRefCoord) / _tileSize) * _tileSize + _yRefCoord;
+                double baseX = min(0) + 0.1*_tileSize;
+                double baseY = min(1) + 0.1*_tileSize;
+
+                minBB(0) = std::floor((baseX - _xRefCoord) / _tileSize) * _tileSize + _xRefCoord;
+                minBB(1) = std::floor((baseY - _yRefCoord) / _tileSize) * _tileSize + _yRefCoord;
+
 
                 maxBB(0) = minBB(0);
                 maxBB(1) = minBB(1);
 
-                while (maxBB(0) < max(0)) {maxBB(0) += _tileSize;}
-                while (maxBB(1) < max(1)) {maxBB(1) += _tileSize;}
+//                while (maxBB(0) < max(0)) {maxBB(0) += _tileSize;}
+//                while (maxBB(1) < max(1)) {maxBB(1) += _tileSize;}
+
+                maxBB(0) += _tileSize;
+                maxBB(1) += _tileSize;
 
                 CT_Box2DData* boxData = new CT_Box2DData(minBB, maxBB);
                 CT_Box2D* box2D = new CT_Box2D(_outTileXYAreaModelName.completeName(), outRes, boxData);
