@@ -97,7 +97,7 @@ protected:
 
 private:
     double  _res;
-    CT_Image2D<uchar>* _outRaster;
+    CT_Image2D<quint8>* _outRaster;
 
 };
 

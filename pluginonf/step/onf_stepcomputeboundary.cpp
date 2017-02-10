@@ -115,8 +115,8 @@ void ONF_StepComputeBoundary::createOutResultModelListProtected()
 {
     CT_OutResultModelGroup *resultConvexHull = createNewOutResultModel(DEFout_res, tr("Convave Hull"));
     resultConvexHull->setRootGroup("root");
-    resultConvexHull->addItemModel("root", "raster", new CT_Image2D<uchar>(), tr("IMAGE Hull"));
-    resultConvexHull->addItemModel("root", "raster2", new CT_Image2D<uchar>(), tr("Dilaté Hull"));
+    resultConvexHull->addItemModel("root", "raster", new CT_Image2D<quint8>(), tr("IMAGE Hull"));
+    resultConvexHull->addItemModel("root", "raster2", new CT_Image2D<quint8>(), tr("Dilaté Hull"));
     resultConvexHull->addGroupModel("root", DEFout_grp);
     resultConvexHull->addItemModel(DEFout_grp, DEFout_convexhull, new CT_Polygon2D(), tr("Convave Hull"));
 }
@@ -185,8 +185,8 @@ void ONF_StepComputeBoundary::compute()
     xmax2 += 2.0*_res;
     ymax2 += 2.0*_res;
 
-    CT_Image2D<uchar>* raster = CT_Image2D<uchar>::createImage2DFromXYCoords("raster", rconvexHull, xmin2, ymin2, xmax2, ymax2, _res, false, false, false);
-    CT_Image2D<uchar>* raster2 = CT_Image2D<uchar>::createImage2DFromXYCoords("raster2", rconvexHull, xmin2, ymin2, xmax2, ymax2, _res, false, false, false);
+    CT_Image2D<quint8>* raster = CT_Image2D<quint8>::createImage2DFromXYCoords("raster", rconvexHull, xmin2, ymin2, xmax2, ymax2, _res, false, false, false);
+    CT_Image2D<quint8>* raster2 = CT_Image2D<quint8>::createImage2DFromXYCoords("raster2", rconvexHull, xmin2, ymin2, xmax2, ymax2, _res, false, false, false);
 
     // parcours des scènes pour calculer l'enveloppe
     CT_ResultGroupIterator itSc(rscene, this, DEFin_grpsc);

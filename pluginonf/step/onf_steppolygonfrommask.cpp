@@ -84,7 +84,7 @@ void ONF_StepPolygonFromMask::createInResultModelListProtected()
     CT_InResultModelGroupToCopy * resultModel = createNewInResultModelForCopy(DEF_SearchInResult, tr("Dalles"));
     resultModel->setZeroOrMoreRootGroup();
     resultModel->addGroupModel("", DEF_SearchInGroup, CT_AbstractItemGroup::staticGetType(), tr("Grp"));
-    resultModel->addItemModel(DEF_SearchInGroup, DEF_SearchInMask, CT_Image2D<uchar>::staticGetType(), tr("Masque"));
+    resultModel->addItemModel(DEF_SearchInGroup, DEF_SearchInMask, CT_Image2D<quint8>::staticGetType(), tr("Masque"));
 }
 
 
@@ -112,12 +112,14 @@ void ONF_StepPolygonFromMask::compute()
     while (it.hasNext() && (!isStopped()))
     {
         CT_StandardItemGroup *group = (CT_StandardItemGroup*) it.next();
-        CT_Image2D<uchar> *mask = (CT_Image2D<uchar>*)group->firstItemByINModelName(this, DEF_SearchInMask);
+        CT_Image2D<quint8> *mask = (CT_Image2D<quint8>*)group->firstItemByINModelName(this, DEF_SearchInMask);
 
         if(mask != NULL)
         {
             std::vector<std::vector<cv::Point> > contours;
-            cv::findContours(mask->getMat(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+            cv::Mat_<quint8> maskTmp = mask->getMat().clone();
+            cv::findContours(maskTmp, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+            maskTmp.release();
 
             int n = contours.size();
             if (_mode == 0) {n = 1;}
@@ -150,10 +152,10 @@ void ONF_StepPolygonFromMask::compute()
                     double y = mask->getCellCenterLinCoord(yy);
 
                     bool sides[4];
-                    sides[0] = (mask->value(xx+1, yy) == false);
-                    sides[1] = (mask->value(xx, yy-1) == false);
-                    sides[2] = (mask->value(xx-1, yy) == false);
-                    sides[3] = (mask->value(xx, yy+1) == false);
+                    sides[0] = (mask->value(xx+1, yy) == 0);
+                    sides[1] = (mask->value(xx, yy-1) == 0);
+                    sides[2] = (mask->value(xx-1, yy) == 0);
+                    sides[3] = (mask->value(xx, yy+1) == 0);
 
                     if (sides[0] && sides[2] && !sides[1] && !sides[3])
                     {

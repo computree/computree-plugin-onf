@@ -44,6 +44,8 @@
 #include "opencv2/core/core.hpp"
 
 #include <QDebug>
+#include <QFile>
+#include <QTextStream>
 
 
 // Alias for indexing models
@@ -120,7 +122,7 @@ void ONF_StepComputeBoundaryV2::createOutResultModelListProtected()
 {
     CT_OutResultModelGroup *resultConvexHull = createNewOutResultModel(DEFout_res, tr("Footprint"));
     resultConvexHull->setRootGroup(DEFout_grp);
-    resultConvexHull->addItemModel(DEFout_grp, DEFout_raster, new CT_Image2D<uchar>(), tr("Footprint Raster"));
+    resultConvexHull->addItemModel(DEFout_grp, DEFout_raster, new CT_Image2D<quint8>(), tr("Footprint Raster"));
 }
 
 // Semi-automatic creation of step parameters DialogBox
@@ -205,7 +207,7 @@ void ONF_StepComputeBoundaryV2::compute()
             xmax2 += 2.0*_res;
             ymax2 += 2.0*_res;
 
-            _outRaster = CT_Image2D<uchar>::createImage2DFromXYCoords(NULL, NULL, xmin2, ymin2, xmax2, ymax2, _res, 0, false, false);
+            _outRaster = CT_Image2D<quint8>::createImage2DFromXYCoords(NULL, NULL, xmin2, ymin2, xmax2, ymax2, _res, 0, 0, 0);
         }
     }
 
@@ -224,7 +226,7 @@ void ONF_StepComputeBoundaryV2::compute()
                 while(itP.hasNext() && (!isStopped()))
                 {
                     const CT_Point &point = itP.next().currentPoint();
-                    _outRaster->setValueAtCoords(point(0), point(1), true);
+                    _outRaster->setValueAtCoords(point(0), point(1), 1);
                 }
             }
         }
