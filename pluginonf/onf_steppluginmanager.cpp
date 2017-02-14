@@ -51,6 +51,7 @@
 #include "step/onf_stepcomputeboundaryv2.h"
 #include "step/onf_steppolygonfrommask.h"
 #include "step/onf_stepcomputepointheightattribute.h"
+#include "step/onf_stepcreatecolorcomposite.h"
 #endif
 
 #include "step/onf_stepchangeclusterthickness02.h"
@@ -287,6 +288,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewShapes2DStep<ONF_StepComputeBoundaryV2>(CT_StepsMenu::LP_Footprints);
     addNewShapes2DStep<ONF_StepPolygonFromMask>(CT_StepsMenu::LP_Footprints);
     addNewPointsStep<ONF_StepComputePointHeightAttribute>(CT_StepsMenu::LP_Create);
+    addNewRastersStep<ONF_StepCreateColorComposite>(CT_StepsMenu::LP_Create);
 
 #endif
 
