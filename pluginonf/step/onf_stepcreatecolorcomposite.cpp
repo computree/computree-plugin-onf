@@ -63,11 +63,11 @@ void ONF_StepCreateColorComposite::createInResultModelListProtected()
     CT_InResultModelGroupToCopy *resIn_res = createNewInResultModelForCopy(DEFin_res, tr("2D Images"));
     resIn_res->setZeroOrMoreRootGroup();
     resIn_res->addGroupModel("", DEFin_grp, CT_AbstractItemGroup::staticGetType(), tr("Group"));
-    resIn_res->addItemModel(DEFin_grp, DEFin_blue, CT_AbstractImage2D::staticGetType(), tr("Blue band"));
-    resIn_res->addItemModel(DEFin_grp, DEFin_green, CT_AbstractImage2D::staticGetType(), tr("Green band"));
     resIn_res->addItemModel(DEFin_grp, DEFin_red, CT_AbstractImage2D::staticGetType(), tr("Red band"));
+    resIn_res->addItemModel(DEFin_grp, DEFin_green, CT_AbstractImage2D::staticGetType(), tr("Green band"), "", CT_InAbstractModel::C_ChooseOneIfMultiple, CT_InAbstractModel::F_IsOptional);
+    resIn_res->addItemModel(DEFin_grp, DEFin_blue, CT_AbstractImage2D::staticGetType(), tr("Blue band"), "", CT_InAbstractModel::C_ChooseOneIfMultiple, CT_InAbstractModel::F_IsOptional);
 
-    CT_InResultModelGroup *resIn_zval = createNewInResultModel(DEFin_resZ, tr("DSM"));
+    CT_InResultModelGroup *resIn_zval = createNewInResultModel(DEFin_resZ, tr("DSM"), "", true);
     resIn_zval->setZeroOrMoreRootGroup();
     resIn_zval->addGroupModel("", DEFin_grpZ, CT_AbstractItemGroup::staticGetType(), tr("Group"));
     resIn_zval->addItemModel(DEFin_grpZ, DEFin_zvalue, CT_Image2D<float>::staticGetType(), tr("Z raster"));
@@ -119,6 +119,9 @@ void ONF_StepCreateColorComposite::compute()
         CT_AbstractImage2D* red   = (CT_AbstractImage2D*)grp->firstItemByINModelName(this, DEFin_red);
         CT_AbstractImage2D* green = (CT_AbstractImage2D*)grp->firstItemByINModelName(this, DEFin_green);
         CT_AbstractImage2D* blue  = (CT_AbstractImage2D*)grp->firstItemByINModelName(this, DEFin_blue);
+
+        if (green == NULL) {green = red;}
+        if (blue == NULL) {blue = red;}
 
         if (red != NULL && green != NULL && blue != NULL)
         {
