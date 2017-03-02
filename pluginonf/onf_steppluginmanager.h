@@ -43,8 +43,6 @@ public:
 
     virtual bool init();
 
-    QString _citationOthmaniEtAl2001;
-
 protected:
 
     CT_FileLogListener* _logListener;

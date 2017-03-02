@@ -141,17 +141,6 @@ ONF_StepPluginManager::ONF_StepPluginManager() : CT_AbstractStepPlugin()
 
     // défini le chemin vers le fichier
     _logListener->setFilePath("log_onf.log");
-
-    _citationOthmaniEtAl2001 = "TY  - CONF\n"
-                               "T1  - Towards automated and operational forest inventories with T-Lidar\n"
-                               "A1  - Othmani, Ahlem\n"
-                               "A1  - Piboule, Alexandre\n"
-                               "A1  - Krebs, M\n"
-                               "A1  - Stolz, C\n"
-                               "A1  - Voon, LFC Lew Yan\n"
-                               "JO  - 11th International Conference on LiDAR Applications for Assessing Forest Ecosystems (SilviLaser 2011)\n"
-                               "Y1  - 2011"
-                               "ER  - \n";
 }
 
 ONF_StepPluginManager::~ONF_StepPluginManager()
