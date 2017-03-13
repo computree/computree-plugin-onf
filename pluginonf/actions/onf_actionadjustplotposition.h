@@ -47,6 +47,9 @@ public:
     {
         _x = 0;
         _y = 0;
+        _originalX = 0;
+        _originalY = 0;
+
         _dbh = 0;
         _height = 0;
         _trueheight = 0;
@@ -54,6 +57,7 @@ public:
         _idTree = "";
         _cyl = NULL;
         _grp = NULL;
+        _species = "";
     }
 
     ~ONF_ActionAdjustPlotPosition_treePosition()
@@ -64,11 +68,15 @@ public:
 
     double                  _x;
     double                  _y;
+    double                  _originalX;
+    double                  _originalY;
+
     float                   _dbh;
     float                   _height;
     float                   _trueheight;
     QString                 _idPlot;
     QString                 _idTree;
+    QString                 _species;
     CT_Cylinder*            _cyl;
     CT_StandardItemGroup*   _grp;
 };
@@ -122,7 +130,7 @@ public:
     CT_AbstractAction* copy() const;
 
 public slots:
-    void update(double x, double y, bool circles, bool fixedH, double h);
+    void update(double x, double y, bool circles, bool fixedH, double h, bool treeMode);
     void updateColorization(bool colorizeByIntensity, int min, int max);
     void applyTranslation(bool reset);
     void setGradient(bool intensity, QString name, int min, int max);
@@ -158,6 +166,7 @@ private:
     Qt::MouseButtons                                _buttonsPressed;
     QPoint                                          _lastPos;
     ONF_ActionAdjustPlotPosition_treePosition*      _selectedPos;
+    ONF_ActionAdjustPlotPosition_treePosition*      _previousSelectedPos;
     Eigen::Vector3d                                 _currentPoint;
     bool                                            _movePlot;
 
@@ -166,6 +175,7 @@ private:
     ONF_ActionAdjustPlotPosition_treePosition* getPositionFromPoint(Eigen::Vector3d &point);    
     ONF_ActionAdjustPlotPosition_treePosition *getPositionFromDirection(Eigen::Vector3d &origin, Eigen::Vector3d &direction);
     bool getCoordsForMousePosition(QPoint p, double &x, double &y);
+    void updateCylinderPosition(ONF_ActionAdjustPlotPosition_treePosition *pos);
 
 
     static bool lessThan(CT_AbstractItemDrawable* i1, CT_AbstractItemDrawable* i2)

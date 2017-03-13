@@ -40,7 +40,7 @@
 ONF_ActionAdjustPlotPosition_dataContainer::ONF_ActionAdjustPlotPosition_dataContainer()
 {
     _transX = 0;
-    _transY = 0;
+    _transY = 0;    
 }
 
 ONF_ActionAdjustPlotPosition::ONF_ActionAdjustPlotPosition(ONF_ActionAdjustPlotPosition_dataContainer *dataContainer) : CT_AbstractActionForGraphicsView()
@@ -49,6 +49,7 @@ ONF_ActionAdjustPlotPosition::ONF_ActionAdjustPlotPosition(ONF_ActionAdjustPlotP
     _dataContainer = dataContainer;
     _drawManager = new ONF_AdjustPlotPositionCylinderDrawManager(tr("Tree"));
     _selectedPos = NULL;
+    _previousSelectedPos = NULL;
     _movePlot = false;
 
     _cylinderColor = QColor(0, 100, 255);
@@ -153,7 +154,7 @@ void ONF_ActionAdjustPlotPosition::init()
         // add the options to the graphics view
         graphicsView()->addActionOptions(option);
 
-        connect(option, SIGNAL(parametersChanged(double, double, bool, bool, double)), this, SLOT(update(double, double, bool, bool, double)));
+        connect(option, SIGNAL(parametersChanged(double, double, bool, bool, double, bool)), this, SLOT(update(double, double, bool, bool, double, bool)));
         connect(option, SIGNAL(colorizationChanged(bool, int, int)), this, SLOT(updateColorization(bool, int, int)));
         connect(option, SIGNAL(askForTranslation(bool)), this, SLOT(applyTranslation(bool)));
         connect(option, SIGNAL(setGradient(bool, QString, int, int)), this, SLOT(setGradient(bool, QString, int, int)));
@@ -247,15 +248,32 @@ void ONF_ActionAdjustPlotPosition::init()
     }
 }
 
-void ONF_ActionAdjustPlotPosition::update(double x, double y, bool circles, bool fixedH, double h)
+void ONF_ActionAdjustPlotPosition::updateCylinderPosition(ONF_ActionAdjustPlotPosition_treePosition* pos)
+{
+    Eigen::Vector3d newCenter(pos->_x, pos->_y, pos->_height / 2.0);
+    ((CT_CylinderData*) ((CT_Cylinder*)pos->_cyl)->getPointerData())->setCenter(newCenter);
+}
+
+void ONF_ActionAdjustPlotPosition::update(double x, double y, bool circles, bool fixedH, double h, bool treeMode)
 {
     ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
 
-    _dataContainer->_transX += x;
-    _dataContainer->_transY += y;
-    _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+    if (treeMode)
+    {
+        if (_selectedPos != NULL)
+        {
+            _selectedPos->_x += x;
+            _selectedPos->_y += y;
+            updateCylinderPosition(_selectedPos);
+        }
+    } else {
+        _dataContainer->_transX += x;
+        _dataContainer->_transY += y;
+        _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+        option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+    }
+
     _drawManager->setParameters(circles, fixedH, h);
-    option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
     redrawOverlayAnd3D();
 }
 
@@ -278,16 +296,34 @@ void ONF_ActionAdjustPlotPosition::applyTranslation(bool reset)
     {
         _dataContainer->_transX = 0;
         _dataContainer->_transY = 0;
+
+        for (int i = 0 ; i < _dataContainer->_positions.size() ; i++)
+        {
+            _dataContainer->_positions.at(i)->_x = _dataContainer->_positions.at(i)->_originalX;
+            _dataContainer->_positions.at(i)->_y = _dataContainer->_positions.at(i)->_originalY;
+
+            updateCylinderPosition(_dataContainer->_positions.at(i));
+        }
+
         _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
         option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
 
         redrawOverlayAnd3D();
     } else if (_currentPoint(0) < std::numeric_limits<double>::max() && _selectedPos != NULL)
     {
-        _dataContainer->_transX += _currentPoint(0) - (_selectedPos->_x + _dataContainer->_transX);
-        _dataContainer->_transY += _currentPoint(1) - (_selectedPos->_y + _dataContainer->_transY);
-        _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
-        option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+
+        if (option->isTreeModeSelected())
+        {
+            _selectedPos->_x = _currentPoint(0) - _dataContainer->_transX;
+            _selectedPos->_y = _currentPoint(1) - _dataContainer->_transY;
+
+            updateCylinderPosition(_selectedPos);
+        } else {
+            _dataContainer->_transX += _currentPoint(0) - (_selectedPos->_x + _dataContainer->_transX);
+            _dataContainer->_transY += _currentPoint(1) - (_selectedPos->_y + _dataContainer->_transY);
+            _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+            option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+        }
 
         redrawOverlayAnd3D();
     }
@@ -435,7 +471,6 @@ void ONF_ActionAdjustPlotPosition::redrawOverlayAnd3D()
 
 bool ONF_ActionAdjustPlotPosition::mousePressEvent(QMouseEvent *e)
 {
-    ONF_ActionAdjustPlotPositionOptions *option = (ONF_ActionAdjustPlotPositionOptions*)optionAt(0);
     _lastPos = e->pos();
     _buttonsPressed = e->buttons();
 
@@ -651,21 +686,56 @@ void ONF_ActionAdjustPlotPosition::drawOverlay(GraphicsViewInterface &view, QPai
     int y = add;
     QString txt;
 
+    bool showLog = _previousSelectedPos != _selectedPos;
+    _previousSelectedPos = _selectedPos;
+    QString logMessage = "";
+
+    if (showLog && _selectedPos == NULL)
+    {
+        logMessage.append("-------------------------------------<br>");
+        logMessage.append(tr("No selected Tree<br>"));
+
+        PS_LOG->addMessage(LogInterface::info, LogInterface::action, logMessage);
+    }
+
     if (_selectedPos != NULL)
     {
+        if (showLog)
+        {
+            logMessage.append("-------------------------------------<br>");
+            logMessage.append("Selected Tree informations:<br>");
+        }
+
+
         painter.setPen(QColor(255,255,255));
 
         txt = QString("Plot: %1 ; Tree: %2").arg(_selectedPos->_idPlot).arg(_selectedPos->_idTree);
         painter.drawText(2, y, txt);
         y += add;
+        if (showLog) {logMessage.append(QString("%1<br>").arg(txt));}
+
 
         txt = QString("DBH: %1 cm").arg(_selectedPos->_dbh);
         painter.drawText(2, y, txt);
         y += add;
+        if (showLog) {logMessage.append(QString("%1<br>").arg(txt));}
+
 
         txt = QString("H: %1 m").arg(_selectedPos->_height);
         painter.drawText(2, y, txt);
         y += add;
+        if (showLog) {logMessage.append(QString("%1<br>").arg(txt));}
+
+        txt = QString("Species: %1").arg(_selectedPos->_species);
+        painter.drawText(2, y, txt);
+        y += add;
+        if (showLog) {logMessage.append(QString("%1<br>").arg(txt));}
+
+
+        if (showLog)
+        {
+            PS_LOG->addMessage(LogInterface::info, LogInterface::action, logMessage);
+        }
     }
 
     //    if (_currentPoint(0) < std::numeric_limits<double>::max())

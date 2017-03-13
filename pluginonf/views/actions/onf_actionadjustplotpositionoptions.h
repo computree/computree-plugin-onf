@@ -47,12 +47,13 @@ public:
     double fixedHeight() const;
     double translationIncrement() const;
     bool hidePointsOutsideLimits() const;
+    bool isTreeModeSelected() const;
 
 private:
     Ui::ONF_ActionAdjustPlotPositionOptions *ui;
 
 signals:
-    void parametersChanged(double deltaX, double deltaY, bool circles, bool fixedH, double h);
+    void parametersChanged(double deltaX, double deltaY, bool circles, bool fixedH, double h, bool treeMode);
     void colorizationChanged(bool intensity, int min, int max);
 
     void askForTranslation(bool reset);
@@ -78,6 +79,7 @@ private slots:
     void on_pb_hsv_clicked();
     void on_sb_highlightedNumber_valueChanged(int arg1);
     void on_cb_hidePoints_toggled(bool checked);
+    void on_cb_treeMode_toggled(bool checked);
 };
 
 #endif // ONF_ACTIONADJUSTPLOTPOSITIONOPTIONS_H

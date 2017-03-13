@@ -57,6 +57,7 @@
 #define DEFin_refHeight "refHeight"
 #define DEFin_refID "refID"
 #define DEFin_refIDplot "refIDplot"
+#define DEFin_species "species"
 
 
 // Constructor : initialization of parameters
@@ -105,6 +106,7 @@ void ONF_StepAdjustPlotPosition::createInResultModelListProtected()
     resIn_Plot->addItemAttributeModel(DEFin_ref, DEFin_refHeight, QList<QString>() << CT_AbstractCategory::DATA_VALUE, CT_AbstractCategory::NUMBER, tr("Height"));
     resIn_Plot->addItemAttributeModel(DEFin_ref, DEFin_refID, QList<QString>() << CT_AbstractCategory::DATA_ID, CT_AbstractCategory::STRING, tr("IDtree"));
     resIn_Plot->addItemAttributeModel(DEFin_ref, DEFin_refIDplot, QList<QString>() << CT_AbstractCategory::DATA_ID, CT_AbstractCategory::STRING, tr("IDplot"));
+    resIn_Plot->addItemAttributeModel(DEFin_ref, DEFin_species, QList<QString>() << CT_AbstractCategory::DATA_VALUE, CT_AbstractCategory::STRING, tr("Species"), "", CT_InAbstractModel::C_ChooseOneIfMultiple, CT_InAbstractModel::F_IsOptional);
 
 
     CT_InResultModelGroup *resIn_Scene = createNewInResultModel(DEFin_resScene, tr("Scène"), "", true);
@@ -126,6 +128,7 @@ void ONF_StepAdjustPlotPosition::createOutResultModelListProtected()
         res->addItemAttributeModel(_outCircleModelName, _outHeightAttModelName, new CT_StdItemAttributeT<float>(CT_AbstractCategory::DATA_NUMBER), tr("Height"));
         res->addItemAttributeModel(_outCircleModelName, _outPlotIDAttModelName, new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_ID), tr("IDplot"));
         res->addItemAttributeModel(_outCircleModelName, _outTreeIDAttModelName, new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_ID), tr("IDtree"));
+        res->addItemAttributeModel(_outCircleModelName, _outSpeciesAttModelName, new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_VALUE), tr("Species"));
         res->addItemAttributeModel(_outCircleModelName, _outTransXAttModelName, new CT_StdItemAttributeT<float>(CT_AbstractCategory::DATA_NUMBER), tr("TransX"));
         res->addItemAttributeModel(_outCircleModelName, _outTransYAttModelName, new CT_StdItemAttributeT<float>(CT_AbstractCategory::DATA_NUMBER), tr("TransY"));
     }
@@ -173,6 +176,8 @@ void ONF_StepAdjustPlotPosition::compute()
             ONF_ActionAdjustPlotPosition_treePosition* treePos = new ONF_ActionAdjustPlotPosition_treePosition();
             treePos->_x = circle->getCenterX();
             treePos->_y = circle->getCenterY();
+            treePos->_originalX = circle->getCenterX();
+            treePos->_originalY = circle->getCenterY();
 
             CT_AbstractItemAttribute* att = circle->firstItemAttributeByINModelName(resOut_positions, this, DEFin_refDbh);
             if (att != NULL) {treePos->_dbh = att->toFloat(circle, NULL);}
@@ -188,6 +193,9 @@ void ONF_StepAdjustPlotPosition::compute()
 
             att = circle->firstItemAttributeByINModelName(resOut_positions, this, DEFin_refIDplot);
             if (att != NULL) {treePos->_idPlot = att->toString(circle, NULL);}
+
+            att = circle->firstItemAttributeByINModelName(resOut_positions, this, DEFin_species);
+            if (att != NULL) {treePos->_species = att->toString(circle, NULL);}
 
             _dataContainer->_positions.append(treePos);
             treePos->_grp = grp;
@@ -211,6 +219,7 @@ void ONF_StepAdjustPlotPosition::compute()
             circle->addItemAttribute(new CT_StdItemAttributeT<float>(_outHeightAttModelName.completeName(), CT_AbstractCategory::DATA_NUMBER, resOut_positions, treePos->_trueheight));
             circle->addItemAttribute(new CT_StdItemAttributeT<QString>(_outPlotIDAttModelName.completeName(), CT_AbstractCategory::DATA_ID, resOut_positions, treePos->_idPlot));
             circle->addItemAttribute(new CT_StdItemAttributeT<QString>(_outTreeIDAttModelName.completeName(), CT_AbstractCategory::DATA_ID, resOut_positions, treePos->_idTree));
+            circle->addItemAttribute(new CT_StdItemAttributeT<QString>(_outSpeciesAttModelName.completeName(), CT_AbstractCategory::DATA_VALUE, resOut_positions, treePos->_species));
             circle->addItemAttribute(new CT_StdItemAttributeT<float>(_outTransXAttModelName.completeName(), CT_AbstractCategory::DATA_NUMBER, resOut_positions, transX));
             circle->addItemAttribute(new CT_StdItemAttributeT<float>(_outTransYAttModelName.completeName(), CT_AbstractCategory::DATA_NUMBER, resOut_positions, transY));
 

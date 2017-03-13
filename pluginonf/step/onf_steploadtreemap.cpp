@@ -49,6 +49,7 @@
 #define DEFout_refHeight "refHeight"
 #define DEFout_refID "refID"
 #define DEFout_refIDplot "refIDplot"
+#define DEFout_species "species"
 
 #include <QFile>
 #include <QTextStream>
@@ -64,6 +65,7 @@ ONF_StepLoadTreeMap::ONF_StepLoadTreeMap(CT_StepInitializeData &dataInit) : CT_A
     _neededFields.append(CT_TextFileConfigurationFields("Y", QRegExp("[yY]"), false));
     _neededFields.append(CT_TextFileConfigurationFields("DBH (cm)", QRegExp("([dD][bB][hH]|[dD][iI][aA][mM]|[D])"), false));
     _neededFields.append(CT_TextFileConfigurationFields("H (m)", QRegExp("([hH]*|[hH][eE][iI][gG][hH][tT]|[hH][aA][uU][tT][eE][uU][uR])"), false));
+    _neededFields.append(CT_TextFileConfigurationFields("Species", QRegExp("([sS]*|[pP][eE][cC][iI][eE][sS]|[eéE][sS][pP][eèE][cC][eE])"), true));
 
     _refFileName = "";
     _refHeader = true;
@@ -92,6 +94,7 @@ QString ONF_StepLoadTreeMap::getStepDetailledDescription() const
               "- Y      : Coordonnée Y de l'arbre<br>"
               "- DBH    : Diamètre à 1.30 m de l'arbre<br>"
               "- H      : Hauteur de l'arbre<br>"
+              "- Species: Espèce de l'arbre<br>"
               "<br>Une fois le format de fichier paramétré, l'utilisateur indique quelle placette doit être chargée.<br>"
               "Seules les données de la placette choisie seront chargées.");
 }
@@ -130,7 +133,6 @@ void ONF_StepLoadTreeMap::createPreConfigurationDialog()
 
     configDialog->addExcludeValue("", "", tr("IDplacette à partir du nom de tour (boucles)"), bg_mode, 0);
     configDialog->addExcludeValue("", "", tr("Sélection manuelle de l'IDplacette"), bg_mode, 1);
-
 }
 
 
@@ -159,6 +161,7 @@ void ONF_StepLoadTreeMap::createOutResultModelListProtected()
     res_refRes->addItemAttributeModel(DEFout_ref, DEFout_refHeight, new CT_StdItemAttributeT<float>(CT_AbstractCategory::DATA_NUMBER), tr("Height"));
     res_refRes->addItemAttributeModel(DEFout_ref, DEFout_refID, new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_ID), tr("IDtree"));
     res_refRes->addItemAttributeModel(DEFout_ref, DEFout_refIDplot, new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_ID), tr("IDplot"));
+    res_refRes->addItemAttributeModel(DEFout_ref, DEFout_species, new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_VALUE), tr("Species"));
 }
 
 // Semi-automatic creation of step parameters DialogBox
@@ -257,12 +260,14 @@ void ONF_StepLoadTreeMap::compute()
         int colY   = _refColumns.value("Y", -1);
         int colVal = _refColumns.value("DBH (cm)", -1);
         int colHeight = _refColumns.value("H (m)", -1);
+        int colSpecies = _refColumns.value("Species", -1);
 
         if (colID < 0) {PS_LOG->addMessage(LogInterface::error, LogInterface::step, QString(tr("Champ IDtree non défini")));}
         if (colX < 0) {PS_LOG->addMessage(LogInterface::error, LogInterface::step, QString(tr("Champ X non défini")));}
         if (colY < 0) {PS_LOG->addMessage(LogInterface::error, LogInterface::step, QString(tr("Champ Y non défini")));}
         if (colVal < 0) {PS_LOG->addMessage(LogInterface::error, LogInterface::step, QString(tr("Champ DBH non défini")));}
         if (colHeight < 0) {PS_LOG->addMessage(LogInterface::error, LogInterface::step, QString(tr("Champ H non défini")));}
+        if (colSpecies < 0) {PS_LOG->addMessage(LogInterface::warning, LogInterface::step, QString(tr("Champ Espèce non défini")));}
 
 
         if (colID >=0 && colX >= 0 && colY >= 0 && colVal >= 0)
@@ -272,6 +277,8 @@ void ONF_StepLoadTreeMap::compute()
             if (colX   > colMax) {colMax = colX;}
             if (colY   > colMax) {colMax = colY;}
             if (colVal > colMax) {colMax = colVal;}
+            if (colHeight > colMax) {colMax = colHeight;}
+            if (colSpecies > colMax) {colMax = colSpecies;}
             if (colIDplot_ref > colMax) {colMax = colIDplot_ref;}
 
             for (int i = 0 ; i < _refSkip ; i++) {stream.readLine();}
@@ -307,6 +314,13 @@ void ONF_StepLoadTreeMap::compute()
                                 if (!okHeight) {height = -1;}
                             }
 
+                            QString species;
+                            if (colSpecies >= 0)
+                            {
+                                species = values.at(colSpecies);
+                            }
+
+
                             QString id = values.at(colID);
 
                             if (okX && okY && okVal)
@@ -321,6 +335,7 @@ void ONF_StepLoadTreeMap::compute()
                                 item_ref->addItemAttribute(new CT_StdItemAttributeT<float>(DEFout_refHeight, CT_AbstractCategory::DATA_NUMBER, resOut, height));
                                 item_ref->addItemAttribute(new CT_StdItemAttributeT<QString>(DEFout_refID, CT_AbstractCategory::DATA_ID, resOut, id));
                                 item_ref->addItemAttribute(new CT_StdItemAttributeT<QString>(DEFout_refIDplot, CT_AbstractCategory::DATA_ID, resOut, plot));
+                                item_ref->addItemAttribute(new CT_StdItemAttributeT<QString>(DEFout_species, CT_AbstractCategory::DATA_VALUE, resOut, species));
                             } else {
                                 PS_LOG->addMessage(LogInterface::info, LogInterface::step, QString(tr("Ligne %1 du fichier REF non valide")).arg(cpt));
                             }
