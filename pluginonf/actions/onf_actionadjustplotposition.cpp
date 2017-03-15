@@ -246,38 +246,28 @@ void ONF_ActionAdjustPlotPosition::init()
                 CT_PointIterator itP(pointCloudIndex);
                 while(itP.hasNext())
                 {
-                    qDebug() << "01";
                     const CT_Point &point = itP.next().currentPoint();
                     size_t index = itP.currentGlobalIndex();
-                    qDebug() << "02";
 
                     if (point(2) > _maxZ) {_maxZ = point(2);}
                     if (point(2) < _minZ) {_minZ = point(2);}
-                    qDebug() << "03";
 
                     if (heightAttributes != NULL)
                     {
-                        qDebug() << "04";
                         size_t localIndex = heightCloudIndex->indexOf(index);
-                        qDebug() << "05";
                         if (localIndex < heightCloudIndex->size())
                         {
-                            qDebug() << "06";
 
                             float h = heightAttributes->valueAt(localIndex);
                             if (h > _maxH) {_maxH = h;}
                             if (h < _minH) {_minH = h;}
 
-                            qDebug() << "07";
                             stream << h << "\t" << localIndex << "\t" << index << "\n";
                         } else {
-                            qDebug() << "08";
                             stream << "xxx" << "\n";
                         }
-                        qDebug() << "09";
 
                     }
-                    qDebug() << "10";
 
                     if (LASAttributes != NULL)
                     {
@@ -290,7 +280,6 @@ void ONF_ActionAdjustPlotPosition::init()
                             if (intensity < _minI) {_minI = intensity;}
                         }
                     }
-                    qDebug() << "11";
 
                 }
 
