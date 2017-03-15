@@ -30,6 +30,9 @@
 
 #include "ct_tools/model/ct_autorenamemodels.h"
 
+#ifdef USE_OPENCV
+#include "ct_itemdrawable/ct_image2d.h"
+#endif
 
 class ONF_StepAdjustPlotPosition: public CT_AbstractStep
 {
@@ -108,6 +111,8 @@ private:
     CT_AutoRenameModels     _outSpeciesAttModelName;
     CT_AutoRenameModels     _outTransXAttModelName;
     CT_AutoRenameModels     _outTransYAttModelName;
+    CT_AutoRenameModels     _outMovedAttModelName;
+    CT_AutoRenameModels     _outZPointAttModelName;
 
 
 

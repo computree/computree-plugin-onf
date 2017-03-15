@@ -34,18 +34,24 @@
 #include <QPainter>
 #include <QDebug>
 
+#include <QFile>
+#include <QTextStream>
+
 #include "math.h"
 
 
 ONF_ActionAdjustPlotPosition_dataContainer::ONF_ActionAdjustPlotPosition_dataContainer()
 {
     _transX = 0;
-    _transY = 0;    
+    _transY = 0;
+
+#ifdef USE_OPENCV
+    _dtm = NULL;
+#endif
 }
 
 ONF_ActionAdjustPlotPosition::ONF_ActionAdjustPlotPosition(ONF_ActionAdjustPlotPosition_dataContainer *dataContainer) : CT_AbstractActionForGraphicsView()
 {
-
     _dataContainer = dataContainer;
     _drawManager = new ONF_AdjustPlotPositionCylinderDrawManager(tr("Tree"));
     _selectedPos = NULL;
@@ -55,10 +61,12 @@ ONF_ActionAdjustPlotPosition::ONF_ActionAdjustPlotPosition(ONF_ActionAdjustPlotP
     _cylinderColor = QColor(0, 100, 255);
     _highlightedCylindersColor = QColor(0, 255, 255);
     _selectedCylinderColor = QColor(255, 0, 255);
+    _movedCylindersColor = QColor(0, 255, 100);
 
     _drawManager->setColor(_cylinderColor);
     _drawManager->setSelectionColor(_selectedCylinderColor);
     _drawManager->setHighlightColor(_highlightedCylindersColor);
+    _drawManager->setMovedColor(_movedCylindersColor);
     _currentPoint(0) = std::numeric_limits<double>::max();
     _currentPoint(1) = std::numeric_limits<double>::max();
     _currentPoint(2) = std::numeric_limits<double>::max();
@@ -66,6 +74,10 @@ ONF_ActionAdjustPlotPosition::ONF_ActionAdjustPlotPosition(ONF_ActionAdjustPlotP
     _minZ = std::numeric_limits<double>::max();
     _maxZ = -std::numeric_limits<double>::max();
     _rangeZ = 1;
+    _minH = std::numeric_limits<double>::max();
+    _maxH = -std::numeric_limits<double>::max();
+    _rangeH = 1;
+
     _minI = std::numeric_limits<double>::max();
     _maxI = -std::numeric_limits<double>::max();
     _rangeI = 1;
@@ -106,6 +118,7 @@ ONF_ActionAdjustPlotPosition::ONF_ActionAdjustPlotPosition(ONF_ActionAdjustPlotP
 
     _currentZGradient = _gradientHot;
     _currentIGradient = _gradientGrey;
+
 }
 
 ONF_ActionAdjustPlotPosition::~ONF_ActionAdjustPlotPosition()
@@ -143,7 +156,6 @@ QString ONF_ActionAdjustPlotPosition::type() const
 
 void ONF_ActionAdjustPlotPosition::init()
 {
-
     CT_AbstractActionForGraphicsView::init();
 
     if(nOptions() == 0)
@@ -169,6 +181,18 @@ void ONF_ActionAdjustPlotPosition::init()
             ONF_ActionAdjustPlotPosition_treePosition* pos = _dataContainer->_positions.at(i);
 
             Eigen::Vector3d center(pos->_x, pos->_y, pos->_height / 2.0);
+
+#ifdef USE_OPENCV
+            if (_dataContainer->_dtm != NULL)
+            {
+                float zbase = _dataContainer->_dtm->valueAtCoords(pos->_x + _dataContainer->_transX, pos->_y + _dataContainer->_transY);
+                if (zbase != _dataContainer->_dtm->NA())
+                {
+                    center(2) += zbase;
+                }
+            }
+#endif
+
             Eigen::Vector3d dir(0, 0, 1);
             CT_Cylinder* cyl = new CT_Cylinder(NULL, NULL, new CT_CylinderData(center,
                                                                                dir,
@@ -188,14 +212,20 @@ void ONF_ActionAdjustPlotPosition::init()
         _minI = std::numeric_limits<double>::max();
         _maxI = -std::numeric_limits<double>::max();
 
+        _minH = std::numeric_limits<double>::max();
+        _maxH = -std::numeric_limits<double>::max();
+
+
         for (int i = 0 ; i < _dataContainer->_scenes.size() ; i++)
         {
             CT_AbstractItemDrawableWithPointCloud* scene = (CT_AbstractItemDrawableWithPointCloud*) _dataContainer->_scenes.at(i);
             const CT_AbstractPointCloudIndex *pointCloudIndex = scene->getPointCloudIndex();
 
             CT_StdLASPointsAttributesContainer* LASAttributes = _dataContainer->_LASattributes.at(i);
+            CT_PointsAttributesScalarTemplated<float>* heightAttributes = _dataContainer->_heightAttributes.at(i);
             CT_AbstractPointAttributesScalar* attributeIntensity = NULL;
             CT_AbstractPointCloudIndex* pointCloudIndexLAS = NULL;
+            CT_AbstractPointCloudIndex* heightCloudIndex = NULL;
 
             if (LASAttributes != NULL)
             {
@@ -203,28 +233,71 @@ void ONF_ActionAdjustPlotPosition::init()
                 pointCloudIndexLAS = (CT_AbstractPointCloudIndex*) attributeIntensity->getPointCloudIndex();
             }
 
-            CT_PointIterator itP(pointCloudIndex);
-            while(itP.hasNext())
+            if (heightAttributes != NULL)
             {
-                const CT_Point &point = itP.next().currentPoint();
-                size_t index = itP.currentGlobalIndex();
+                heightCloudIndex = (CT_AbstractPointCloudIndex*) heightAttributes->getPointCloudIndex();
+            }
 
-                if (point(2) > _maxZ) {_maxZ = point(2);}
-                if (point(2) < _minZ) {_minZ = point(2);}
+            QFile file("tutu.txt");
+            if(file.open(QFile::WriteOnly))
+            {
+                QTextStream stream(&file);
 
-                if (LASAttributes != NULL)
+                CT_PointIterator itP(pointCloudIndex);
+                while(itP.hasNext())
                 {
-                    size_t localIndex = pointCloudIndexLAS->indexOf(index);
+                    qDebug() << "01";
+                    const CT_Point &point = itP.next().currentPoint();
+                    size_t index = itP.currentGlobalIndex();
+                    qDebug() << "02";
 
-                    if (localIndex < pointCloudIndexLAS->size())
+                    if (point(2) > _maxZ) {_maxZ = point(2);}
+                    if (point(2) < _minZ) {_minZ = point(2);}
+                    qDebug() << "03";
+
+                    if (heightAttributes != NULL)
                     {
-                        double intensity = attributeIntensity->dValueAt(localIndex);
-                        if (intensity > _maxI) {_maxI = intensity;}
-                        if (intensity < _minI) {_minI = intensity;}
+                        qDebug() << "04";
+                        size_t localIndex = heightCloudIndex->indexOf(index);
+                        qDebug() << "05";
+                        if (localIndex < heightCloudIndex->size())
+                        {
+                            qDebug() << "06";
+
+                            float h = heightAttributes->valueAt(localIndex);
+                            if (h > _maxH) {_maxH = h;}
+                            if (h < _minH) {_minH = h;}
+
+                            qDebug() << "07";
+                            stream << h << "\t" << localIndex << "\t" << index << "\n";
+                        } else {
+                            qDebug() << "08";
+                            stream << "xxx" << "\n";
+                        }
+                        qDebug() << "09";
+
                     }
+                    qDebug() << "10";
+
+                    if (LASAttributes != NULL)
+                    {
+                        size_t localIndex = pointCloudIndexLAS->indexOf(index);
+
+                        if (localIndex < pointCloudIndexLAS->size())
+                        {
+                            double intensity = attributeIntensity->dValueAt(localIndex);
+                            if (intensity > _maxI) {_maxI = intensity;}
+                            if (intensity < _minI) {_minI = intensity;}
+                        }
+                    }
+                    qDebug() << "11";
+
                 }
+
+                file.close();
             }
             _rangeZ = _maxZ - _minZ;
+            _rangeH = _maxH - _minH;
             _rangeI = _maxI - _minI;
 
             document()->addItemDrawable(*scene);
@@ -246,12 +319,45 @@ void ONF_ActionAdjustPlotPosition::init()
 
         changeHighlightedNumber(6);
     }
+
 }
+
+void ONF_ActionAdjustPlotPosition::updateAllCylindersPosition()
+{
+    for (int i = 0 ; i < _dataContainer->_positions.size() ; i++)
+    {
+        updateCylinderPosition(_dataContainer->_positions.at(i));
+        _dataContainer->_positions.at(i)->_zPoint = -9999;
+    }
+}
+
 
 void ONF_ActionAdjustPlotPosition::updateCylinderPosition(ONF_ActionAdjustPlotPosition_treePosition* pos)
 {
     Eigen::Vector3d newCenter(pos->_x, pos->_y, pos->_height / 2.0);
-    ((CT_CylinderData*) ((CT_Cylinder*)pos->_cyl)->getPointerData())->setCenter(newCenter);
+
+#ifdef USE_OPENCV
+    if (_dataContainer->_dtm != NULL)
+    {
+        float zbase = _dataContainer->_dtm->valueAtCoords(pos->_x + _dataContainer->_transX, pos->_y + _dataContainer->_transY);
+        if (zbase != _dataContainer->_dtm->NA())
+        {
+            newCenter(2) += zbase;
+        }
+    }
+#endif
+
+    CT_CylinderData* cylData = ((CT_CylinderData*) ((CT_Cylinder*)pos->_cyl)->getPointerData());
+    cylData->setCenter(newCenter);
+
+    if (pos->_x == pos->_originalX && pos->_y == pos->_originalY)
+    {
+        pos->_moved = false;
+        cylData->setCircleError(0);
+    } else {
+        pos->_moved = true;
+        cylData->setCircleError(1);
+    }
 }
 
 void ONF_ActionAdjustPlotPosition::update(double x, double y, bool circles, bool fixedH, double h, bool treeMode)
@@ -264,6 +370,7 @@ void ONF_ActionAdjustPlotPosition::update(double x, double y, bool circles, bool
         {
             _selectedPos->_x += x;
             _selectedPos->_y += y;
+            _selectedPos->_zPoint  = -9999;
             updateCylinderPosition(_selectedPos);
         }
     } else {
@@ -271,6 +378,7 @@ void ONF_ActionAdjustPlotPosition::update(double x, double y, bool circles, bool
         _dataContainer->_transY += y;
         _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
         option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+        updateAllCylindersPosition();
     }
 
     _drawManager->setParameters(circles, fixedH, h);
@@ -301,6 +409,7 @@ void ONF_ActionAdjustPlotPosition::applyTranslation(bool reset)
         {
             _dataContainer->_positions.at(i)->_x = _dataContainer->_positions.at(i)->_originalX;
             _dataContainer->_positions.at(i)->_y = _dataContainer->_positions.at(i)->_originalY;
+            _dataContainer->_positions.at(i)->_zPoint = -9999;
 
             updateCylinderPosition(_dataContainer->_positions.at(i));
         }
@@ -316,6 +425,8 @@ void ONF_ActionAdjustPlotPosition::applyTranslation(bool reset)
         {
             _selectedPos->_x = _currentPoint(0) - _dataContainer->_transX;
             _selectedPos->_y = _currentPoint(1) - _dataContainer->_transY;
+            _selectedPos->_zPoint  = _currentPoint(2);
+
 
             updateCylinderPosition(_selectedPos);
         } else {
@@ -323,6 +434,7 @@ void ONF_ActionAdjustPlotPosition::applyTranslation(bool reset)
             _dataContainer->_transY += _currentPoint(1) - (_selectedPos->_y + _dataContainer->_transY);
             _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
             option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+            updateAllCylindersPosition();
         }
 
         redrawOverlayAnd3D();
@@ -398,8 +510,10 @@ void ONF_ActionAdjustPlotPosition::colorizePoints(ONF_ColorLinearInterpolator &g
         const CT_AbstractPointCloudIndex *pointCloudIndex = scene->getPointCloudIndex();
 
         CT_StdLASPointsAttributesContainer* LASAttributes = _dataContainer->_LASattributes.at(i);
+        CT_PointsAttributesScalarTemplated<float>* heightAttributes = _dataContainer->_heightAttributes.at(i);
         CT_AbstractPointAttributesScalar* attributeIntensity = NULL;
         CT_AbstractPointCloudIndex* pointCloudIndexLAS = NULL;
+        CT_AbstractPointCloudIndex* heightCloudIndex = NULL;
 
         if (_colorizeByIntensity && LASAttributes != NULL)
         {
@@ -407,21 +521,44 @@ void ONF_ActionAdjustPlotPosition::colorizePoints(ONF_ColorLinearInterpolator &g
             pointCloudIndexLAS = (CT_AbstractPointCloudIndex*) attributeIntensity->getPointCloudIndex();
         }
 
+        if (heightAttributes != NULL)
+        {
+            heightCloudIndex = (CT_AbstractPointCloudIndex*) heightAttributes->getPointCloudIndex();
+        }
+
+
+        double minZ = _minZ + (double)min * _rangeZ / 100.0;
+        double maxZ = _minZ + (double)max * _rangeZ / 100.0;
+
+        if (heightAttributes != NULL)
+        {
+            minZ = _minH + (double)min * _rangeH / 100.0;
+            maxZ = _minH + (double)max * _rangeH / 100.0;
+        }
+
+        if (minZ > maxZ) {minZ = maxZ;}
+        double rangeZ = maxZ - minZ;
+
         CT_PointIterator itP(pointCloudIndex);
         while(itP.hasNext())
         {
             const CT_Point &point = itP.next().currentPoint();
             size_t index = itP.currentGlobalIndex();
 
-            double minZ = _minZ + (double)min * _rangeZ / 100.0;
-            double maxZ = _minZ + (double)max * _rangeZ / 100.0;
-            if (minZ > maxZ) {minZ = maxZ;}
-            double rangeZ = maxZ - minZ;
-
             double ratio = (point(2) - minZ) / rangeZ;
 
             if (point(2) < minZ) {ratio = 0;}
             if (point(2) > maxZ) {ratio = 1;}
+
+            if (heightAttributes != NULL)
+            {
+                size_t localIndex = heightCloudIndex->indexOf(index);
+                float h = heightAttributes->valueAt(localIndex);
+                ratio = (h - minZ) / rangeZ;
+                if (h < minZ) {ratio = 0;}
+                if (h > maxZ) {ratio = 1;}
+            }
+
 
             if (_colorizeByIntensity && LASAttributes != NULL)
             {
@@ -504,6 +641,8 @@ bool ONF_ActionAdjustPlotPosition::mouseMoveEvent(QMouseEvent *e)
                 _dataContainer->_transY += y - yl;
                 _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
                 option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+                updateAllCylindersPosition();
+
                 redrawOverlayAnd3D();
 
                 return true;
@@ -534,6 +673,7 @@ bool ONF_ActionAdjustPlotPosition::mouseReleaseEvent(QMouseEvent *e)
             _dataContainer->_transY += y - yl;
             _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
             option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+            updateAllCylindersPosition();
             redrawOverlayAnd3D();
         }
         _movePlot = false;
@@ -613,38 +753,90 @@ bool ONF_ActionAdjustPlotPosition::keyPressEvent(QKeyEvent *e)
 
     if((e->key() == Qt::Key_Up) && !e->isAutoRepeat())
     {
-        _dataContainer->_transY += option->translationIncrement();
-        _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
-        option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
-        redrawOverlayAnd3D();
-        return true;
+        if (option->isTreeModeSelected())
+        {
+            if (_selectedPos != NULL)
+            {
+                _selectedPos->_y += option->translationIncrement();
+                _selectedPos->_zPoint  = -9999;
+                updateCylinderPosition(_selectedPos);
+                redrawOverlayAnd3D();
+                return true;
+            }
+        } else {
+            _dataContainer->_transY += option->translationIncrement();
+            _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+            option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+            updateAllCylindersPosition();
+            redrawOverlayAnd3D();
+            return true;
+        }
     }
 
     if((e->key() == Qt::Key_Down) && !e->isAutoRepeat())
     {
-        _dataContainer->_transY -= option->translationIncrement();
-        _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
-        option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
-        redrawOverlayAnd3D();
-        return true;
+        if (option->isTreeModeSelected())
+        {
+            if (_selectedPos != NULL)
+            {
+                _selectedPos->_y -= option->translationIncrement();
+                _selectedPos->_zPoint  = -9999;
+                updateCylinderPosition(_selectedPos);
+                redrawOverlayAnd3D();
+                return true;
+            }
+        } else {
+            _dataContainer->_transY -= option->translationIncrement();
+            _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+            option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+            updateAllCylindersPosition();
+            redrawOverlayAnd3D();
+            return true;
+        }
     }
 
     if((e->key() == Qt::Key_Left) && !e->isAutoRepeat())
     {
-        _dataContainer->_transX -= option->translationIncrement();
-        _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
-        option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
-        redrawOverlayAnd3D();
-        return true;
+        if (option->isTreeModeSelected())
+        {
+            if (_selectedPos != NULL)
+            {
+                _selectedPos->_x -= option->translationIncrement();
+                _selectedPos->_zPoint  = -9999;
+                updateCylinderPosition(_selectedPos);
+                redrawOverlayAnd3D();
+                return true;
+            }
+        } else {
+            _dataContainer->_transX -= option->translationIncrement();
+            _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+            option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+            updateAllCylindersPosition();
+            redrawOverlayAnd3D();
+            return true;
+        }
     }
 
     if((e->key() == Qt::Key_Right) && !e->isAutoRepeat())
     {
-        _dataContainer->_transX += option->translationIncrement();
-        _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
-        option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
-        redrawOverlayAnd3D();
-        return true;
+        if (option->isTreeModeSelected())
+        {
+            if (_selectedPos != NULL)
+            {
+                _selectedPos->_x += option->translationIncrement();
+                _selectedPos->_zPoint  = -9999;
+                updateCylinderPosition(_selectedPos);
+                redrawOverlayAnd3D();
+                return true;
+            }
+        } else {
+            _dataContainer->_transX += option->translationIncrement();
+            _drawManager->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+            option->setTranslation(_dataContainer->_transX, _dataContainer->_transY);
+            updateAllCylindersPosition();
+            redrawOverlayAnd3D();
+            return true;
+        }
     }
 
     return false;
@@ -789,6 +981,19 @@ ONF_ActionAdjustPlotPosition_treePosition* ONF_ActionAdjustPlotPosition::getPosi
         double x = treePos->_x + _dataContainer->_transX;
         double y = treePos->_y + _dataContainer->_transY;
 
+        float zbase = 0;
+#ifdef USE_OPENCV
+        if (_dataContainer->_dtm != NULL)
+        {
+            zbase = _dataContainer->_dtm->valueAtCoords(x, y);
+
+            if (zbase == _dataContainer->_dtm->NA())
+            {
+                zbase = 0;
+            }
+        }
+#endif
+
         double treeHeight = treePos->_height;
 
         if (option->isFixedHeight())
@@ -796,7 +1001,8 @@ ONF_ActionAdjustPlotPosition_treePosition* ONF_ActionAdjustPlotPosition::getPosi
             treeHeight = option->fixedHeight();
         }
 
-        for (double h = 0 ; h < treeHeight ; h += 0.1)
+        treeHeight += zbase;
+        for (double h = zbase ; h < treeHeight ; h += 0.1)
         {
             Eigen::Vector3d point(x, y, h);
 

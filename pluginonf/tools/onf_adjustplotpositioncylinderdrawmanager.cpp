@@ -48,6 +48,9 @@ void ONF_AdjustPlotPositionCylinderDrawManager::draw(GraphicsViewInterface &view
     {
         painter.setColor(_selectionColor);
 
+    } else if (item.getCircleError() != 0)
+    {
+        painter.setColor(_movedColor);
     } else if (_highlightedCylinders.contains(cyl))
     {
         painter.setColor(_highlightColor);
@@ -98,6 +101,11 @@ void ONF_AdjustPlotPositionCylinderDrawManager::setSelectionColor(QColor color)
 void ONF_AdjustPlotPositionCylinderDrawManager::setHighlightColor(QColor color)
 {
     _highlightColor = color;
+}
+
+void ONF_AdjustPlotPositionCylinderDrawManager::setMovedColor(QColor color)
+{
+    _movedColor = color;
 }
 
 void ONF_AdjustPlotPositionCylinderDrawManager::setselectedCylinder(CT_Cylinder *selectedCylinder)

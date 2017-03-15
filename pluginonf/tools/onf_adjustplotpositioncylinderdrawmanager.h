@@ -17,6 +17,7 @@ public:
     void setColor(QColor color);
     void setSelectionColor(QColor color);
     void setHighlightColor(QColor color);
+    void setMovedColor(QColor color);
     void setselectedCylinder(CT_Cylinder* selectedCylinder);
     void setHighlightedCylinder(QList<CT_Cylinder*> selectedCylinder);
 
@@ -26,6 +27,7 @@ private:
     QColor  _color;
     QColor  _selectionColor;
     QColor  _highlightColor;
+    QColor  _movedColor;
     bool _circles;
     bool _fixedH;
     double _h;

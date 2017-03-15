@@ -31,12 +31,16 @@
 #include "ct_itemdrawable/ct_cylinder.h"
 #include "ct_itemdrawable/ct_standarditemgroup.h"
 #include "ct_itemdrawable/abstract/ct_abstractitemdrawablewithpointcloud.h"
+#include "ct_itemdrawable/ct_pointsattributesscalartemplated.h"
 #include "ctliblas/itemdrawable/las/ct_stdlaspointsattributescontainer.h"
 #include "ct_result/abstract/ct_abstractresult.h"
 
 #include "tools/onf_adjustplotpositioncylinderdrawmanager.h"
 #include "tools/onf_colorlinearinterpolator.h"
 
+#ifdef USE_OPENCV
+#include "ct_itemdrawable/ct_image2d.h"
+#endif
 
 #include <QRect>
 
@@ -49,6 +53,7 @@ public:
         _y = 0;
         _originalX = 0;
         _originalY = 0;
+        _zPoint = 0;
 
         _dbh = 0;
         _height = 0;
@@ -58,6 +63,7 @@ public:
         _cyl = NULL;
         _grp = NULL;
         _species = "";
+        _moved = false;
     }
 
     ~ONF_ActionAdjustPlotPosition_treePosition()
@@ -70,6 +76,8 @@ public:
     double                  _y;
     double                  _originalX;
     double                  _originalY;
+    double                  _zPoint;
+    bool                    _moved;
 
     float                   _dbh;
     float                   _height;
@@ -85,18 +93,26 @@ class ONF_ActionAdjustPlotPosition_dataContainer
 {
 public:
     ONF_ActionAdjustPlotPosition_dataContainer();
+
     ~ONF_ActionAdjustPlotPosition_dataContainer()
     {
         _positions.clear();
         _scenes.clear();
         _LASattributes.clear();
+        _heightAttributes.clear();
+        _dtm = NULL;
     }
 
     QList<ONF_ActionAdjustPlotPosition_treePosition*>   _positions;
     QList<CT_AbstractItemDrawable*>                     _scenes;
     QList<CT_StdLASPointsAttributesContainer*>          _LASattributes;
+    QList<CT_PointsAttributesScalarTemplated<float>*>   _heightAttributes;
     double                                              _transX;
     double                                              _transY;
+#ifdef USE_OPENCV
+    CT_Image2D<float>*                                  _dtm;
+#endif
+
 };
 
 class ONF_ActionAdjustPlotPosition : public CT_AbstractActionForGraphicsView
@@ -154,10 +170,14 @@ private:
     QColor                                     _cylinderColor;
     QColor                                     _selectedCylinderColor;
     QColor                                     _highlightedCylindersColor;
+    QColor                                     _movedCylindersColor;
 
     double _minZ;
     double _maxZ;
     double _rangeZ;
+    double _minH;
+    double _maxH;
+    double _rangeH;
     double _minI;
     double _maxI;
     double _rangeI;
@@ -176,6 +196,7 @@ private:
     ONF_ActionAdjustPlotPosition_treePosition *getPositionFromDirection(Eigen::Vector3d &origin, Eigen::Vector3d &direction);
     bool getCoordsForMousePosition(QPoint p, double &x, double &y);
     void updateCylinderPosition(ONF_ActionAdjustPlotPosition_treePosition *pos);
+    void updateAllCylindersPosition();
 
 
     static bool lessThan(CT_AbstractItemDrawable* i1, CT_AbstractItemDrawable* i2)

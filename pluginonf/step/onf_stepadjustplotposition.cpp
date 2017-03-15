@@ -27,6 +27,7 @@
 #include "ct_itemdrawable/ct_scene.h"
 #include "ct_itemdrawable/ct_circle2d.h"
 #include "ctliblas/itemdrawable/las/ct_stdlaspointsattributescontainer.h"
+#include "ct_itemdrawable/ct_pointsattributesscalartemplated.h"
 
 #include "ct_result/ct_resultgroup.h"
 #include "ct_result/model/inModel/ct_inresultmodelgroup.h"
@@ -39,6 +40,10 @@
 #include "ct_itemdrawable/tools/iterator/ct_groupiterator.h"
 #include "ct_iterator/ct_pointiterator.h"
 
+#ifdef USE_OPENCV
+#include "ct_itemdrawable/ct_image2d.h"
+#endif
+
 #include <QMessageBox>
 #include <limits>
 #include <QDebug>
@@ -48,6 +53,11 @@
 #define DEFin_grpSc "grpSc"
 #define DEFin_scene "scene"
 #define DEFin_lasAtt "lasAtt"
+#define DEFin_heightAtt "heightAtt"
+
+#define DEFin_resDTM "resdtm"
+#define DEFin_DTMGrp "dtmgrp"
+#define DEFin_DTM "dtm"
 
 #define DEFin_resPlot "resPlot"
 
@@ -114,6 +124,17 @@ void ONF_StepAdjustPlotPosition::createInResultModelListProtected()
     resIn_Scene->addGroupModel("", DEFin_grpSc, CT_AbstractItemGroup::staticGetType(), tr("Groupe"));
     resIn_Scene->addItemModel(DEFin_grpSc, DEFin_scene, CT_AbstractItemDrawableWithPointCloud::staticGetType(), tr("Scène"));
     resIn_Scene->addItemModel(DEFin_grpSc, DEFin_lasAtt, CT_StdLASPointsAttributesContainer::staticGetType(), tr("Attributs LAS"), "", CT_InAbstractItemModel::C_ChooseOneIfMultiple, CT_InAbstractItemModel::F_IsOptional);
+    resIn_Scene->addItemModel(DEFin_grpSc, DEFin_heightAtt, CT_PointsAttributesScalarTemplated<float>::staticGetType(), tr("Attribut Hauteur"), "", CT_InAbstractItemModel::C_ChooseOneIfMultiple, CT_InAbstractItemModel::F_IsOptional);
+
+
+#ifdef USE_OPENCV
+    CT_InResultModelGroup *resultDTM = createNewInResultModel(DEFin_resDTM, tr("MNT"), "", true);
+    resultDTM->setZeroOrMoreRootGroup();
+    resultDTM->addGroupModel("", DEFin_DTMGrp, CT_AbstractItemGroup::staticGetType(), tr("Group"));
+    resultDTM->addItemModel(DEFin_DTMGrp, DEFin_DTM, CT_Image2D<float>::staticGetType(), tr("MNT"));
+    resultDTM->setMinimumNumberOfPossibilityThatMustBeSelectedForOneTurn(0);
+#endif
+
 }
 
 // Creation and affiliation of OUT models
@@ -131,6 +152,8 @@ void ONF_StepAdjustPlotPosition::createOutResultModelListProtected()
         res->addItemAttributeModel(_outCircleModelName, _outSpeciesAttModelName, new CT_StdItemAttributeT<QString>(CT_AbstractCategory::DATA_VALUE), tr("Species"));
         res->addItemAttributeModel(_outCircleModelName, _outTransXAttModelName, new CT_StdItemAttributeT<float>(CT_AbstractCategory::DATA_NUMBER), tr("TransX"));
         res->addItemAttributeModel(_outCircleModelName, _outTransYAttModelName, new CT_StdItemAttributeT<float>(CT_AbstractCategory::DATA_NUMBER), tr("TransY"));
+        res->addItemAttributeModel(_outCircleModelName, _outMovedAttModelName, new CT_StdItemAttributeT<bool>(CT_AbstractCategory::DATA_VALUE), tr("Moved"));
+        res->addItemAttributeModel(_outCircleModelName, _outZPointAttModelName, new CT_StdItemAttributeT<float>(CT_AbstractCategory::DATA_NUMBER), tr("zPointClicked"));
     }
 }
 
@@ -143,6 +166,18 @@ void ONF_StepAdjustPlotPosition::compute()
 {
     _dataContainer = new ONF_ActionAdjustPlotPosition_dataContainer();
 
+#ifdef USE_OPENCV
+    if (getInputResults().size() > 2)
+    {
+        CT_ResultGroup* resin_DTM = getInputResults().at(2);
+        CT_ResultItemIterator it(resin_DTM, this, DEFin_DTM);
+        if (it.hasNext())
+        {
+            _dataContainer->_dtm = (CT_Image2D<float>*) it.next();
+        }
+    }
+#endif
+
     _m_status = 0;
     QList<CT_ResultGroup*> inResultList = getInputResults();
     CT_ResultGroup* resIn_scene = inResultList.at(1);
@@ -154,12 +189,14 @@ void ONF_StepAdjustPlotPosition::compute()
 
         CT_AbstractItemDrawableWithPointCloud* sc = (CT_AbstractItemDrawableWithPointCloud*) grp->firstItemByINModelName(this, DEFin_scene);
         CT_StdLASPointsAttributesContainer* lasAtt = (CT_StdLASPointsAttributesContainer*)grp->firstItemByINModelName(this, DEFin_lasAtt);
+        CT_PointsAttributesScalarTemplated<float>* heightAtt = (CT_PointsAttributesScalarTemplated<float>*)grp->firstItemByINModelName(this, DEFin_heightAtt);
 
         if (sc != NULL)
         {            
             _dataContainer->_scenes.append(sc);
             _dataContainer->_LASattributes.append(lasAtt);
-        }                
+            _dataContainer->_heightAttributes.append(heightAtt);
+        }
     }
 
     QList<CT_ResultGroup*> outResultList = getOutResultList();
@@ -222,6 +259,8 @@ void ONF_StepAdjustPlotPosition::compute()
             circle->addItemAttribute(new CT_StdItemAttributeT<QString>(_outSpeciesAttModelName.completeName(), CT_AbstractCategory::DATA_VALUE, resOut_positions, treePos->_species));
             circle->addItemAttribute(new CT_StdItemAttributeT<float>(_outTransXAttModelName.completeName(), CT_AbstractCategory::DATA_NUMBER, resOut_positions, transX));
             circle->addItemAttribute(new CT_StdItemAttributeT<float>(_outTransYAttModelName.completeName(), CT_AbstractCategory::DATA_NUMBER, resOut_positions, transY));
+            circle->addItemAttribute(new CT_StdItemAttributeT<bool>(_outMovedAttModelName.completeName(), CT_AbstractCategory::DATA_VALUE, resOut_positions, treePos->_moved));
+            circle->addItemAttribute(new CT_StdItemAttributeT<float>(_outZPointAttModelName.completeName(), CT_AbstractCategory::DATA_NUMBER, resOut_positions, treePos->_zPoint));
 
             treePos->_grp->addItemDrawable(circle);
         }
