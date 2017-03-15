@@ -258,13 +258,10 @@ void ONF_ActionAdjustPlotPosition::init()
                         if (localIndex < heightCloudIndex->size())
                         {
 
-                            float h = heightAttributes->valueAt(localIndex);
+                            float h = heightAttributes->dValueAt(localIndex);
                             if (h > _maxH) {_maxH = h;}
                             if (h < _minH) {_minH = h;}
 
-                            stream << h << "\t" << localIndex << "\t" << index << "\n";
-                        } else {
-                            stream << "xxx" << "\n";
                         }
 
                     }
