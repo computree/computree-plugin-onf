@@ -50,7 +50,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../../../computreev3/pluginbase/resource.qrc">
+         <iconset resource="../../resource.qrc">
           <normaloff>:/icons/upper.png</normaloff>:/icons/upper.png</iconset>
         </property>
        </widget>
@@ -61,7 +61,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../../../computreev3/pluginbase/resource.qrc">
+         <iconset resource="../../resource.qrc">
           <normaloff>:/icons/lower.png</normaloff>:/icons/lower.png</iconset>
         </property>
        </widget>
@@ -116,19 +116,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pb_reset">
-        <property name="maximumSize">
-         <size>
-          <width>30</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>RAZ</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QDoubleSpinBox" name="dsb_dx">
         <property name="readOnly">
          <bool>true</bool>
@@ -170,6 +157,19 @@
         </property>
         <property name="maximum">
          <double>999.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pb_reset">
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>RAZ</string>
         </property>
        </widget>
       </item>
@@ -316,7 +316,7 @@
          <number>100</number>
         </property>
         <property name="value">
-         <number>99</number>
+         <number>100</number>
         </property>
         <property name="tracking">
          <bool>false</bool>
@@ -335,7 +335,7 @@
       <item>
        <widget class="QCheckBox" name="cb_hidePoints">
         <property name="text">
-         <string>Hide points outside limits</string>
+         <string>Hide pts</string>
         </property>
         <property name="checked">
          <bool>true</bool>
@@ -380,16 +380,30 @@
        </widget>
       </item>
       <item>
+       <widget class="QCheckBox" name="cb_last">
+        <property name="text">
+         <string>Last pts</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line_7">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QCheckBox" name="cb_circles">
         <property name="text">
-         <string>Cercles</string>
+         <string>Circles</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QCheckBox" name="cb_fixedH">
         <property name="text">
-         <string>Hfixe</string>
+         <string>Hfixed</string>
         </property>
        </widget>
       </item>
@@ -400,6 +414,39 @@
         </property>
         <property name="value">
          <double>30.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line_6">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Hmax</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSlider" name="hs_hmax">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="maximum">
+         <number>100</number>
+        </property>
+        <property name="value">
+         <number>100</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
        </widget>
       </item>
@@ -422,7 +469,6 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../../../computreev3/pluginbase/resource.qrc"/>
   <include location="../../resource.qrc"/>
  </resources>
  <connections/>

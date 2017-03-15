@@ -498,12 +498,16 @@ void ONF_ActionAdjustPlotPosition::colorizePoints(ONF_ColorLinearInterpolator &g
         CT_StdLASPointsAttributesContainer* LASAttributes = _dataContainer->_LASattributes.at(i);
         CT_PointsAttributesScalarTemplated<float>* heightAttributes = _dataContainer->_heightAttributes.at(i);
         CT_AbstractPointAttributesScalar* attributeIntensity = NULL;
+        CT_AbstractPointAttributesScalar* attributeR = NULL;
+        CT_AbstractPointAttributesScalar* attributeN = NULL;
         CT_AbstractPointCloudIndex* pointCloudIndexLAS = NULL;
         CT_AbstractPointCloudIndex* heightCloudIndex = NULL;
 
-        if (_colorizeByIntensity && LASAttributes != NULL)
+        if (LASAttributes != NULL)
         {
             attributeIntensity = (CT_AbstractPointAttributesScalar*)LASAttributes->pointsAttributesAt(CT_LasDefine::Intensity);
+            attributeR = (CT_AbstractPointAttributesScalar*)LASAttributes->pointsAttributesAt(CT_LasDefine::Return_Number);
+            attributeN = (CT_AbstractPointAttributesScalar*)LASAttributes->pointsAttributesAt(CT_LasDefine::Number_of_Returns);
             pointCloudIndexLAS = (CT_AbstractPointCloudIndex*) attributeIntensity->getPointCloudIndex();
         }
 
@@ -536,38 +540,63 @@ void ONF_ActionAdjustPlotPosition::colorizePoints(ONF_ColorLinearInterpolator &g
             if (point(2) < minZ) {ratio = 0;}
             if (point(2) > maxZ) {ratio = 1;}
 
+            float h = 0;
             if (heightAttributes != NULL)
             {
                 size_t localIndex = heightCloudIndex->indexOf(index);
-                float h = heightAttributes->valueAt(localIndex);
+                h = heightAttributes->valueAt(localIndex);
                 ratio = (h - minZ) / rangeZ;
                 if (h < minZ) {ratio = 0;}
                 if (h > maxZ) {ratio = 1;}
             }
 
+            CT_Color color(gradient.intermediateColor(ratio));
 
-            if (_colorizeByIntensity && LASAttributes != NULL)
+            if (LASAttributes != NULL)
             {
                 size_t localIndex = pointCloudIndexLAS->indexOf(index);
                 if (localIndex < pointCloudIndexLAS->size())
                 {
-                    double minI = _minI + (double)min * _rangeI / 100.0;
-                    double maxI = _minI + (double)max * _rangeI / 100.0;
-                    if (minI > maxI) {minI = maxI;}
-                    double rangeI = maxI - minI;
+                    if (_colorizeByIntensity && attributeIntensity != NULL)
+                    {
+                        double minI = _minI + (double)min * _rangeI / 100.0;
+                        double maxI = _minI + (double)max * _rangeI / 100.0;
+                        if (minI > maxI) {minI = maxI;}
+                        double rangeI = maxI - minI;
 
-                    double intensity = attributeIntensity->dValueAt(localIndex);
-                    ratio = (intensity - minI) / rangeI;
+                        double intensity = attributeIntensity->dValueAt(localIndex);
+                        ratio = (intensity - minI) / rangeI;
 
-                    if (intensity < minI) {ratio = 0;}
-                    if (intensity > maxI) {ratio = 1;}
+                        if (intensity < minI) {ratio = 0;}
+                        if (intensity > maxI) {ratio = 1;}
+                    }
                 }
+
+                if (option->lastOnly() && attributeN != NULL && attributeR != NULL)
+                {
+                    double Natt = attributeN->dValueAt(localIndex);
+                    double Ratt = attributeR->dValueAt(localIndex);
+
+                    if (Natt == 1 || Natt != Ratt)
+                    {
+                        color.set(color.r(), color.g(), color.b(), 0);
+                    }
+                }
+
             }
 
 
-            CT_Color color(gradient.intermediateColor(ratio));
-
             if (option->hidePointsOutsideLimits() && (ratio >= 1 || ratio <= 0))
+            {
+                color.set(color.r(), color.g(), color.b(), 0);
+            }
+
+            float hmax = minZ + rangeZ * (option->hMaxValue() / 100.0);
+
+            if (heightAttributes != NULL && h > hmax)
+            {
+                color.set(color.r(), color.g(), color.b(), 0);
+            } else if (heightAttributes == NULL && point(2) > hmax)
             {
                 color.set(color.r(), color.g(), color.b(), 0);
             }

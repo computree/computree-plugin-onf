@@ -72,6 +72,16 @@ bool ONF_ActionAdjustPlotPositionOptions::isTreeModeSelected() const
     return ui->cb_treeMode->isChecked();
 }
 
+double ONF_ActionAdjustPlotPositionOptions::hMaxValue() const
+{
+    return ui->hs_hmax->value();
+}
+
+bool ONF_ActionAdjustPlotPositionOptions::lastOnly() const
+{
+    return ui->cb_last->isChecked();
+}
+
 void ONF_ActionAdjustPlotPositionOptions::on_pb_up_clicked()
 {
     emit parametersChanged(0, ui->dsb_increment->value(),
@@ -211,4 +221,16 @@ void ONF_ActionAdjustPlotPositionOptions::on_cb_treeMode_toggled(bool checked)
                            ui->dsb_height->value(),
                            ui->cb_treeMode->isChecked());
 
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_hs_hmax_valueChanged(int value)
+{
+    Q_UNUSED(value);
+    emit colorizationChanged(ui->cb_intensity->isChecked(), ui->hs_min->value(), ui->hs_max->value());
+}
+
+void ONF_ActionAdjustPlotPositionOptions::on_cb_last_toggled(bool checked)
+{
+    Q_UNUSED(checked);
+    emit colorizationChanged(ui->cb_intensity->isChecked(), ui->hs_min->value(), ui->hs_max->value());
 }

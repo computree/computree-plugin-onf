@@ -48,6 +48,8 @@ public:
     double translationIncrement() const;
     bool hidePointsOutsideLimits() const;
     bool isTreeModeSelected() const;
+    double hMaxValue() const;
+    bool lastOnly() const;
 
 private:
     Ui::ONF_ActionAdjustPlotPositionOptions *ui;
@@ -80,6 +82,8 @@ private slots:
     void on_sb_highlightedNumber_valueChanged(int arg1);
     void on_cb_hidePoints_toggled(bool checked);
     void on_cb_treeMode_toggled(bool checked);
+    void on_hs_hmax_valueChanged(int value);
+    void on_cb_last_toggled(bool checked);
 };
 
 #endif // ONF_ACTIONADJUSTPLOTPOSITIONOPTIONS_H
