@@ -156,7 +156,10 @@ HEADERS += \
     step/onf_stepcomputeboundaryv2.h \
     step/onf_steppolygonfrommask.h \
     step/onf_stepcomputepointheightattribute.h \
-    step/onf_stepcreatecolorcomposite.h
+    step/onf_stepcreatecolorcomposite.h \
+    step/onf_stepcreatepointgrid.h \
+    step/onf_stepcreateseedgrid.h \
+    step/onf_stepsegmentfromseedgrid.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -296,7 +299,10 @@ SOURCES += \
     step/onf_stepcomputeboundaryv2.cpp \
     step/onf_steppolygonfrommask.cpp \
     step/onf_stepcomputepointheightattribute.cpp \
-    step/onf_stepcreatecolorcomposite.cpp
+    step/onf_stepcreatecolorcomposite.cpp \
+    step/onf_stepcreatepointgrid.cpp \
+    step/onf_stepcreateseedgrid.cpp \
+    step/onf_stepsegmentfromseedgrid.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts

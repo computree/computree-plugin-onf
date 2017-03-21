@@ -121,7 +121,9 @@
 #include "step/onf_stepcomputecumulativesummary.h"
 #include "step/onf_stepcomputecumulativenrtable.h"
 #include "step/onf_stepadjustplotposition.h"
-
+#include "step/onf_stepcreatepointgrid.h"
+#include "step/onf_stepcreateseedgrid.h"
+#include "step/onf_stepsegmentfromseedgrid.h"
 
 #include "filter/onf_filterbyreturntype.h"
 #include "filter/onf_filterremoveupperoutliers.h"
@@ -236,8 +238,11 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewGeometricalShapesStep<ONF_StepSelectGroupsByReferenceHeight>(CT_StepsMenu::LP_Filter);
     addNewWorkflowStep<ONF_StepSetAffiliationIDFromReference>("Affiliations");
     addNewGeometricalShapesStep<ONF_StepComputeDBHFromHeightAllometry>(CT_StepsMenu::LP_Stems);
+    addNewGeometricalShapesStep<ONF_StepCreateSeedGrid>(CT_StepsMenu::LP_Stems);
+    addNewGeometricalShapesStep<ONF_StepSegmentFromSeedGrid>(CT_StepsMenu::LP_Stems);
 
     addNewPointsStep<ONF_StepComputeTIN>(CT_StepsMenu::LP_Create);
+    addNewPointsStep<ONF_StepCreatePointGrid>(CT_StepsMenu::LP_Create);
     addNewMetricStep<ONF_StepComputeCumulativeSummary>(CT_StepsMenu::LP_Analyze);
     addNewMetricStep<ONF_StepComputeCumulativeNRTable>(CT_StepsMenu::LP_Analyze);
 
