@@ -31,6 +31,8 @@
 // Inclusion of auto-indexation system
 #include "ct_tools/model/ct_autorenamemodels.h"
 #include "ct_tools/ct_monitoredqthread.h"
+#include "ct_itemdrawable/ct_grid3d_sparse.h"
+#include "ct_itemdrawable/ct_grid3d_points.h"
 
 #include <QMutex>
 
@@ -122,7 +124,7 @@ private:
     CT_AutoRenameModels _outSegmentationGrid_ModelName;
     CT_AutoRenameModels _outTopologyGrid_ModelName;
 
-    bool findParentCell(double maxDist, bool up, int baseSeed);
+    void findParentCell(CT_Grid3D_Sparse<int>* segmentationGrid, CT_Grid3D_Sparse<size_t>* topologyGrid, size_t cellIndex, bool growthUp);
 };
 
 #endif // ONF_STEPSEGMENTFROMSEEDGRID_H

@@ -40,8 +40,6 @@
 
 // Inclusion of used ItemDrawable classes
 #include "ct_itemdrawable/ct_scene.h"
-#include "ct_itemdrawable/ct_grid3d_sparse.h"
-#include "ct_itemdrawable/ct_grid3d_points.h"
 
 #include "ct_view/ct_stepconfigurabledialog.h"
 
@@ -108,6 +106,8 @@ void ONF_StepSegmentFromSeedGrid::createPostConfigurationDialog()
 
 void ONF_StepSegmentFromSeedGrid::compute()
 {
+    size_t NAval = std::numeric_limits<size_t>::max();
+
     CT_ResultGroup* outResult = getOutResultList().first();
 
     CT_ResultGroupIterator itOut(outResult, this, DEF_SearchInGroup);
@@ -122,7 +122,7 @@ void ONF_StepSegmentFromSeedGrid::compute()
         {
             // Declaring the output grids
             CT_Grid3D_Sparse<int>* outSegmentationGrid = new CT_Grid3D_Sparse<int>(_outSegmentationGrid_ModelName.completeName(), outResult, pointGrid->minX(), pointGrid->minY(), pointGrid->minZ(), pointGrid->xdim(), pointGrid->ydim(), pointGrid->zdim(), pointGrid->resolution(), -1, -1);
-            CT_Grid3D_Sparse<size_t>* outTopologyGrid = new CT_Grid3D_Sparse<size_t>(_outTopologyGrid_ModelName.completeName(), outResult, pointGrid->minX(), pointGrid->minY(), pointGrid->minZ(), pointGrid->xdim(), pointGrid->ydim(), pointGrid->zdim(), pointGrid->resolution(), -1, -1);
+            CT_Grid3D_Sparse<size_t>* outTopologyGrid = new CT_Grid3D_Sparse<size_t>(_outTopologyGrid_ModelName.completeName(), outResult, pointGrid->minX(), pointGrid->minY(), pointGrid->minZ(), pointGrid->xdim(), pointGrid->ydim(), pointGrid->zdim(), pointGrid->resolution(), NAval, NAval);
 
             QList<size_t> list;
             seedGrid->getIndicesWithData(list);
@@ -133,9 +133,53 @@ void ONF_StepSegmentFromSeedGrid::compute()
                 outSegmentationGrid->setValueAtIndex(index, seedGrid->valueAtIndex(index));
             }
 
+            QList<size_t> filledCells;
+            pointGrid->getIndicesWithPoints(filledCells);
+            for (int i = 0 ; i < filledCells.size() ; i++)
+            {
+                if (outTopologyGrid->valueAtIndex(filledCells.at(i)) == NAval)
+                {
+                    findParentCell(outSegmentationGrid, outTopologyGrid, filledCells.at(i), true);
+                }
+            }
+
+            for (int i = filledCells.size() - 1 ; i >= 0 ; i--)
+            {
+                if (outTopologyGrid->valueAtIndex(filledCells.at(i)) == NAval)
+                {
+                    findParentCell(outSegmentationGrid, outTopologyGrid, filledCells.at(i), false);
+                }
+            }
+
+//            QMultiMap<double, size_t> sortedFilledCells;
+//            for (int i = 0 ; i < filledCells.size() ; i++)
+//            {
+//                size_t index = filledCells.at(i);
+//                Eigen::Vector3d center;
+//                outSegmentationGrid->getCellCenterCoordinates(index, center);
+//                sortedFilledCells.insert(center(0), index);
+//            }
 
 
+//            QMapIterator<double, size_t> itCell(sortedFilledCells);
+//            while (itCell.hasNext())
+//            {
+//                size_t index = itCell.next().value();
+//                if (outTopologyGrid->valueAtIndex(index) == -1)
+//                {
+//                    findParentCell(outSegmentationGrid, outTopologyGrid, index, true);
+//                }
+//            }
 
+//            itCell.toBack();
+//            while (itCell.hasPrevious())
+//            {
+//                size_t index = itCell.previous().value();
+//                if (outTopologyGrid->valueAtIndex(index) == -1)
+//                {
+//                    findParentCell(outSegmentationGrid, outTopologyGrid, index, false);
+//                }
+//            }
 
 
             outSegmentationGrid->computeMinMax();
@@ -148,9 +192,79 @@ void ONF_StepSegmentFromSeedGrid::compute()
     setProgress(99);
 }
 
-bool ONF_StepSegmentFromSeedGrid::findParentCell(double maxDist, bool up, int baseSeed)
-{
-    return true;
+void ONF_StepSegmentFromSeedGrid::findParentCell(CT_Grid3D_Sparse<int>* segmentationGrid, CT_Grid3D_Sparse<size_t>* topologyGrid, size_t cellIndex, bool growthUp)
+{    
+    Eigen::Vector3d baseCenter;
+    if (!segmentationGrid->getCellCenterCoordinates(cellIndex, baseCenter)) {return;}
+    int baseLabel = segmentationGrid->valueAtIndex(cellIndex);
+
+    size_t xxbase, yybase, zzbase;
+    segmentationGrid->indexToGrid(cellIndex, xxbase, yybase, zzbase);
+
+
+    size_t ncells = std::ceil(_maxDist / segmentationGrid->resolution());
+    size_t firstZ = 0;
+    size_t lastZ  = 0;
+
+    size_t firstX = 0;
+    size_t lastX  = segmentationGrid->xdim() - 1;
+    size_t firstY  = 0;
+    size_t lastY  = segmentationGrid->ydim() - 1;
+
+    if (xxbase >= ncells) {firstX = xxbase - ncells;}
+    if ((xxbase + ncells) < segmentationGrid->xdim()) {lastX = xxbase + ncells;}
+
+    if (yybase >= ncells) {firstY = yybase - ncells;}
+    if ((yybase + ncells) < segmentationGrid->xdim()) {lastY = yybase + ncells;}
+
+    if (growthUp)
+    {
+        if (zzbase >= 1) {lastZ = zzbase - 1;}
+        if (zzbase >= ncells) {firstZ = zzbase - ncells;}
+    } else {
+        if (zzbase < (segmentationGrid->zdim() - 1)) {firstZ = zzbase + 1;} else {firstZ = segmentationGrid->zdim() - 1;}
+        if ((zzbase + ncells) < segmentationGrid->zdim()) {lastZ = zzbase + ncells;} else {lastZ = segmentationGrid->zdim() - 1;}
+    }
+
+    double smallestDist = _maxDist + 0.00001;
+    for (size_t zz = firstZ ; zz < lastZ ; zz++)
+    {
+        for (size_t xx = firstX ; xx <= lastX ; xx++)
+        {
+            for (size_t yy = firstY ; yy <= lastY ; yy++)
+            {
+                size_t currentIndex;
+                if (segmentationGrid->index(xx, yy, zz, currentIndex))
+                {
+                    Eigen::Vector3d currentCenter;
+                    if (segmentationGrid->getCellCenterCoordinates(currentIndex, currentCenter))
+                    {
+                        double dist = sqrt(pow(currentCenter(0) - baseCenter(0), 2) + pow(currentCenter(1) - baseCenter(1), 2) + pow(currentCenter(2) - baseCenter(2), 2));
+
+                        if (dist < smallestDist)
+                        {
+                            int currentLabel = segmentationGrid->valueAtIndex(currentIndex);
+                            if (currentLabel >= 0)
+                            {
+                                if (baseLabel >= 0)
+                                {
+                                    if (baseLabel == currentLabel && growthUp)
+                                    {
+                                        smallestDist = dist;
+                                        topologyGrid->setValueAtIndex(cellIndex, currentIndex);
+                                    }
+                                } else {
+                                    smallestDist = dist;
+                                    topologyGrid->setValueAtIndex(cellIndex, currentIndex);
+                                    segmentationGrid->setValueAtIndex(cellIndex, currentLabel);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 }
 
