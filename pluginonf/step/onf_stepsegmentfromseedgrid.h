@@ -116,10 +116,13 @@ protected:
 
 private:
 
+    double          _maxDist;
+
     // Declaration of autoRenames Variables (groups or items addes to In models copies)
     CT_AutoRenameModels _outSegmentationGrid_ModelName;
     CT_AutoRenameModels _outTopologyGrid_ModelName;
 
+    bool findParentCell(double maxDist, bool up, int baseSeed);
 };
 
 #endif // ONF_STEPSEGMENTFROMSEEDGRID_H

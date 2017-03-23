@@ -56,6 +56,7 @@
 
 ONF_StepSegmentFromSeedGrid::ONF_StepSegmentFromSeedGrid(CT_StepInitializeData &dataInit) : CT_AbstractStep(dataInit)
 {
+    _maxDist = 2.0;
 }
 
 QString ONF_StepSegmentFromSeedGrid::getStepDescription() const
@@ -100,7 +101,9 @@ void ONF_StepSegmentFromSeedGrid::createOutResultModelListProtected()
 
 void ONF_StepSegmentFromSeedGrid::createPostConfigurationDialog()
 {
-//    CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
+    CT_StepConfigurableDialog *configDialog = newStandardPostConfigurationDialog();
+
+    configDialog->addDouble(tr("Distance de recherche maximale"), "m", 0, 1e+10, 2, _maxDist);
 }
 
 void ONF_StepSegmentFromSeedGrid::compute()
@@ -134,6 +137,7 @@ void ONF_StepSegmentFromSeedGrid::compute()
 
 
 
+
             outSegmentationGrid->computeMinMax();
             outTopologyGrid->computeMinMax();
             group->addItemDrawable(outSegmentationGrid);
@@ -144,4 +148,9 @@ void ONF_StepSegmentFromSeedGrid::compute()
     setProgress(99);
 }
 
+bool ONF_StepSegmentFromSeedGrid::findParentCell(double maxDist, bool up, int baseSeed)
+{
+    return true;
+
+}
 
