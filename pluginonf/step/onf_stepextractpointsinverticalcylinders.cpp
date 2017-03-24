@@ -320,6 +320,8 @@ void ONF_StepExtractPointsInVerticalCylinders::extractCylindersWithoutTranslatio
         while (itCl.hasNext())
         {
             itCl.next();
+            CylData* dataCyl = itCl.key();
+            QString idTree = dataCyl->_id;
 
             // creation du groupe
             CT_StandardItemGroup *outGroup = new CT_StandardItemGroup(_outSceneGroupModelName.completeName(), res);
@@ -327,6 +329,7 @@ void ONF_StepExtractPointsInVerticalCylinders::extractCylindersWithoutTranslatio
             // creation et ajout de la scene
             CT_Scene *outScene = new CT_Scene(_outSceneModelName.completeName(), res, PS_REPOSITORY->registerPointCloudIndex(itCl.value()));
             outScene->updateBoundingBox();
+            outScene->setDisplayableName(idTree);
 
             outScene->addItemAttribute(new CT_StdItemAttributeT<QString>(_outAttIDModelName.completeName(), CT_AbstractCategory::DATA_VALUE, res, plotName));
 
