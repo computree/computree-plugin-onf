@@ -52,6 +52,7 @@
 #include "step/onf_steppolygonfrommask.h"
 #include "step/onf_stepcomputepointheightattribute.h"
 #include "step/onf_stepcreatecolorcomposite.h"
+#include "step/onf_stepmodifyvoxelsegmentation.h"
 #endif
 
 #include "step/onf_stepchangeclusterthickness02.h"
@@ -277,6 +278,7 @@ bool ONF_StepPluginManager::loadGenericsStep()
     addNewRastersStep<ONF_StepComputeAttributeMapFromClusters>("");
 
     addNewGeometricalShapesStep<ONF_StepMergeClustersFromPositions02>(CT_StepsMenu::LP_Crowns);
+    addNewGeometricalShapesStep<ONF_StepModifyVoxelSegmentation>(CT_StepsMenu::LP_Crowns);
     addNewGeometricalShapesStep<ONF_StepManualInventory>(CT_StepsMenu::LP_Stems);
     addNewPointsStep<ONF_StepVoxelClusterization>(CT_StepsMenu::LP_Clusters);
     addNewShapes2DStep<ONF_StepComputeBoundaryV2>(CT_StepsMenu::LP_Footprints);

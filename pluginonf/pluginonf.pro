@@ -159,7 +159,10 @@ HEADERS += \
     step/onf_stepcreatecolorcomposite.h \
     step/onf_stepcreatepointgrid.h \
     step/onf_stepcreateseedgrid.h \
-    step/onf_stepsegmentfromseedgrid.h
+    step/onf_stepsegmentfromseedgrid.h \
+    step/onf_stepmodifyvoxelsegmentation.h \
+    actions/onf_actionmodifyvoxelsegmentation.h \
+    views/actions/onf_actionmodifyvoxelsegmentationoptions.h
 
 SOURCES += \
     onf_pluginentry.cpp \
@@ -302,7 +305,10 @@ SOURCES += \
     step/onf_stepcreatecolorcomposite.cpp \
     step/onf_stepcreatepointgrid.cpp \
     step/onf_stepcreateseedgrid.cpp \
-    step/onf_stepsegmentfromseedgrid.cpp
+    step/onf_stepsegmentfromseedgrid.cpp \
+    step/onf_stepmodifyvoxelsegmentation.cpp \
+    actions/onf_actionmodifyvoxelsegmentation.cpp \
+    views/actions/onf_actionmodifyvoxelsegmentationoptions.cpp
 
 TRANSLATIONS += languages/pluginonf_en.ts \
                 languages/pluginonf_fr.ts
@@ -326,7 +332,8 @@ FORMS += \
     views/actions/onf_actionvalidateinventoryoptions.ui \
     views/actions/onf_actionaggregateitemsoptions.ui \
     views/actions/onf_actionaggregateitemsoptionsselectiondialog.ui \
-    views/actions/onf_actionadjustplotpositionoptions.ui
+    views/actions/onf_actionadjustplotpositionoptions.ui \
+    views/actions/onf_actionmodifyvoxelsegmentationoptions.ui
 
 RESOURCES += \
     resource.qrc
