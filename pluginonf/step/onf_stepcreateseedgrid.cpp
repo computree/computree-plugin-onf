@@ -97,10 +97,18 @@ void ONF_StepCreateSeedGrid::createInResultModelListProtected()
 {
     if (_mode == 0 || _mode == 2)
     {
-        CT_InResultModelGroup* resultModelItem = createNewInResultModel(DEF_SearchInResultIt, tr("Items(s)"), "", true);
+        QString label1 = tr("Items");
+        QString label2 = tr("Item");
+        if (_mode == 2)
+        {
+            label1 = tr("Positions 2D");
+            label2 = tr("Position 2D");
+        }
+
+        CT_InResultModelGroup* resultModelItem = createNewInResultModel(DEF_SearchInResultIt, label1, "", true);
         resultModelItem->setZeroOrMoreRootGroup();
         resultModelItem->addGroupModel("", DEF_SearchInGroupIt);
-        resultModelItem->addItemModel(DEF_SearchInGroupIt, DEF_SearchInItem, CT_AbstractSingularItemDrawable::staticGetType(), tr("Item"));
+        resultModelItem->addItemModel(DEF_SearchInGroupIt, DEF_SearchInItem, CT_AbstractSingularItemDrawable::staticGetType(), label2);
     }
 
     if (_mode == 1)

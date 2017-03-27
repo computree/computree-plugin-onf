@@ -118,11 +118,13 @@ protected:
 
 private:
 
-    double          _maxDist;
+    double          _maxDistZ;
+    double          _maxDistXY;
 
     // Declaration of autoRenames Variables (groups or items addes to In models copies)
     CT_AutoRenameModels _outSegmentationGrid_ModelName;
     CT_AutoRenameModels _outTopologyGrid_ModelName;
+    CT_AutoRenameModels _outReverseTopologyGrid_ModelName;
 
     void findParentCell(CT_Grid3D_Sparse<int>* segmentationGrid, CT_Grid3D_Sparse<size_t>* topologyGrid, size_t cellIndex, bool growthUp);
 };
